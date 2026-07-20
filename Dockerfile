@@ -26,6 +26,12 @@ RUN npm ci
 
 COPY . .
 
+RUN node --check scripts/launcher-server.js \
+    && bash -n scripts/showdown-ai.sh \
+    && bash -n scripts/render-start.sh \
+    && bash -n scripts/sync-bss-teams.sh \
+    && bash -n scripts/sync-all-generations-teams.sh
+
 # Render does not guarantee that Git submodules are initialized for a Docker
 # build, so fetch foul-play explicitly and pin the revision already used by this
 # repository.
