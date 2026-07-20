@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: pokemon-showdown-ai
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: ACCESS_TOKEN
+        sync: false
+      - key: DEFAULT_PLAYER_NAME
+        value: Dolphin23
+      - key: FOUL_PLAY_USERNAME
+        value: FoulPlayAI
+      - key: FOUL_PLAY_FORMAT
+        value: gen9nationaldexallgenerationsbss
+      - key: FOUL_PLAY_SMOGON_STATS_FORMAT
+        value: gen9nationaldexubers
+      - key: ALL_GENERATIONS_TEAM_LIMIT
+        value: "48"
+      - key: FOUL_PLAY_SEARCH_TIME_MS
+        value: "300"
+      - key: FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS
+        value: "600"
+      - key: FOUL_PLAY_SEARCH_PARALLELISM
+        value: "1"
+      - key: FOUL_PLAY_TEAM_PREVIEW_SEARCH_PARALLELISM
+        value: "1"
+      - key: FOUL_PLAY_SEARCH_THREADS
+        value: "1"
+      - key: FOUL_PLAY_RUN_COUNT
+        value: "1000000"
+      - key: FOUL_PLAY_LOG_LEVEL
+        value: INFO

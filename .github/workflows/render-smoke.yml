@@ -1,0 +1,91 @@
+name: Render smoke test
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - render.yaml
+      - config/custom-formats.ts
+      - config/all-generations-fallback/**
+      - scripts/**
+      - .github/workflows/render-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Render image with captured output
+        shell: bash
+        run: |
+          set +e
+          docker build --progress=plain --tag pokemon-showdown-ai:smoke . > /tmp/docker-build.log 2>&1
+          build_status=$?
+          echo "$build_status" > /tmp/docker-build.status
+          tail -n 250 /tmp/docker-build.log
+          exit 0
+      - name: Upload Docker build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-diagnostics
+          path: |
+            /tmp/docker-build.log
+            /tmp/docker-build.status
+      - name: Require Docker image to build
+        run: test "$(cat /tmp/docker-build.status)" = 0
+      - name: Start container
+        run: |
+          docker run --detach --name showdown-ai \
+            -p 10000:10000 \
+            -e PORT=10000 \
+            -e ACCESS_TOKEN=test-access-token \
+            -e DEFAULT_PLAYER_NAME=Dolphin23 \
+            pokemon-showdown-ai:smoke
+      - name: Wait for health endpoint
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:10000/health | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-ai | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Verify access gate and authenticated launcher
+        run: |
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:10000/)" = 401
+          curl --fail --silent \
+            --cookie-jar /tmp/showdown-ai.cookies \
+            --data-urlencode 'key=test-access-token' \
+            http://127.0.0.1:10000/access \
+            --output /dev/null
+          curl --fail --silent \
+            --cookie /tmp/showdown-ai.cookies \
+            http://127.0.0.1:10000/ \
+            | grep -q 'National Dex All Generations BSS'
+      - name: Capture container diagnostics
+        if: always()
+        shell: bash
+        run: |
+          docker ps -a > /tmp/container-ps.txt 2>&1 || true
+          docker inspect showdown-ai > /tmp/container-inspect.json 2>&1 || true
+          docker logs --timestamps showdown-ai > /tmp/container.log 2>&1 || true
+          cat /tmp/container-ps.txt
+          tail -n 250 /tmp/container.log || true
+      - name: Upload container diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-diagnostics
+          path: |
+            /tmp/container-ps.txt
+            /tmp/container-inspect.json
+            /tmp/container.log

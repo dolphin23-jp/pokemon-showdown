@@ -1,0 +1,59 @@
+Calyrex-Shadow @ Choice Specs
+Ability: As One (Spectrier)
+Tera Type: Ghost
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Astral Barrage
+- Psyshock
+- Draining Kiss
+- Trick
+
+Marshadow @ Life Orb
+Ability: Technician
+Tera Type: Fighting
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Spectral Thief
+- Close Combat
+- Shadow Sneak
+- Bulk Up
+
+Flutter Mane @ Booster Energy
+Ability: Protosynthesis
+Tera Type: Fairy
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Moonblast
+- Shadow Ball
+- Mystical Fire
+- Calm Mind
+
+Lunala @ Power Herb
+Ability: Shadow Shield
+Tera Type: Fairy
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Moongeist Beam
+- Meteor Beam
+- Moonblast
+- Roost
+
+Gengar @ Gengarite
+Ability: Cursed Body
+Tera Type: Ghost
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Shadow Ball
+- Sludge Wave
+- Focus Blast
+- Destiny Bond
+
+Annihilape @ Leftovers
+Ability: Defiant
+Tera Type: Water
+EVs: 252 HP / 64 Atk / 192 SpD
+Careful Nature
+- Rage Fist
+- Drain Punch
+- Bulk Up
+- Taunt

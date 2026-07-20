@@ -11,8 +11,12 @@ BOT_LOG="$RUNTIME_DIR/foul-play.log"
 LAUNCHER_LOG="$RUNTIME_DIR/launcher.log"
 MODE_FILE="$RUNTIME_DIR/battle-format"
 BSS_TEAM_DIR="$RUNTIME_DIR/bss-teams/gen9bssregi-curated"
-PORT=8000
-LAUNCHER_PORT=3000
+BSS_METADATA="$ROOT_DIR/config/bss-team-sources.tsv"
+ALL_GENERATIONS_TEAM_DIR="$RUNTIME_DIR/bss-teams/gen9nationaldexallgenerationsbss"
+ALL_GENERATIONS_METADATA="$RUNTIME_DIR/bss-teams/gen9nationaldexallgenerationsbss.tsv"
+SHOWDOWN_PORT="${SHOWDOWN_PORT:-8000}"
+LAUNCHER_PORT="${LAUNCHER_PORT:-3000}"
+ALL_GENERATIONS_FORMAT="gen9nationaldexallgenerationsbss"
 
 mkdir -p "$RUNTIME_DIR"
 
@@ -55,7 +59,7 @@ normalized_bot_username() {
     fi
 
     local seed base digest
-    seed="${GITHUB_USER:-${GITHUB_ACTOR:-${CODESPACE_NAME:-localcodespace}}}"
+    seed="${GITHUB_USER:-${GITHUB_ACTOR:-${RENDER_SERVICE_NAME:-${CODESPACE_NAME:-localserver}}}}"
     base="$(printf '%s' "$seed" | tr -cd '[:alnum:]' | tr '[:upper:]' '[:lower:]' | cut -c1-10)"
     [[ -n "$base" ]] || base="local"
     digest="$(printf '%s' "$seed" | sha256sum | cut -c1-6)"
@@ -69,17 +73,44 @@ effective_format() {
     fi
     if [[ -f "$MODE_FILE" ]]; then
         case "$(cat "$MODE_FILE")" in
-            gen9bssregi|gen9randombattle)
+            "$ALL_GENERATIONS_FORMAT"|gen9bssregi|gen9randombattle)
                 cat "$MODE_FILE"
                 return
                 ;;
         esac
     fi
-    printf 'gen9bssregi'
+    printf '%s' "$ALL_GENERATIONS_FORMAT"
+}
+
+format_label() {
+    case "$1" in
+        "$ALL_GENERATIONS_FORMAT") printf 'All Generations BSS' ;;
+        gen9bssregi) printf 'BSS Regulation I' ;;
+        gen9randombattle) printf 'Gen 9 Random Battle' ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+team_dir_for_format() {
+    case "$1" in
+        "$ALL_GENERATIONS_FORMAT") printf '%s' "$ALL_GENERATIONS_TEAM_DIR" ;;
+        gen9bssregi) printf '%s' "$BSS_TEAM_DIR" ;;
+        *) printf '' ;;
+    esac
+}
+
+metadata_for_format() {
+    case "$1" in
+        "$ALL_GENERATIONS_FORMAT") printf '%s' "$ALL_GENERATIONS_METADATA" ;;
+        gen9bssregi) printf '%s' "$BSS_METADATA" ;;
+        *) printf '' ;;
+    esac
 }
 
 client_url() {
-    if [[ -n "${CODESPACE_NAME:-}" ]]; then
+    if [[ -n "${RENDER_EXTERNAL_URL:-}" ]]; then
+        printf '%s/client.html' "${RENDER_EXTERNAL_URL%/}"
+    elif [[ -n "${CODESPACE_NAME:-}" ]]; then
         printf 'https://%s-%s.app.github.dev/client.html' "$CODESPACE_NAME" "$LAUNCHER_PORT"
     else
         printf 'http://localhost:%s/client.html' "$LAUNCHER_PORT"
@@ -89,8 +120,8 @@ client_url() {
 keep_showdown_port_private() {
     [[ -n "${CODESPACE_NAME:-}" ]] || return 0
     command -v gh >/dev/null 2>&1 || return 0
-    gh codespace ports visibility "$PORT:private" -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
-    echo "Codespaces port $PORT is kept private; browser traffic is proxied through port $LAUNCHER_PORT."
+    gh codespace ports visibility "$SHOWDOWN_PORT:private" -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
+    echo "Codespaces port $SHOWDOWN_PORT is kept private; browser traffic is proxied through port $LAUNCHER_PORT."
 }
 
 start_showdown() {
@@ -102,12 +133,18 @@ start_showdown() {
     cd "$ROOT_DIR"
     bash scripts/ensure-codespaces-config.sh
 
+    local -a command
+    command=(node pokemon-showdown start --no-security)
+    if [[ -d "$ROOT_DIR/dist" ]]; then
+        command+=(--skip-build)
+    fi
+
     echo "Starting Pokemon Showdown..."
-    nohup node pokemon-showdown start --no-security >"$SHOWDOWN_LOG" 2>&1 &
+    nohup "${command[@]}" >"$SHOWDOWN_LOG" 2>&1 &
     echo $! > "$SHOWDOWN_PID_FILE"
 
     for _ in {1..180}; do
-        if curl -fs -o /dev/null "http://127.0.0.1:$PORT/" 2>/dev/null; then
+        if curl -fs -o /dev/null "http://127.0.0.1:$SHOWDOWN_PORT/" 2>/dev/null; then
             return 0
         fi
         if ! pid_is_running "$SHOWDOWN_PID_FILE"; then
@@ -118,16 +155,18 @@ start_showdown() {
         sleep 1
     done
 
-    echo "Pokemon Showdown did not become ready on port $PORT." >&2
+    echo "Pokemon Showdown did not become ready on port $SHOWDOWN_PORT." >&2
     tail -n 100 "$SHOWDOWN_LOG" >&2 || true
     return 1
 }
 
-prepare_bss_teams() {
+prepare_teams() {
     local format="$1"
-    [[ "$format" == "gen9bssregi" ]] || return 0
     cd "$ROOT_DIR"
-    bash scripts/sync-bss-teams.sh
+    case "$format" in
+        "$ALL_GENERATIONS_FORMAT") bash scripts/sync-all-generations-teams.sh ;;
+        gen9bssregi) bash scripts/sync-bss-teams.sh ;;
+    esac
 }
 
 start_bot() {
@@ -141,17 +180,18 @@ start_bot() {
         return 1
     fi
 
-    local bot_username format search_time
+    local bot_username format search_time team_dir
     bot_username="$(normalized_bot_username)"
     format="$(effective_format)"
     search_time="${FOUL_PLAY_SEARCH_TIME_MS:-500}"
 
-    prepare_bss_teams "$format"
+    prepare_teams "$format"
+    team_dir="$(team_dir_for_format "$format")"
 
     local -a args
     args=(
         "$ROOT_DIR/.venv/bin/python" run.py
-        --websocket-uri "ws://127.0.0.1:$PORT/showdown/websocket"
+        --websocket-uri "ws://127.0.0.1:$SHOWDOWN_PORT/showdown/websocket"
         --ps-username "$bot_username"
         --bot-mode accept_challenge
         --pokemon-format "$format"
@@ -162,14 +202,24 @@ start_bot() {
         --log-level "${FOUL_PLAY_LOG_LEVEL:-INFO}"
     )
 
-    if [[ "$format" == "gen9bssregi" ]]; then
+    if [[ "$format" == *bss* ]]; then
+        if [[ -z "$team_dir" ]]; then
+            echo "No team library is configured for BSS format $format." >&2
+            return 1
+        fi
         args+=(
-            --team-name "${FOUL_PLAY_TEAM_NAME:-$BSS_TEAM_DIR}"
+            --team-name "${FOUL_PLAY_TEAM_NAME:-$team_dir}"
             --team-preview-search-time-ms "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS:-1000}"
             --team-preview-search-parallelism "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_PARALLELISM:-1}"
         )
     elif [[ -n "${FOUL_PLAY_TEAM_NAME:-}" ]]; then
         args+=(--team-name "$FOUL_PLAY_TEAM_NAME")
+    fi
+
+    if [[ "$format" == "$ALL_GENERATIONS_FORMAT" ]]; then
+        args+=(--smogon-stats-format "${FOUL_PLAY_SMOGON_STATS_FORMAT:-gen9nationaldexubers}")
+    elif [[ -n "${FOUL_PLAY_SMOGON_STATS_FORMAT:-}" ]]; then
+        args+=(--smogon-stats-format "$FOUL_PLAY_SMOGON_STATS_FORMAT")
     fi
 
     if [[ -n "${FOUL_PLAY_PASSWORD:-}" ]]; then
@@ -184,7 +234,7 @@ start_bot() {
 
     if ! pid_is_running "$BOT_PID_FILE"; then
         echo "foul-play exited during startup." >&2
-        tail -n 160 "$BOT_LOG" >&2 || true
+        tail -n 180 "$BOT_LOG" >&2 || true
         return 1
     fi
 }
@@ -195,20 +245,22 @@ start_launcher() {
         return
     fi
 
-    local bot_username format
+    local bot_username format team_dir metadata
     bot_username="$(normalized_bot_username)"
     format="$(effective_format)"
+    team_dir="$(team_dir_for_format "$format")"
+    metadata="$(metadata_for_format "$format")"
 
     echo "Starting launcher and same-origin Showdown client proxy..."
     cd "$ROOT_DIR"
     nohup env \
         "BOT_USERNAME=$bot_username" \
         "BOT_FORMAT=$format" \
-        "BOT_TEAM_NAME=${FOUL_PLAY_TEAM_NAME:-$BSS_TEAM_DIR}" \
-        "TEAM_LIBRARY_DIR=$BSS_TEAM_DIR" \
-        "TEAM_MANIFEST=$ROOT_DIR/config/bss-team-sources.tsv" \
+        "BOT_FORMAT_LABEL=$(format_label "$format")" \
+        "TEAM_LIBRARY_DIR=$team_dir" \
+        "TEAM_METADATA=$metadata" \
         "LAUNCHER_PORT=$LAUNCHER_PORT" \
-        "SHOWDOWN_PORT=$PORT" \
+        "SHOWDOWN_PORT=$SHOWDOWN_PORT" \
         node scripts/launcher-server.js >"$LAUNCHER_LOG" 2>&1 &
     echo $! > "$LAUNCHER_PID_FILE"
 
@@ -230,12 +282,13 @@ start_launcher() {
 }
 
 show_status() {
-    local bot_username format team_count
+    local bot_username format team_count team_dir
     bot_username="$(normalized_bot_username)"
     format="$(effective_format)"
+    team_dir="$(team_dir_for_format "$format")"
     team_count=0
-    if [[ -d "$BSS_TEAM_DIR" ]]; then
-        team_count="$(find "$BSS_TEAM_DIR" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')"
+    if [[ -n "$team_dir" && -d "$team_dir" ]]; then
+        team_count="$(find "$team_dir" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')"
     fi
 
     if pid_is_running "$SHOWDOWN_PID_FILE"; then
@@ -254,9 +307,9 @@ show_status() {
         echo "Launcher/proxy: stopped"
     fi
     echo "Bot username: $bot_username"
-    echo "Format: $format"
-    if [[ "$format" == "gen9bssregi" ]]; then
-        echo "BSS team library: $team_count teams (random team each battle)"
+    echo "Format: $format ($(format_label "$format"))"
+    if [[ "$format" == *bss* ]]; then
+        echo "Team library: $team_count teams (random team each battle)"
     fi
     echo "Client: $(client_url)"
 }
@@ -285,6 +338,9 @@ set_mode() {
         exit 1
     fi
     case "$requested" in
+        all|allgen|chaos|anything|nationaldex|"$ALL_GENERATIONS_FORMAT")
+            printf '%s\n' "$ALL_GENERATIONS_FORMAT" > "$MODE_FILE"
+            ;;
         bss|regi|gen9bssregi)
             printf 'gen9bssregi\n' > "$MODE_FILE"
             ;;
@@ -292,7 +348,7 @@ set_mode() {
             printf 'gen9randombattle\n' > "$MODE_FILE"
             ;;
         *)
-            echo "Usage: bash scripts/showdown-ai.sh mode {bss|random}" >&2
+            echo "Usage: bash scripts/showdown-ai.sh mode {all|bss|random}" >&2
             exit 2
             ;;
     esac
@@ -306,7 +362,7 @@ show_logs() {
     tail -n 100 "$SHOWDOWN_LOG" 2>/dev/null || echo "No Showdown log yet."
     echo
     echo "===== foul-play ====="
-    tail -n 160 "$BOT_LOG" 2>/dev/null || echo "No foul-play log yet."
+    tail -n 180 "$BOT_LOG" 2>/dev/null || echo "No foul-play log yet."
     echo
     echo "===== launcher/proxy ====="
     tail -n 100 "$LAUNCHER_LOG" 2>/dev/null || echo "No launcher log yet."
@@ -318,10 +374,16 @@ case "${1:-start}" in
     restart) stop_all; start_all ;;
     status) show_status ;;
     logs) show_logs ;;
-    refresh-teams) bash "$ROOT_DIR/scripts/sync-bss-teams.sh" --refresh ;;
+    refresh-teams)
+        case "$(effective_format)" in
+            "$ALL_GENERATIONS_FORMAT") bash "$ROOT_DIR/scripts/sync-all-generations-teams.sh" --refresh ;;
+            gen9bssregi) bash "$ROOT_DIR/scripts/sync-bss-teams.sh" --refresh ;;
+            *) echo "The current format does not use a fixed team library." ;;
+        esac
+        ;;
     mode) set_mode "${2:-}" ;;
     *)
-        echo "Usage: bash scripts/showdown-ai.sh {start|stop|restart|status|logs|refresh-teams|mode {bss|random}}" >&2
+        echo "Usage: bash scripts/showdown-ai.sh {start|stop|restart|status|logs|refresh-teams|mode {all|bss|random}}" >&2
         exit 2
         ;;
 esac

@@ -1,0 +1,59 @@
+Groudon @ Red Orb
+Ability: Drought
+Tera Type: Ground
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Precipice Blades
+- Heat Crash
+- Stone Edge
+- Swords Dance
+
+Kyogre @ Blue Orb
+Ability: Drizzle
+Tera Type: Water
+EVs: 4 Def / 252 SpA / 252 Spe
+Modest Nature
+- Origin Pulse
+- Thunder
+- Ice Beam
+- Calm Mind
+
+Tyranitar @ Tyranitarite
+Ability: Sand Stream
+Tera Type: Rock
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Stone Edge
+- Crunch
+- Earthquake
+- Dragon Dance
+
+Swampert @ Swampertite
+Ability: Torrent
+Tera Type: Water
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Liquidation
+- Earthquake
+- Ice Punch
+- Flip Turn
+
+Venusaur @ Venusaurite
+Ability: Chlorophyll
+Tera Type: Poison
+EVs: 252 HP / 252 SpA / 4 SpD
+Modest Nature
+- Giga Drain
+- Sludge Bomb
+- Earth Power
+- Synthesis
+
+Tornadus-Therian @ Heavy-Duty Boots
+Ability: Regenerator
+Tera Type: Flying
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Hurricane
+- U-turn
+- Knock Off
+- Defog
