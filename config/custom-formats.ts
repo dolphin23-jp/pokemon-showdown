@@ -17,7 +17,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 			'Max Team Size = 6',
 			'Max Move Count = 4',
 			'Picked Team Size = 3',
-			'!! Adjust Level = 50',
+			'Adjust Level = 50',
 			'HP Percentage Mod',
 			'Cancel Mod',
 			'Endless Battle Clause',
