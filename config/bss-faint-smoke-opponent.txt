@@ -1,0 +1,65 @@
+Ceruledge @ Focus Sash
+Ability: Flash Fire
+Level: 50
+Tera Type: Dark
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Shadow Sneak
+- Bitter Blade
+- Close Combat
+- Swords Dance
+
+Mimikyu @ Focus Sash
+Ability: Disguise
+Level: 50
+Tera Type: Ghost
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Shadow Sneak
+- Play Rough
+- Drain Punch
+- Swords Dance
+
+Aegislash @ Focus Sash
+Ability: Stance Change
+Level: 50
+Tera Type: Ghost
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+- Shadow Sneak
+- Iron Head
+- Close Combat
+- King's Shield
+
+Marshadow @ Focus Sash
+Ability: Technician
+Level: 50
+Tera Type: Ghost
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Shadow Sneak
+- Spectral Thief
+- Close Combat
+- Bulk Up
+
+Banette @ Focus Sash
+Ability: Insomnia
+Level: 50
+Tera Type: Ghost
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Shadow Sneak
+- Poltergeist
+- Knock Off
+- Destiny Bond
+
+Spiritomb @ Focus Sash
+Ability: Infiltrator
+Level: 50
+Tera Type: Dark
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Shadow Sneak
+- Sucker Punch
+- Poltergeist
+- Will-O-Wisp

@@ -97,9 +97,64 @@ async def test_move_search_fallback() -> None:
     assert decision == ["/choose move 2", "23"], decision
 
 
+async def test_forced_switch_skips_search() -> None:
+    battle = Battle("battle-forced-switch-test")
+    battle.rqid = 31
+    battle.team_preview = True
+    battle.force_switch = True
+    battle.request_json = {
+        "forceSwitch": [True],
+        "side": {
+            "pokemon": [
+                {"active": True, "condition": "0 fnt"},
+                {"active": False, "condition": "175/175"},
+                {"active": False, "condition": "200/200"},
+            ]
+        },
+    }
+
+    with mock.patch(
+        "fp.modes.base.find_best_move",
+        side_effect=AssertionError("forced switches must not launch MCTS"),
+    ):
+        decision = await async_pick_move(battle)
+
+    assert decision == ["/switch 2", "31"], decision
+
+
+async def test_decision_formatting_fallback() -> None:
+    battle = Battle("battle-format-fallback-test")
+    battle.rqid = 37
+    battle.team_preview = True
+    battle.user.active = make_pokemon(["gengar"])[0]
+    battle.request_json = {
+        "active": [
+            {
+                "moves": [
+                    {"id": "shadowball", "pp": 24, "disabled": False},
+                ]
+            }
+        ],
+        "side": {"pokemon": []},
+    }
+
+    with (
+        mock.patch("fp.modes.base.find_best_move", return_value="shadowball"),
+        mock.patch(
+            "fp.modes.base.format_decision",
+            side_effect=KeyError("simulated National Dex switch/format error"),
+        ),
+    ):
+        decision = await async_pick_move(battle)
+
+    assert decision == ["/choose move 1", "37"], decision
+
+
 async def main() -> None:
     await test_bss_preview_fallback()
     await test_move_search_fallback()
+    await test_forced_switch_skips_search()
+    await test_decision_formatting_fallback()
     print("foul-play battle fallback tests passed.")
 
 
