@@ -19,7 +19,7 @@ services:
       - key: FOUL_PLAY_FORMAT
         value: gen9nationaldexallgenerationsbss
       - key: FOUL_PLAY_SMOGON_STATS_FORMAT
-        value: gen9nationaldexag
+        value: gen9nationaldexubers
       - key: ALL_GENERATIONS_TEAM_LIMIT
         value: "48"
       - key: FOUL_PLAY_SEARCH_TIME_MS
