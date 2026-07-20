@@ -1,0 +1,12 @@
+.git
+.github
+.devcontainer
+.vscode
+.runtime
+.venv
+node_modules
+dist
+logs
+foul-play
+*.log
+.DS_Store
