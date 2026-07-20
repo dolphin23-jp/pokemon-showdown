@@ -94,12 +94,13 @@ RUN_BATTLE_REPLACEMENT = '''async def pokemon_battle(ps_websocket_client, pokemo
 
 SPEED_NEEDLE = '''    moves = [get_move_information(m) for m in msg_lines if m.startswith("|move|")]
     number_of_moves = len(moves)
-
-    if (
-        number_of_moves == 1
+    if number_of_moves not in [1, 2]:
+        return
 '''
 SPEED_REPLACEMENT = '''    moves = [get_move_information(m) for m in msg_lines if m.startswith("|move|")]
     number_of_moves = len(moves)
+    if number_of_moves not in [1, 2]:
+        return
 
     # PERSONAL_SERVER_SWITCH_SPEED_GUARD
     # A switch command is not a move ID. Pursuit and custom-format edge cases
@@ -110,9 +111,6 @@ SPEED_REPLACEMENT = '''    moves = [get_move_information(m) for m in msg_lines i
     ):
         logger.warning("Skipping speed inference after an interrupted switch")
         return
-
-    if (
-        number_of_moves == 1
 '''
 
 PROTOCOL_SPEED_NEEDLE = '''    check_speed_ranges(battle, msg_lines)
