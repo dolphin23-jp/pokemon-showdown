@@ -217,7 +217,7 @@ start_bot() {
     fi
 
     if [[ "$format" == "$ALL_GENERATIONS_FORMAT" ]]; then
-        args+=(--smogon-stats-format "${FOUL_PLAY_SMOGON_STATS_FORMAT:-gen9nationaldexag}")
+        args+=(--smogon-stats-format "${FOUL_PLAY_SMOGON_STATS_FORMAT:-gen9nationaldexubers}")
     elif [[ -n "${FOUL_PLAY_SMOGON_STATS_FORMAT:-}" ]]; then
         args+=(--smogon-stats-format "$FOUL_PLAY_SMOGON_STATS_FORMAT")
     fi
