@@ -27,7 +27,10 @@ RUN npm ci
 COPY . .
 
 RUN node --check scripts/launcher-server.js \
-    && python3 -m py_compile scripts/prepare-foul-play-cache.py \
+    && python3 -m py_compile \
+        scripts/prepare-foul-play-cache.py \
+        scripts/patch-foul-play-local-login.py \
+        scripts/test-foul-play-local-login.py \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
@@ -35,15 +38,18 @@ RUN node --check scripts/launcher-server.js \
 
 # Render does not guarantee that Git submodules are initialized for a Docker
 # build, so fetch foul-play explicitly and pin the revision already used by this
-# repository.
+# repository. The private loopback server accepts passwordless /trn logins, so
+# bypass the public assertion service for this one trusted local connection.
 RUN rm -rf foul-play \
     && git clone --filter=blob:none https://github.com/pmariglia/foul-play.git foul-play \
-    && git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6
+    && git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6 \
+    && python3 scripts/patch-foul-play-local-login.py
 
 RUN node build \
     && python3 -m venv .venv \
     && .venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt
+    && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt \
+    && .venv/bin/python scripts/test-foul-play-local-login.py
 
 # Validate one embedded team first so format or set errors are explicit in build
 # logs instead of being hidden by the bulk library importer.
