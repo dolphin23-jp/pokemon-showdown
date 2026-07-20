@@ -8,6 +8,7 @@ on:
       - config/custom-formats.ts
       - config/all-generations-fallback/**
       - config/bss-smoke-opponent.txt
+      - config/bss-faint-smoke-opponent.txt
       - scripts/**
       - .github/workflows/render-smoke.yml
   workflow_dispatch:
@@ -18,7 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - name: Build Render image with captured output
@@ -28,7 +29,7 @@ jobs:
           docker build --progress=plain --tag pokemon-showdown-ai:smoke . > /tmp/docker-build.log 2>&1
           build_status=$?
           echo "$build_status" > /tmp/docker-build.status
-          tail -n 250 /tmp/docker-build.log
+          tail -n 300 /tmp/docker-build.log
           exit 0
       - name: Upload Docker build diagnostics
         if: always()
@@ -48,6 +49,7 @@ jobs:
             -e ACCESS_TOKEN=test-access-token \
             -e DEFAULT_PLAYER_NAME=Dolphin23 \
             -e FOUL_PLAY_USERNAME=FoulPlayAI \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
             pokemon-showdown-ai:smoke
       - name: Wait for health endpoint
         run: |
@@ -86,6 +88,30 @@ jobs:
             /tmp/bss-smoke.status
       - name: Require BSS battle to reach turn one
         run: test "$(cat /tmp/bss-smoke.status)" = 0
+      - name: Wait for bot to accept another challenge
+        run: sleep 3
+      - name: Exercise faint and forced-switch recovery
+        shell: bash
+        run: |
+          set +e
+          docker exec showdown-ai \
+            .venv/bin/python scripts/smoke-bss-faint-recovery.py \
+              --bot FoulPlayAI --port 8000 --timeout 150 \
+            > /tmp/bss-faint-smoke.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/bss-faint-smoke.status
+          cat /tmp/bss-faint-smoke.log
+          exit 0
+      - name: Upload post-faint smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bss-faint-smoke-diagnostics
+          path: |
+            /tmp/bss-faint-smoke.log
+            /tmp/bss-faint-smoke.status
+      - name: Require replacement after a faint
+        run: test "$(cat /tmp/bss-faint-smoke.status)" = 0
       - name: Verify access gate and authenticated launcher
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:10000/)" = 401
@@ -106,7 +132,7 @@ jobs:
           docker inspect showdown-ai > /tmp/container-inspect.json 2>&1 || true
           docker logs --timestamps showdown-ai > /tmp/container.log 2>&1 || true
           cat /tmp/container-ps.txt
-          tail -n 350 /tmp/container.log || true
+          tail -n 450 /tmp/container.log || true
       - name: Upload container diagnostics
         if: always()
         uses: actions/upload-artifact@v4
