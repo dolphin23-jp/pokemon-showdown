@@ -28,6 +28,7 @@ COPY . .
 
 RUN node --check scripts/launcher-server.js \
     && python3 -m py_compile \
+        scripts/check-showdown-user.py \
         scripts/prepare-foul-play-cache.py \
         scripts/patch-foul-play-local-login.py \
         scripts/test-foul-play-local-login.py \
