@@ -10,8 +10,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "foul-play"))
 
 from fp.battle.state import Battle, Pokemon  # noqa: E402
+from fp.config import FoulPlayConfig  # noqa: E402
 from fp.modes.base import async_pick_move  # noqa: E402
 from fp.modes.bss import BSSMode  # noqa: E402
+
+FoulPlayConfig.pokemon_format = "gen9nationaldexallgenerationsbss"
+FoulPlayConfig.team_preview_search_parallelism = 1
+FoulPlayConfig.team_preview_search_time_ms = 1
+FoulPlayConfig.search_threads = 1
 
 
 class FakeWebSocketClient:
