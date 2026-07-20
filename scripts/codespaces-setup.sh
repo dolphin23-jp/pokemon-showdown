@@ -11,6 +11,7 @@ git submodule update --init --recursive
 echo "[2/6] Patching foul-play for the private server..."
 python3 scripts/patch-foul-play-local-login.py
 python3 scripts/patch-foul-play-battle-fallbacks.py
+python3 scripts/patch-foul-play-post-faint.py
 
 echo "[3/6] Checking runtimes..."
 node --version
