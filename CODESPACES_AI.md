@@ -9,8 +9,37 @@
 3. 初回だけNode.jsとPythonの依存関係、およびRust製の探索エンジンをインストールします。
 4. セットアップ後、Showdownサーバー、foul-play、入口ページ兼クライアント中継が自動起動します。
 5. ブラウザで入口ページが開かなければ、VS Codeの **PORTS** タブからポート `3000` の地球アイコンを押します。
-6. 入口ページの **Showdownを開く** を押します。
-7. 入口ページに表示されたBot名へ `gen9randombattle` で対戦を申し込みます。
+6. 入口ページの **構築ライブラリを開く** から自分用の構築をコピーします。
+7. ShowdownのTeambuilderで `[Gen 9] BSS Reg I` の新規チームを作り、Import/Exportへ貼り付けます。
+8. 入口ページに表示されたBot名へ `gen9bssregi` で対戦を申し込みます。
+9. 6体見せ合い後に3体を選出します。Bot側も自動で3体を選びます。
+
+## Regulation I構築ライブラリ
+
+既定モードはScarlet/Violetの `[Gen 9] BSS Reg I` です。Smogonの公式 **Battle Stadium Singles Sample Teams** に掲載されたRegulation I構築を、Pokemon ShowdownのTeams APIから取得・検証して利用します。
+
+- 現在の登録数: 9構築
+- Bot側: 対戦ごとに9構築からランダム選択
+- 人間側: 入口ページの構築ライブラリからワンタップでコピー
+- 更新: 起動時に不足分を取得。手動更新は `bash scripts/showdown-ai.sh refresh-teams`
+
+構築のID・タイトル・作成者は `config/bss-team-sources.tsv` で管理します。新しいサンプル構築を追加したい場合は、Pokemon Showdown Teamsのteam IDを同ファイルへ追加します。
+
+## モード切り替え
+
+BSS Reg Iへ切り替える:
+
+```bash
+bash scripts/showdown-ai.sh mode bss
+```
+
+従来のGen 9 Random Battleへ戻す:
+
+```bash
+bash scripts/showdown-ai.sh mode random
+```
+
+どちらもBotと入口ページを自動で再起動します。
 
 ## 通信構成
 
@@ -34,14 +63,17 @@ Codespacesの環境変数またはSecretsで次を設定し、`Showdown AI: Rest
 
 | 変数 | 既定値 | 意味 |
 | --- | ---: | --- |
-| `FOUL_PLAY_FORMAT` | `gen9randombattle` | 対戦形式 |
-| `FOUL_PLAY_SEARCH_TIME_MS` | `500` | 1状態あたりの探索時間。大きいほど強くなりやすいが遅くなる |
-| `FOUL_PLAY_SEARCH_PARALLELISM` | `1` | 並列探索数 |
+| `FOUL_PLAY_FORMAT` | 保存モード。初期値 `gen9bssregi` | 対戦形式を直接固定する場合に設定 |
+| `FOUL_PLAY_TEAM_NAME` | `gen9bssregi-curated` | Botが使うチームファイルまたはフォルダ |
+| `FOUL_PLAY_SEARCH_TIME_MS` | `500` | 通常ターンの1状態あたり探索時間 |
+| `FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS` | `1000` | 6体から3体を選ぶ際の探索時間 |
+| `FOUL_PLAY_SEARCH_PARALLELISM` | `1` | 通常ターンの並列探索数 |
+| `FOUL_PLAY_TEAM_PREVIEW_SEARCH_PARALLELISM` | `1` | 選出時の並列探索数 |
 | `FOUL_PLAY_SEARCH_THREADS` | `1` | 各探索で使うスレッド数 |
 | `FOUL_PLAY_USERNAME` | 自動生成 | Botの表示名 |
 | `FOUL_PLAY_PASSWORD` | 未設定 | 登録済みBotアカウントを使う場合のみ設定 |
 
-2コアのCodespaceでは、まず既定値で動作確認してください。探索時間を上げる場合は `1000` 前後から試すのが安全です。
+2コアのCodespaceでは、まず既定値で動作確認してください。通常ターンの探索時間を上げる場合は `750`〜`1000`、選出時間は `1500` 前後から試すのが安全です。
 
 ## セキュリティ
 
@@ -55,6 +87,7 @@ Codespacesの環境変数またはSecretsで次を設定し、`Showdown AI: Rest
 bash scripts/showdown-ai.sh status
 bash scripts/showdown-ai.sh logs
 bash scripts/showdown-ai.sh restart
+bash scripts/showdown-ai.sh refresh-teams
 ```
 
 Python環境やサブモジュールが壊れた場合は、次を再実行します。
