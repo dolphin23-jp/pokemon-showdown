@@ -39,6 +39,14 @@ export default configure([
 		},
 	},
 	{
+		name: "Personal launcher",
+		files: ["scripts/launcher-server.js"],
+		rules: {
+			"@stylistic/indent": ["error", 2],
+			"radix": "off",
+		},
+	},
+	{
 		name: "TypeScript",
 		files: [
 			"**/*.ts",
