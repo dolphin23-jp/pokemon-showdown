@@ -11,7 +11,6 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 		mod: 'gen9',
 		searchShow: false,
 		bestOfDefault: true,
-		debug: true,
 		ruleset: [
 			'NatDex Mod',
 			'Team Preview',
