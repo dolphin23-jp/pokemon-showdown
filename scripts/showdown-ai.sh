@@ -10,7 +10,7 @@ SHOWDOWN_LOG="$RUNTIME_DIR/showdown.log"
 BOT_LOG="$RUNTIME_DIR/foul-play.log"
 LAUNCHER_LOG="$RUNTIME_DIR/launcher.log"
 MODE_FILE="$RUNTIME_DIR/battle-format"
-BSS_TEAM_DIR="$ROOT_DIR/foul-play/fp/teams/teams/gen9bssregi-curated"
+BSS_TEAM_DIR="$RUNTIME_DIR/bss-teams/gen9bssregi-curated"
 PORT=8000
 LAUNCHER_PORT=3000
 
@@ -164,7 +164,7 @@ start_bot() {
 
     if [[ "$format" == "gen9bssregi" ]]; then
         args+=(
-            --team-name "${FOUL_PLAY_TEAM_NAME:-gen9bssregi-curated}"
+            --team-name "${FOUL_PLAY_TEAM_NAME:-$BSS_TEAM_DIR}"
             --team-preview-search-time-ms "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS:-1000}"
             --team-preview-search-parallelism "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_PARALLELISM:-1}"
         )
@@ -204,7 +204,7 @@ start_launcher() {
     nohup env \
         "BOT_USERNAME=$bot_username" \
         "BOT_FORMAT=$format" \
-        "BOT_TEAM_NAME=${FOUL_PLAY_TEAM_NAME:-gen9bssregi-curated}" \
+        "BOT_TEAM_NAME=${FOUL_PLAY_TEAM_NAME:-$BSS_TEAM_DIR}" \
         "TEAM_LIBRARY_DIR=$BSS_TEAM_DIR" \
         "TEAM_MANIFEST=$ROOT_DIR/config/bss-team-sources.tsv" \
         "LAUNCHER_PORT=$LAUNCHER_PORT" \
