@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="$ROOT_DIR/config/bss-team-sources.tsv"
-TEAM_PARENT="$ROOT_DIR/foul-play/fp/teams/teams"
+TEAM_PARENT="$ROOT_DIR/.runtime/bss-teams"
 TARGET_DIR="$TEAM_PARENT/gen9bssregi-curated"
 REFRESH=0
 
