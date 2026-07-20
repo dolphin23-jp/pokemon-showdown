@@ -21,13 +21,14 @@ existing_count=0
 if [[ -d "$TARGET_DIR" ]]; then
     existing_count="$(find "$TARGET_DIR" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')"
 fi
-if [[ "$REFRESH" -eq 0 && "$existing_count" -ge 12 && -f "$METADATA_FILE" ]]; then
+# A Docker image may have been built while the community API was unavailable.
+# Keep even the smaller curated fallback library on cold starts; refreshes are
+# explicit so a free Render wake-up never performs a slow network rebuild.
+if [[ "$REFRESH" -eq 0 && "$existing_count" -ge 3 && -f "$METADATA_FILE" ]]; then
     echo "All-generations team library is ready ($existing_count teams)."
     exit 0
 fi
 
-# The curated Regulation I teams are reliable fallback seeds if the community API
-# is unavailable during an image build or a cold start.
 bash "$ROOT_DIR/scripts/sync-bss-teams.sh"
 
 mkdir -p "$RUNTIME_DIR/bss-teams"
@@ -42,7 +43,6 @@ import hashlib
 import json
 import pathlib
 import re
-import shutil
 import subprocess
 import sys
 import urllib.parse
@@ -60,14 +60,23 @@ manifest = root / "config" / "bss-team-sources.tsv"
 records: list[tuple[str, str, str, str, str]] = []
 seen: set[str] = set()
 
+
+def clean_field(value: object, fallback: str) -> str:
+    cleaned = re.sub(r"[\t\r\n]+", " ", str(value or fallback)).strip()
+    return cleaned or fallback
+
+
 def slugify(value: str, fallback: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return (value[:64] or fallback)
+    return value[:64] or fallback
 
 
 def run_showdown(command: str, text: str) -> subprocess.CompletedProcess[str]:
+    args = ["node", str(showdown), command]
+    if command == "validate-team":
+        args.append(format_id)
     return subprocess.run(
-        ["node", str(showdown), command, format_id] if command == "validate-team" else ["node", str(showdown), command],
+        args,
         input=text,
         text=True,
         stdout=subprocess.PIPE,
@@ -84,8 +93,7 @@ def normalize_export(team_text: str) -> str | None:
     text = exported.stdout.strip()
     if not text:
         return None
-    # foul-play currently does not support Z-Moves or Dynamax. Keep the library
-    # broad, but exclude teams that depend on those unsupported mechanics.
+    # foul-play currently does not support Z-Moves or Dynamax.
     if re.search(r"@\s+.*ium Z(?:\s|$)", text, re.IGNORECASE):
         return None
     if "Dynamax Level:" in text or "Gigantamax: Yes" in text:
@@ -107,6 +115,10 @@ def add_team(team_id: str, title: str, author: str, packed_or_exported: str, sou
     if digest in seen:
         return False
     seen.add(digest)
+    team_id = clean_field(team_id, "community")
+    title = clean_field(title, f"Community team {team_id}")
+    author = clean_field(author, "Pokemon Showdown community")
+    source = clean_field(source, "community")
     slug = slugify(title, f"team-{team_id}")
     candidate = slug
     suffix = 2
@@ -128,7 +140,8 @@ if manifest.exists():
         seed_meta[slug] = (team_id, title, author)
 if seed_dir.exists():
     for team_file in sorted(seed_dir.glob("*.txt")):
-        team_id, title, author = seed_meta.get(team_file.stem, (f"seed-{team_file.stem}", team_file.stem, "BSS Sample Teams"))
+        fallback = (f"seed-{team_file.stem}", team_file.stem, "BSS Sample Teams")
+        team_id, title, author = seed_meta.get(team_file.stem, fallback)
         add_team(team_id, title, author, team_file.read_text(encoding="utf-8"), "curated-bss")
 
 
@@ -153,15 +166,9 @@ def rows_from_payload(payload: object) -> list[dict]:
     return []
 
 
-# Community National Dex formats provide much more variety than the nine curated
-# Regulation I teams. Search several compatible pools and keep only teams that
-# still validate in our embedded all-generations format.
-search_formats = [
-    "gen9nationaldexag",
-    "gen9nationaldexubers",
-    "gen9nationaldex",
-]
-for source_format in search_formats:
+# Search several public National Dex pools for variety, then validate each team
+# against the embedded all-generations format before making it selectable.
+for source_format in ("gen9nationaldexag", "gen9nationaldexubers", "gen9nationaldex"):
     if len(records) >= limit:
         break
     url = "https://teams.pokemonshowdown.com/api/searchteams?" + urllib.parse.urlencode({
@@ -206,8 +213,8 @@ metadata_path.write_text(
 print(f"Prepared {len(records)} compatible all-generations teams.")
 PY
 
-# Move the metadata outside the team directory; foul-play treats every regular
-# file inside the selected directory as a possible team.
+# Keep metadata outside the team folder because foul-play treats every regular
+# file in that folder as a possible team.
 mv "$TEMP_METADATA" "$RUNTIME_DIR/bss-teams/.all-generations-metadata.tsv"
 rm -rf "$TARGET_DIR"
 mv "$TEMP_DIR" "$TARGET_DIR"
