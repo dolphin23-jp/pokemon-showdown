@@ -15,6 +15,10 @@ FORMAT = "gen9nationaldexallgenerationsbss"
 PLAYER = "BattleSmoke"
 
 
+def to_id(value: str) -> str:
+    return "".join(character.lower() for character in value if character.isalnum())
+
+
 def protocol_lines(message: str):
     room = ""
     for line in message.splitlines():
@@ -51,8 +55,17 @@ async def wait_for_login(websocket, deadline: float) -> None:
             if line.startswith("|challstr|") and not saw_challstr:
                 saw_challstr = True
                 await websocket.send(f"|/trn {PLAYER},0,")
-            elif line.startswith(f"|updateuser|{PLAYER}|1|"):
-                return
+                continue
+
+            fields = line.split("|")
+            if (
+                len(fields) >= 4
+                and fields[1] == "updateuser"
+                and to_id(fields[2]) == to_id(PLAYER)
+            ):
+                if fields[3] == "1":
+                    return
+                raise RuntimeError(f"Smoke player could not claim its local name: {line}")
     raise TimeoutError("Smoke player could not log in")
 
 
