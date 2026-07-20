@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# Capture Render's public port for the launcher, then remove the generic PORT
+# variable so Pokemon Showdown does not mistakenly bind to the same socket.
 export LAUNCHER_PORT="${PORT:-10000}"
+unset PORT
 export SHOWDOWN_PORT="${SHOWDOWN_PORT:-8000}"
 export FOUL_PLAY_FORMAT="${FOUL_PLAY_FORMAT:-gen9nationaldexallgenerationsbss}"
 export DEFAULT_PLAYER_NAME="${DEFAULT_PLAYER_NAME:-Dolphin23}"
