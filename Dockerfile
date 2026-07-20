@@ -32,6 +32,7 @@ RUN node --check scripts/launcher-server.js \
         scripts/prepare-foul-play-cache.py \
         scripts/patch-foul-play-local-login.py \
         scripts/patch-foul-play-battle-fallbacks.py \
+        scripts/patch-foul-play-post-faint.py \
         scripts/smoke-bss-battle.py \
         scripts/smoke-bss-faint-recovery.py \
         scripts/test-foul-play-local-login.py \
@@ -48,7 +49,8 @@ RUN rm -rf foul-play \
     && git clone --filter=blob:none https://github.com/pmariglia/foul-play.git foul-play \
     && git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6 \
     && python3 scripts/patch-foul-play-local-login.py \
-    && python3 scripts/patch-foul-play-battle-fallbacks.py
+    && python3 scripts/patch-foul-play-battle-fallbacks.py \
+    && python3 scripts/patch-foul-play-post-faint.py
 
 RUN node build \
     && python3 -m venv .venv \
