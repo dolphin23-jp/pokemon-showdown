@@ -27,6 +27,7 @@ RUN npm ci
 COPY . .
 
 RUN node --check scripts/launcher-server.js \
+    && python3 -m py_compile scripts/prepare-foul-play-cache.py \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
@@ -45,9 +46,12 @@ RUN node build \
     && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt
 
 # The embedded teams guarantee an offline fallback. Public National Dex teams
-# are added when the community API is reachable during the image build.
+# are added when the community API is reachable during the image build. Usage
+# statistics are cached too, avoiding a large download on the first battle after
+# every free-service wake-up.
 RUN bash scripts/ensure-codespaces-config.sh \
-    && bash scripts/sync-all-generations-teams.sh --refresh
+    && bash scripts/sync-all-generations-teams.sh --refresh \
+    && python3 scripts/prepare-foul-play-cache.py
 
 EXPOSE 10000
 
