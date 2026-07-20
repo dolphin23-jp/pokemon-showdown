@@ -9,6 +9,8 @@ LAUNCHER_PID_FILE="$RUNTIME_DIR/launcher.pid"
 SHOWDOWN_LOG="$RUNTIME_DIR/showdown.log"
 BOT_LOG="$RUNTIME_DIR/foul-play.log"
 LAUNCHER_LOG="$RUNTIME_DIR/launcher.log"
+MODE_FILE="$RUNTIME_DIR/battle-format"
+BSS_TEAM_DIR="$ROOT_DIR/foul-play/fp/teams/teams/gen9bssregi-curated"
 PORT=8000
 LAUNCHER_PORT=3000
 
@@ -60,6 +62,22 @@ normalized_bot_username() {
     printf 'FP%s%s' "$base" "$digest"
 }
 
+effective_format() {
+    if [[ -n "${FOUL_PLAY_FORMAT:-}" ]]; then
+        printf '%s' "$FOUL_PLAY_FORMAT"
+        return
+    fi
+    if [[ -f "$MODE_FILE" ]]; then
+        case "$(cat "$MODE_FILE")" in
+            gen9bssregi|gen9randombattle)
+                cat "$MODE_FILE"
+                return
+                ;;
+        esac
+    fi
+    printf 'gen9bssregi'
+}
+
 client_url() {
     if [[ -n "${CODESPACE_NAME:-}" ]]; then
         printf 'https://%s-%s.app.github.dev/client.html' "$CODESPACE_NAME" "$LAUNCHER_PORT"
@@ -105,6 +123,13 @@ start_showdown() {
     return 1
 }
 
+prepare_bss_teams() {
+    local format="$1"
+    [[ "$format" == "gen9bssregi" ]] || return 0
+    cd "$ROOT_DIR"
+    bash scripts/sync-bss-teams.sh
+}
+
 start_bot() {
     if pid_is_running "$BOT_PID_FILE"; then
         echo "foul-play is already running."
@@ -116,9 +141,12 @@ start_bot() {
         return 1
     fi
 
-    local bot_username format
+    local bot_username format search_time
     bot_username="$(normalized_bot_username)"
-    format="${FOUL_PLAY_FORMAT:-gen9randombattle}"
+    format="$(effective_format)"
+    search_time="${FOUL_PLAY_SEARCH_TIME_MS:-500}"
+
+    prepare_bss_teams "$format"
 
     local -a args
     args=(
@@ -127,17 +155,28 @@ start_bot() {
         --ps-username "$bot_username"
         --bot-mode accept_challenge
         --pokemon-format "$format"
-        --search-time-ms "${FOUL_PLAY_SEARCH_TIME_MS:-500}"
+        --search-time-ms "$search_time"
         --search-parallelism "${FOUL_PLAY_SEARCH_PARALLELISM:-1}"
         --search-threads "${FOUL_PLAY_SEARCH_THREADS:-1}"
         --run-count "${FOUL_PLAY_RUN_COUNT:-1000000}"
         --log-level "${FOUL_PLAY_LOG_LEVEL:-INFO}"
     )
+
+    if [[ "$format" == "gen9bssregi" ]]; then
+        args+=(
+            --team-name "${FOUL_PLAY_TEAM_NAME:-gen9bssregi-curated}"
+            --team-preview-search-time-ms "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS:-1000}"
+            --team-preview-search-parallelism "${FOUL_PLAY_TEAM_PREVIEW_SEARCH_PARALLELISM:-1}"
+        )
+    elif [[ -n "${FOUL_PLAY_TEAM_NAME:-}" ]]; then
+        args+=(--team-name "$FOUL_PLAY_TEAM_NAME")
+    fi
+
     if [[ -n "${FOUL_PLAY_PASSWORD:-}" ]]; then
         args+=(--ps-password "$FOUL_PLAY_PASSWORD")
     fi
 
-    echo "Starting foul-play as $bot_username..."
+    echo "Starting foul-play as $bot_username in $format..."
     cd "$ROOT_DIR/foul-play"
     nohup "${args[@]}" >"$BOT_LOG" 2>&1 &
     echo $! > "$BOT_PID_FILE"
@@ -145,7 +184,7 @@ start_bot() {
 
     if ! pid_is_running "$BOT_PID_FILE"; then
         echo "foul-play exited during startup." >&2
-        tail -n 120 "$BOT_LOG" >&2 || true
+        tail -n 160 "$BOT_LOG" >&2 || true
         return 1
     fi
 }
@@ -158,13 +197,16 @@ start_launcher() {
 
     local bot_username format
     bot_username="$(normalized_bot_username)"
-    format="${FOUL_PLAY_FORMAT:-gen9randombattle}"
+    format="$(effective_format)"
 
     echo "Starting launcher and same-origin Showdown client proxy..."
     cd "$ROOT_DIR"
     nohup env \
         "BOT_USERNAME=$bot_username" \
         "BOT_FORMAT=$format" \
+        "BOT_TEAM_NAME=${FOUL_PLAY_TEAM_NAME:-gen9bssregi-curated}" \
+        "TEAM_LIBRARY_DIR=$BSS_TEAM_DIR" \
+        "TEAM_MANIFEST=$ROOT_DIR/config/bss-team-sources.tsv" \
         "LAUNCHER_PORT=$LAUNCHER_PORT" \
         "SHOWDOWN_PORT=$PORT" \
         node scripts/launcher-server.js >"$LAUNCHER_LOG" 2>&1 &
@@ -188,9 +230,13 @@ start_launcher() {
 }
 
 show_status() {
-    local bot_username format
+    local bot_username format team_count
     bot_username="$(normalized_bot_username)"
-    format="${FOUL_PLAY_FORMAT:-gen9randombattle}"
+    format="$(effective_format)"
+    team_count=0
+    if [[ -d "$BSS_TEAM_DIR" ]]; then
+        team_count="$(find "$BSS_TEAM_DIR" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')"
+    fi
 
     if pid_is_running "$SHOWDOWN_PID_FILE"; then
         echo "Pokemon Showdown: running (PID $(cat "$SHOWDOWN_PID_FILE"))"
@@ -209,6 +255,9 @@ show_status() {
     fi
     echo "Bot username: $bot_username"
     echo "Format: $format"
+    if [[ "$format" == "gen9bssregi" ]]; then
+        echo "BSS team library: $team_count teams (random team each battle)"
+    fi
     echo "Client: $(client_url)"
 }
 
@@ -229,12 +278,35 @@ stop_all() {
     echo "Stopped. The Showdown server port remains private."
 }
 
+set_mode() {
+    local requested="${1:-}"
+    if [[ -n "${FOUL_PLAY_FORMAT:-}" ]]; then
+        echo "FOUL_PLAY_FORMAT is set, so it overrides the saved mode. Remove that environment variable first." >&2
+        exit 1
+    fi
+    case "$requested" in
+        bss|regi|gen9bssregi)
+            printf 'gen9bssregi\n' > "$MODE_FILE"
+            ;;
+        random|randombattle|gen9randombattle)
+            printf 'gen9randombattle\n' > "$MODE_FILE"
+            ;;
+        *)
+            echo "Usage: bash scripts/showdown-ai.sh mode {bss|random}" >&2
+            exit 2
+            ;;
+    esac
+    echo "Battle format changed to $(effective_format). Restarting..."
+    stop_all
+    start_all
+}
+
 show_logs() {
     echo "===== Pokemon Showdown ====="
     tail -n 100 "$SHOWDOWN_LOG" 2>/dev/null || echo "No Showdown log yet."
     echo
     echo "===== foul-play ====="
-    tail -n 140 "$BOT_LOG" 2>/dev/null || echo "No foul-play log yet."
+    tail -n 160 "$BOT_LOG" 2>/dev/null || echo "No foul-play log yet."
     echo
     echo "===== launcher/proxy ====="
     tail -n 100 "$LAUNCHER_LOG" 2>/dev/null || echo "No launcher log yet."
@@ -246,8 +318,10 @@ case "${1:-start}" in
     restart) stop_all; start_all ;;
     status) show_status ;;
     logs) show_logs ;;
+    refresh-teams) bash "$ROOT_DIR/scripts/sync-bss-teams.sh" --refresh ;;
+    mode) set_mode "${2:-}" ;;
     *)
-        echo "Usage: bash scripts/showdown-ai.sh {start|stop|restart|status|logs}" >&2
+        echo "Usage: bash scripts/showdown-ai.sh {start|stop|restart|status|logs|refresh-teams|mode {bss|random}}" >&2
         exit 2
         ;;
 esac
