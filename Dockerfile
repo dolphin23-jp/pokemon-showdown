@@ -44,11 +44,9 @@ RUN node build \
     && .venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt
 
-# Prebuild the configuration and team libraries into the image. If the public
-# community-team API is temporarily unavailable, the sync script keeps the
-# curated legal teams as a fallback instead of failing the deployment.
+# The embedded teams guarantee an offline fallback. Public National Dex teams
+# are added when the community API is reachable during the image build.
 RUN bash scripts/ensure-codespaces-config.sh \
-    && bash scripts/sync-bss-teams.sh --refresh \
     && bash scripts/sync-all-generations-teams.sh --refresh
 
 EXPOSE 10000
