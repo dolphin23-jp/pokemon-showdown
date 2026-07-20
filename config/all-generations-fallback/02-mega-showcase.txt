@@ -1,0 +1,59 @@
+Charizard @ Charizardite X
+Ability: Blaze
+Tera Type: Dragon
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Flare Blitz
+- Dragon Claw
+- Earthquake
+- Dragon Dance
+
+Metagross @ Metagrossite
+Ability: Clear Body
+Tera Type: Steel
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Meteor Mash
+- Zen Headbutt
+- Earthquake
+- Bullet Punch
+
+Lopunny @ Lopunnite
+Ability: Limber
+Tera Type: Normal
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Return
+- Close Combat
+- Fake Out
+- Triple Axel
+
+Gengar @ Gengarite
+Ability: Cursed Body
+Tera Type: Ghost
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Shadow Ball
+- Sludge Wave
+- Focus Blast
+- Destiny Bond
+
+Salamence @ Salamencite
+Ability: Intimidate
+Tera Type: Flying
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Double-Edge
+- Earthquake
+- Roost
+- Dragon Dance
+
+Scizor @ Scizorite
+Ability: Technician
+Tera Type: Steel
+EVs: 248 HP / 252 Atk / 8 SpD
+Adamant Nature
+- Bullet Punch
+- U-turn
+- Knock Off
+- Swords Dance
