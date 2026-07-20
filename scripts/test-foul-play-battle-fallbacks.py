@@ -31,7 +31,9 @@ class FakeWebSocketClient:
 def make_pokemon(names: list[str]) -> list[Pokemon]:
     team = []
     for index, name in enumerate(names, 1):
-        pokemon = Pokemon(name, 50)
+        # Pass explicit EVs so this focused unit test does not depend on the
+        # process-wide random-battle generation defaults being configured.
+        pokemon = Pokemon(name, 50, evs=(0, 0, 0, 0, 0, 0))
         pokemon.index = index
         team.append(pokemon)
     return team
