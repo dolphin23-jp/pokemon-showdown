@@ -45,12 +45,17 @@ RUN node build \
     && .venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt
 
+# Validate one embedded team first so format or set errors are explicit in build
+# logs instead of being hidden by the bulk library importer.
+RUN bash scripts/ensure-codespaces-config.sh \
+    && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
+        < config/all-generations-fallback/01-legendary-offense.txt
+
 # The embedded teams guarantee an offline fallback. Public National Dex teams
 # are added when the community API is reachable during the image build. Usage
 # statistics are cached too, avoiding a large download on the first battle after
 # every free-service wake-up.
-RUN bash scripts/ensure-codespaces-config.sh \
-    && bash scripts/sync-all-generations-teams.sh --refresh \
+RUN bash scripts/sync-all-generations-teams.sh --refresh \
     && python3 scripts/prepare-foul-play-cache.py
 
 EXPOSE 10000
