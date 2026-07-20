@@ -32,6 +32,12 @@
       "problemMatcher": []
     },
     {
+      "label": "Showdown AI: Use All Generations BSS",
+      "type": "shell",
+      "command": "bash scripts/showdown-ai.sh mode all",
+      "problemMatcher": []
+    },
+    {
       "label": "Showdown AI: Use BSS Reg I",
       "type": "shell",
       "command": "bash scripts/showdown-ai.sh mode bss",
@@ -44,7 +50,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Showdown AI: Refresh BSS Teams",
+      "label": "Showdown AI: Refresh Current Team Library",
       "type": "shell",
       "command": "bash scripts/showdown-ai.sh refresh-teams",
       "problemMatcher": []
