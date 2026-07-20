@@ -9,6 +9,10 @@ export SHOWDOWN_PORT="${SHOWDOWN_PORT:-8000}"
 export FOUL_PLAY_FORMAT="${FOUL_PLAY_FORMAT:-gen9nationaldexallgenerationsbss}"
 export DEFAULT_PLAYER_NAME="${DEFAULT_PLAYER_NAME:-Dolphin23}"
 
+# Fresh Docker images do not contain empty runtime directories. Showdown's REPL
+# cleanup expects this path to exist before the server process starts.
+mkdir -p .runtime logs/repl
+
 cleanup() {
     if [[ -n "${TAIL_PID:-}" ]]; then
         kill "$TAIL_PID" 2>/dev/null || true
