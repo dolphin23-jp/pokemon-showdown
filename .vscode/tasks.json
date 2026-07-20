@@ -30,6 +30,24 @@
       "type": "shell",
       "command": "bash scripts/showdown-ai.sh logs",
       "problemMatcher": []
+    },
+    {
+      "label": "Showdown AI: Use BSS Reg I",
+      "type": "shell",
+      "command": "bash scripts/showdown-ai.sh mode bss",
+      "problemMatcher": []
+    },
+    {
+      "label": "Showdown AI: Use Random Battle",
+      "type": "shell",
+      "command": "bash scripts/showdown-ai.sh mode random",
+      "problemMatcher": []
+    },
+    {
+      "label": "Showdown AI: Refresh BSS Teams",
+      "type": "shell",
+      "command": "bash scripts/showdown-ai.sh refresh-teams",
+      "problemMatcher": []
     }
   ]
 }
