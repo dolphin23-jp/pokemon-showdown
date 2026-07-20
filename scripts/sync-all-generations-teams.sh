@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.runtime"
+FALLBACK_DIR="$ROOT_DIR/config/all-generations-fallback"
 BSS_DIR="$RUNTIME_DIR/bss-teams/gen9bssregi-curated"
 TARGET_DIR="$RUNTIME_DIR/bss-teams/gen9nationaldexallgenerationsbss"
 METADATA_FILE="$RUNTIME_DIR/bss-teams/gen9nationaldexallgenerationsbss.tsv"
@@ -21,22 +22,23 @@ existing_count=0
 if [[ -d "$TARGET_DIR" ]]; then
     existing_count="$(find "$TARGET_DIR" -maxdepth 1 -type f -name '*.txt' | wc -l | tr -d ' ')"
 fi
-# A Docker image may have been built while the community API was unavailable.
-# Keep even the smaller curated fallback library on cold starts; refreshes are
-# explicit so a free Render wake-up never performs a slow network rebuild.
+# Never perform a slow community search during a normal Render cold start.
 if [[ "$REFRESH" -eq 0 && "$existing_count" -ge 3 && -f "$METADATA_FILE" ]]; then
     echo "All-generations team library is ready ($existing_count teams)."
     exit 0
 fi
 
-bash "$ROOT_DIR/scripts/sync-bss-teams.sh"
+if [[ ! -d "$FALLBACK_DIR" ]]; then
+    echo "Embedded all-generations fallback teams are missing: $FALLBACK_DIR" >&2
+    exit 1
+fi
 
 mkdir -p "$RUNTIME_DIR/bss-teams"
 TEMP_DIR="$(mktemp -d "$RUNTIME_DIR/bss-teams/.all-generations.XXXXXX")"
 TEMP_METADATA="$TEMP_DIR/metadata.tsv"
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-python3 - "$ROOT_DIR" "$BSS_DIR" "$TEMP_DIR" "$TEMP_METADATA" "$FORMAT" "$LIMIT" <<'PY'
+python3 - "$ROOT_DIR" "$FALLBACK_DIR" "$BSS_DIR" "$TEMP_DIR" "$TEMP_METADATA" "$FORMAT" "$LIMIT" <<'PY'
 from __future__ import annotations
 
 import hashlib
@@ -49,11 +51,12 @@ import urllib.parse
 import urllib.request
 
 root = pathlib.Path(sys.argv[1])
-seed_dir = pathlib.Path(sys.argv[2])
-out_dir = pathlib.Path(sys.argv[3])
-metadata_path = pathlib.Path(sys.argv[4])
-format_id = sys.argv[5]
-limit = max(12, int(sys.argv[6]))
+fallback_dir = pathlib.Path(sys.argv[2])
+bss_dir = pathlib.Path(sys.argv[3])
+out_dir = pathlib.Path(sys.argv[4])
+metadata_path = pathlib.Path(sys.argv[5])
+format_id = sys.argv[6]
+limit = max(12, int(sys.argv[7]))
 showdown = root / "pokemon-showdown"
 manifest = root / "config" / "bss-team-sources.tsv"
 
@@ -69,6 +72,11 @@ def clean_field(value: object, fallback: str) -> str:
 def slugify(value: str, fallback: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return value[:64] or fallback
+
+
+def title_from_filename(team_file: pathlib.Path) -> str:
+    name = re.sub(r"^\d+-", "", team_file.stem)
+    return name.replace("-", " ").title()
 
 
 def run_showdown(command: str, text: str) -> subprocess.CompletedProcess[str]:
@@ -130,7 +138,18 @@ def add_team(team_id: str, title: str, author: str, packed_or_exported: str, sou
     return True
 
 
-# Seed the broad format with all known-good curated BSS teams.
+# These repository-owned teams guarantee that Docker builds do not depend on a
+# public API being reachable.
+for team_file in sorted(fallback_dir.glob("*.txt")):
+    add_team(
+        f"embedded-{team_file.stem}",
+        title_from_filename(team_file),
+        "Personal AI Library",
+        team_file.read_text(encoding="utf-8"),
+        "embedded",
+    )
+
+# If the curated Regulation I library is already present, include it too.
 seed_meta: dict[str, tuple[str, str, str]] = {}
 if manifest.exists():
     for line in manifest.read_text(encoding="utf-8").splitlines():
@@ -138,8 +157,8 @@ if manifest.exists():
             continue
         team_id, slug, title, author, *_ = line.split("\t")
         seed_meta[slug] = (team_id, title, author)
-if seed_dir.exists():
-    for team_file in sorted(seed_dir.glob("*.txt")):
+if bss_dir.exists():
+    for team_file in sorted(bss_dir.glob("*.txt")):
         fallback = (f"seed-{team_file.stem}", team_file.stem, "BSS Sample Teams")
         team_id, title, author = seed_meta.get(team_file.stem, fallback)
         add_team(team_id, title, author, team_file.read_text(encoding="utf-8"), "curated-bss")
