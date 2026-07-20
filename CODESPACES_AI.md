@@ -56,6 +56,9 @@ bash scripts/showdown-ai.sh mode random
 - `Showdown AI: Restart`
 - `Showdown AI: Status`
 - `Showdown AI: Logs`
+- `Showdown AI: Use BSS Reg I`
+- `Showdown AI: Use Random Battle`
+- `Showdown AI: Refresh BSS Teams`
 
 ## Botの強さを調整する
 
@@ -64,7 +67,7 @@ Codespacesの環境変数またはSecretsで次を設定し、`Showdown AI: Rest
 | 変数 | 既定値 | 意味 |
 | --- | ---: | --- |
 | `FOUL_PLAY_FORMAT` | 保存モード。初期値 `gen9bssregi` | 対戦形式を直接固定する場合に設定 |
-| `FOUL_PLAY_TEAM_NAME` | `gen9bssregi-curated` | Botが使うチームファイルまたはフォルダ |
+| `FOUL_PLAY_TEAM_NAME` | 自動生成ライブラリ | Botが使うチームファイルまたはフォルダ。通常は未設定のままでよい |
 | `FOUL_PLAY_SEARCH_TIME_MS` | `500` | 通常ターンの1状態あたり探索時間 |
 | `FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS` | `1000` | 6体から3体を選ぶ際の探索時間 |
 | `FOUL_PLAY_SEARCH_PARALLELISM` | `1` | 通常ターンの並列探索数 |
