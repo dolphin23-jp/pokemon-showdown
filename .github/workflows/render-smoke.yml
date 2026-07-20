@@ -65,10 +65,27 @@ jobs:
         run: |
           docker exec showdown-ai \
             .venv/bin/python scripts/check-showdown-user.py FoulPlayAI --port 8000 --timeout 30
-      - name: Reach turn one in a BSS battle
+      - name: Exercise BSS battle with captured protocol
+        shell: bash
         run: |
+          set +e
           docker exec showdown-ai \
-            .venv/bin/python scripts/smoke-bss-battle.py --bot FoulPlayAI --port 8000 --timeout 90
+            .venv/bin/python scripts/smoke-bss-battle.py --bot FoulPlayAI --port 8000 --timeout 90 \
+            > /tmp/bss-smoke.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/bss-smoke.status
+          cat /tmp/bss-smoke.log
+          exit 0
+      - name: Upload BSS smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bss-smoke-diagnostics
+          path: |
+            /tmp/bss-smoke.log
+            /tmp/bss-smoke.status
+      - name: Require BSS battle to reach turn one
+        run: test "$(cat /tmp/bss-smoke.status)" = 0
       - name: Verify access gate and authenticated launcher
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:10000/)" = 401
