@@ -1,0 +1,65 @@
+Cresselia @ Mental Herb
+Ability: Levitate
+Tera Type: Fairy
+EVs: 252 HP / 196 Def / 60 SpD
+Sassy Nature
+IVs: 0 Atk / 0 Spe
+- Trick Room
+- Lunar Blessing
+- Ice Beam
+- Moonblast
+
+Calyrex-Ice @ Weakness Policy
+Ability: As One (Glastrier)
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Glacial Lance
+- High Horsepower
+- Trick Room
+- Swords Dance
+
+Ursaluna @ Flame Orb
+Ability: Guts
+Tera Type: Normal
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Facade
+- Headlong Rush
+- Ice Punch
+- Protect
+
+Magearna @ Leftovers
+Ability: Soul-Heart
+Tera Type: Water
+EVs: 252 HP / 252 SpA / 4 SpD
+Quiet Nature
+IVs: 0 Atk / 0 Spe
+- Trick Room
+- Fleur Cannon
+- Volt Switch
+- Aura Sphere
+
+Hatterene @ Focus Sash
+Ability: Magic Bounce
+Tera Type: Psychic
+EVs: 252 HP / 252 SpA / 4 SpD
+Quiet Nature
+IVs: 0 Atk / 0 Spe
+- Trick Room
+- Expanding Force
+- Dazzling Gleam
+- Mystical Fire
+
+Melmetal @ Assault Vest
+Ability: Iron Fist
+Tera Type: Steel
+EVs: 252 HP / 252 Atk / 4 SpD
+Brave Nature
+IVs: 0 Spe
+- Double Iron Bash
+- Earthquake
+- Thunder Punch
+- Ice Punch
