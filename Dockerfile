@@ -31,7 +31,10 @@ RUN node --check scripts/launcher-server.js \
         scripts/check-showdown-user.py \
         scripts/prepare-foul-play-cache.py \
         scripts/patch-foul-play-local-login.py \
+        scripts/patch-foul-play-battle-fallbacks.py \
+        scripts/smoke-bss-battle.py \
         scripts/test-foul-play-local-login.py \
+        scripts/test-foul-play-battle-fallbacks.py \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
@@ -39,24 +42,27 @@ RUN node --check scripts/launcher-server.js \
 
 # Render does not guarantee that Git submodules are initialized for a Docker
 # build, so fetch foul-play explicitly and pin the revision already used by this
-# repository. The private loopback server accepts passwordless /trn logins, so
-# bypass the public assertion service for this one trusted local connection.
+# repository. Apply private-server login and battle-safety patches afterwards.
 RUN rm -rf foul-play \
     && git clone --filter=blob:none https://github.com/pmariglia/foul-play.git foul-play \
     && git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6 \
-    && python3 scripts/patch-foul-play-local-login.py
+    && python3 scripts/patch-foul-play-local-login.py \
+    && python3 scripts/patch-foul-play-battle-fallbacks.py
 
 RUN node build \
     && python3 -m venv .venv \
     && .venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt \
-    && .venv/bin/python scripts/test-foul-play-local-login.py
+    && .venv/bin/python scripts/test-foul-play-local-login.py \
+    && .venv/bin/python scripts/test-foul-play-battle-fallbacks.py
 
-# Validate one embedded team first so format or set errors are explicit in build
-# logs instead of being hidden by the bulk library importer.
+# Validate both an embedded bot team and the low-usage opponent used by the
+# end-to-end BSS smoke test.
 RUN bash scripts/ensure-codespaces-config.sh \
     && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
-        < config/all-generations-fallback/01-legendary-offense.txt
+        < config/all-generations-fallback/01-legendary-offense.txt \
+    && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
+        < config/bss-smoke-opponent.txt
 
 # The embedded teams guarantee an offline fallback. Public National Dex teams
 # are added when the community API is reachable during the image build. Usage
