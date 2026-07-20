@@ -7,7 +7,7 @@ services:
     dockerContext: .
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeployTrigger: commit
     maxShutdownDelaySeconds: 30
     envVars:
       - key: ACCESS_TOKEN
