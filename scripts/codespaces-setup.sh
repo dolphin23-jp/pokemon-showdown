@@ -8,8 +8,9 @@ echo "[1/6] Initializing foul-play submodule..."
 git submodule sync --recursive
 git submodule update --init --recursive
 
-echo "[2/6] Patching foul-play for trusted local login..."
+echo "[2/6] Patching foul-play for the private server..."
 python3 scripts/patch-foul-play-local-login.py
+python3 scripts/patch-foul-play-battle-fallbacks.py
 
 echo "[3/6] Checking runtimes..."
 node --version
@@ -50,6 +51,7 @@ source .venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r foul-play/requirements.txt
 python scripts/test-foul-play-local-login.py
+python scripts/test-foul-play-battle-fallbacks.py
 
 echo "[6/6] Preparing runtime directory..."
 mkdir -p .runtime
