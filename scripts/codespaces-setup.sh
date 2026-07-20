@@ -4,11 +4,14 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-echo "[1/5] Initializing foul-play submodule..."
+echo "[1/6] Initializing foul-play submodule..."
 git submodule sync --recursive
 git submodule update --init --recursive
 
-echo "[2/5] Checking runtimes..."
+echo "[2/6] Patching foul-play for trusted local login..."
+python3 scripts/patch-foul-play-local-login.py
+
+echo "[3/6] Checking runtimes..."
 node --version
 npm --version
 python3 - <<'PY'
@@ -31,7 +34,7 @@ fi
 rustc --version
 cargo --version
 
-echo "[3/5] Installing Pokemon Showdown dependencies..."
+echo "[4/6] Installing Pokemon Showdown dependencies..."
 if [[ -f package-lock.json ]]; then
     npm ci
 else
@@ -40,14 +43,15 @@ fi
 
 bash scripts/ensure-codespaces-config.sh
 
-echo "[4/5] Installing foul-play dependencies..."
+echo "[5/6] Installing foul-play dependencies..."
 python3 -m venv .venv
 # shellcheck disable=SC1091
 source .venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r foul-play/requirements.txt
+python scripts/test-foul-play-local-login.py
 
-echo "[5/5] Preparing runtime directory..."
+echo "[6/6] Preparing runtime directory..."
 mkdir -p .runtime
 
 echo
