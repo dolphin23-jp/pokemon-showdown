@@ -62,6 +62,7 @@ manifest = root / "config" / "bss-team-sources.tsv"
 
 records: list[tuple[str, str, str, str, str]] = []
 seen: set[str] = set()
+rejection_messages = 0
 
 
 def clean_field(value: object, fallback: str) -> str:
@@ -94,29 +95,65 @@ def run_showdown(command: str, text: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def normalize_export(team_text: str) -> str | None:
-    exported = run_showdown("export-team", team_text)
-    if exported.returncode != 0:
+def looks_exported(team_text: str) -> bool:
+    return (
+        "\n" in team_text and
+        re.search(r"(?m)^Ability:\s*\S", team_text) is not None and
+        re.search(r"(?m)^-\s+\S", team_text) is not None
+    )
+
+
+def report_rejection(label: str, process: subprocess.CompletedProcess[str] | None = None) -> None:
+    global rejection_messages
+    if rejection_messages >= 8:
+        return
+    details = ""
+    if process is not None:
+        details = (process.stdout + "\n" + process.stderr).strip()
+    print(f"Skipping {label}: {details or 'incompatible team data'}", file=sys.stderr)
+    rejection_messages += 1
+
+
+def normalize_export(team_text: str, label: str) -> str | None:
+    raw = team_text.strip()
+    if not raw:
+        report_rejection(label)
         return None
-    text = exported.stdout.strip()
-    if not text:
-        return None
+
+    # Repository-owned fallback teams and downloaded BSS seeds are already in
+    # Showdown Import/Export form. Community API responses are normally packed.
+    # Only packed strings should be passed through `export-team`.
+    if looks_exported(raw):
+        text = raw
+    else:
+        exported = run_showdown("export-team", raw)
+        if exported.returncode != 0 or not exported.stdout.strip():
+            report_rejection(label, exported)
+            return None
+        text = exported.stdout.strip()
+
     # foul-play currently does not support Z-Moves or Dynamax.
     if re.search(r"@\s+.*ium Z(?:\s|$)", text, re.IGNORECASE):
+        report_rejection(label)
         return None
     if "Dynamax Level:" in text or "Gigantamax: Yes" in text:
+        report_rejection(label)
         return None
+
     members = [block for block in re.split(r"\n\s*\n", text) if block.strip()]
     if len(members) != 6:
+        report_rejection(label)
         return None
+
     validated = run_showdown("validate-team", text)
     if validated.returncode != 0:
+        report_rejection(label, validated)
         return None
     return text + "\n"
 
 
 def add_team(team_id: str, title: str, author: str, packed_or_exported: str, source: str) -> bool:
-    normalized = normalize_export(packed_or_exported)
+    normalized = normalize_export(packed_or_exported, title)
     if normalized is None:
         return False
     digest = hashlib.sha256(normalized.encode()).hexdigest()
