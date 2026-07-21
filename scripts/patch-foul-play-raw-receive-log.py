@@ -38,7 +38,7 @@ RECEIVE_REPLACEMENT = """    async def receive_message(self):
                         ensure_ascii=False,
                         separators=(",", ":"),
                     )
-                    + "\n"
+                    + "\\n"
                 )
 
         logger.debug("Received message from websocket: {}".format(message))
@@ -52,6 +52,7 @@ def main() -> None:
 
     source = TARGET.read_text(encoding="utf-8")
     if MARKER in source:
+        compile(source, str(TARGET), "exec")
         print("foul-play raw receive log patch is already applied.")
         return
     if source.count(IMPORT_NEEDLE) != 1:
@@ -65,6 +66,7 @@ def main() -> None:
 
     source = source.replace(IMPORT_NEEDLE, IMPORT_REPLACEMENT)
     source = source.replace(RECEIVE_NEEDLE, RECEIVE_REPLACEMENT)
+    compile(source, str(TARGET), "exec")
     TARGET.write_text(source, encoding="utf-8")
     print("Applied foul-play raw receive log patch.")
 
