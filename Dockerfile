@@ -73,6 +73,7 @@ RUN npx eslint --max-warnings 0 \
     && node scripts/test-launcher-pinned-client.js \
     && python3 -m py_compile \
         scripts/audit-phase1-integration.py \
+        scripts/wait-phase1-workflows.py \
         scripts/check-built-client.py \
         scripts/check-localization-docs.py \
         scripts/check-pinned-client.py \
