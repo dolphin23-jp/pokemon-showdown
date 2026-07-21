@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     ".gitmodules",
     "README.md",
     "docs/localization/README.md",
+    "docs/localization/phase-1-t1-07-display-name-api.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
@@ -59,6 +60,18 @@ DOCUMENTATION_MARKERS = [
     "## ロールバック",
     "## 絶対に変えない境界",
     "scripts/check-localization-docs.py",
+]
+
+DISPLAY_NAME_API_MARKERS = [
+    "# Phase 1 T1-07: display-only Japanese name API skeleton",
+    "window.PSDisplayNames",
+    "window.BattleJapaneseDisplayNames",
+    "displaySpeciesName",
+    "displayMoveName",
+    "displayAbilityName",
+    "displayItemName",
+    "canonical English Dex name",
+    "T1-08",
 ]
 
 RETIRED_RUNTIME_MARKERS = [
@@ -120,6 +133,10 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
     assert_contains(ROOT / "docs/localization/README.md", DOCUMENTATION_MARKERS)
     assert_contains(
+        ROOT / "docs/localization/phase-1-t1-07-display-name-api.md",
+        DISPLAY_NAME_API_MARKERS,
+    )
+    assert_contains(
         ROOT / "README.md",
         [
             "Personal AI deployment and Japanese localization",
@@ -150,7 +167,9 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-06 documentation must describe the completed local-client cutover")
+        raise AssertionError("T1-07 must preserve the completed local-client cutover")
+    if client_pin.get("commit") == client_pin.get("upstream_base_commit"):
+        raise AssertionError("T1-07 must pin the fork revision containing the display-name API")
 
     diff_files = changed_files(base_ref)
     protected_changes = [
@@ -172,11 +191,29 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-06",
+        "task": "T1-07",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
+        "display_name_api": {
+            "client_commit": client_pin["commit"],
+            "upstream_base_commit": client_pin["upstream_base_commit"],
+            "api_global": "PSDisplayNames",
+            "data_global": "BattleJapaneseDisplayNames",
+            "functions": [
+                "displaySpeciesName",
+                "displayMoveName",
+                "displayAbilityName",
+                "displayItemName",
+            ],
+            "fallback": "canonical-english-name",
+            "mutates_ids": False,
+            "protocol_safe": True,
+            "generated_maps_added": False,
+            "implementation_repository": client_pin["fork_repository"],
+            "task_document": "docs/localization/phase-1-t1-07-display-name-api.md",
+        },
         "operations_documentation": {
             "authoritative_guide": "docs/localization/README.md",
             "repository_entrypoint": "README.md",
@@ -218,6 +255,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "pokemon_showdown_client_fork": client_pin["fork_repository"],
             "pokemon_showdown_client_upstream": client_pin["upstream_repository"],
             "pokemon_showdown_client_commit": client_pin["commit"],
+            "pokemon_showdown_client_upstream_base": client_pin["upstream_base_commit"],
         },
         "required_regression_tests": [
             "scripts/smoke-bss-battle.py",
@@ -230,7 +268,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/test-launcher-pinned-client.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
-            "scripts/check-built-client.py",
+            "scripts/check-built-client.py display-name API contract",
             "scripts/check-localization-docs.py",
         ],
         "japanese_server_translation_files": [
