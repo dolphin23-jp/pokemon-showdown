@@ -1,0 +1,6270 @@
+{
+  "task": "Phase 2 server dictionary audit",
+  "generatedAt": "2026-07-21T23:54:09.667Z",
+  "commit": "c7b7fc5ed699c9b1cdf91a310d46757f2cfd8c62",
+  "summary": {
+    "dictionaryKeys": 509,
+    "duplicateKeys": 1,
+    "emptyValues": 18,
+    "taggedTranslationKeys": 666,
+    "missingKeys": 256,
+    "directEnglishCandidates": 539,
+    "missingByPriority": {
+      "P0": 0,
+      "P1": 47,
+      "P2": 199,
+      "P3": 10
+    },
+    "directEnglishByPriority": {
+      "P0": 0,
+      "P1": 219,
+      "P2": 242,
+      "P3": 78
+    }
+  },
+  "fixedScope": {
+    "tieringFaq": true,
+    "badgeFaq": true,
+    "pleaseResidue": true,
+    "ignoreTypo": true,
+    "numberInterpolation": true,
+    "roomFaqResidue": true,
+    "userlistTranslationBoundary": true
+  },
+  "emptyValues": [
+    {
+      "key": "Help Ticket Stats",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 80,
+      "priority": "P0"
+    },
+    {
+      "key": "Claimed",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 92,
+      "priority": "P0"
+    },
+    {
+      "key": "Unclaimed",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 93,
+      "priority": "P0"
+    },
+    {
+      "key": "Claim",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 94,
+      "priority": "P0"
+    },
+    {
+      "key": "Banned",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 103,
+      "priority": "P0"
+    },
+    {
+      "key": "Ticket Stats",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 104,
+      "priority": "P0"
+    },
+    {
+      "key": "No ticket stats found.",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 105,
+      "priority": "P0"
+    },
+    {
+      "key": "Staff Stats",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 107,
+      "priority": "P0"
+    },
+    {
+      "key": "Resolved",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 109,
+      "priority": "P0"
+    },
+    {
+      "key": "Unresolved",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 110,
+      "priority": "P0"
+    },
+    {
+      "key": "Dead",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 111,
+      "priority": "P0"
+    },
+    {
+      "key": "Total Tickets",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 113,
+      "priority": "P0"
+    },
+    {
+      "key": "Average Total Time",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 114,
+      "priority": "P0"
+    },
+    {
+      "key": "Average Initial Wait",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 115,
+      "priority": "P0"
+    },
+    {
+      "key": "Average Total Wait",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 116,
+      "priority": "P0"
+    },
+    {
+      "key": "Resolutions",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 117,
+      "priority": "P0"
+    },
+    {
+      "key": "Positive Result",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 118,
+      "priority": "P0"
+    },
+    {
+      "key": "Average Time Per Ticket",
+      "value": "",
+      "file": "translations/japanese/helptickets.ts",
+      "line": 121,
+      "priority": "P0"
+    }
+  ],
+  "missingKeys": [
+    {
+      "key": "Server version: <b>${version}",
+      "file": "server/chat-commands/core.ts",
+      "line": 188,
+      "command": "version",
+      "priority": "P1"
+    },
+    {
+      "key": "User ${targetUsername} is offline. Send the message again to confirm. If you are using /msg, use /offlinemsg instead.",
+      "file": "server/chat-commands/core.ts",
+      "line": 357,
+      "command": "msg",
+      "priority": "P1"
+    },
+    {
+      "key": "You are already blocking ${msg}private messages! To unblock, use /unblockpms",
+      "file": "server/chat-commands/core.ts",
+      "line": 504,
+      "command": "blockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking ${msg}private messages, except from staff and ${target}.",
+      "file": "server/chat-commands/core.ts",
+      "line": 508,
+      "command": "blockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking ${msg}private messages, except from staff, friends, and ${target} users.",
+      "file": "server/chat-commands/core.ts",
+      "line": 512,
+      "command": "blockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking ${msg}private messages, except from staff and friends.",
+      "file": "server/chat-commands/core.ts",
+      "line": 515,
+      "command": "blockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking ${msg}private messages, except from staff.",
+      "file": "server/chat-commands/core.ts",
+      "line": 518,
+      "command": "blockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are not blocking ${msg}private messages! To block, use /blockpms",
+      "file": "server/chat-commands/core.ts",
+      "line": 545,
+      "command": "unblockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are no longer blocking ${msg}private messages.",
+      "file": "server/chat-commands/core.ts",
+      "line": 554,
+      "command": "unblockpms",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking room invites, except from staff and ${target}.",
+      "file": "server/chat-commands/core.ts",
+      "line": 577,
+      "command": "blockinvites",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking room invites, except from staff and ${target} users.",
+      "file": "server/chat-commands/core.ts",
+      "line": 580,
+      "command": "blockinvites",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking room invites, except from staff.",
+      "file": "server/chat-commands/core.ts",
+      "line": 583,
+      "command": "blockinvites",
+      "priority": "P1"
+    },
+    {
+      "key": "Format",
+      "file": "server/chat-commands/core.ts",
+      "line": 694,
+      "command": "rank",
+      "priority": "P1"
+    },
+    {
+      "key": "L",
+      "file": "server/chat-commands/core.ts",
+      "line": 694,
+      "command": "rank",
+      "priority": "P1"
+    },
+    {
+      "key": "Total",
+      "file": "server/chat-commands/core.ts",
+      "line": 694,
+      "command": "rank",
+      "priority": "P1"
+    },
+    {
+      "key": "W",
+      "file": "server/chat-commands/core.ts",
+      "line": 694,
+      "command": "rank",
+      "priority": "P1"
+    },
+    {
+      "key": "${user.name} wants to extract the battle input log.",
+      "file": "server/chat-commands/core.ts",
+      "line": 863,
+      "command": "exportinputlog",
+      "priority": "P1"
+    },
+    {
+      "key": "You are not a player and don't have a team.",
+      "file": "server/chat-commands/core.ts",
+      "line": 917,
+      "command": "showset",
+      "priority": "P1"
+    },
+    {
+      "key": "You don't have a Pokémon matching \"${target}\" in your team.",
+      "file": "server/chat-commands/core.ts",
+      "line": 924,
+      "command": "showset",
+      "priority": "P1"
+    },
+    {
+      "key": "You don't have a Pokémon #${parsed} on your team - your team only has ${team.length} Pokémon.",
+      "file": "server/chat-commands/core.ts",
+      "line": 930,
+      "command": "showset",
+      "priority": "P1"
+    },
+    {
+      "key": "Must be a player to agree to open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 962,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "This format does not allow requesting open team sheets. You can both manually agree to it by using !showteam hidestats.",
+      "file": "server/chat-commands/core.ts",
+      "line": 966,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "You cannot agree to open team sheets after Team Preview. Each player can still show their own sheet by using this command: !showteam hidestats",
+      "file": "server/chat-commands/core.ts",
+      "line": 969,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "An opponent has already rejected open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 972,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "You have already made your decision about agreeing to open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 975,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "${user.name} has agreed to open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 980,
+      "command": "acceptopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "Must be a player to reject open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 993,
+      "command": "rejectopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "This format does not allow requesting open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 997,
+      "command": "rejectopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "You cannot reject open team sheets after Team Preview.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1000,
+      "command": "rejectopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "${user.name} rejected open team sheets.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1009,
+      "command": "rejectopenteamsheets",
+      "priority": "P1"
+    },
+    {
+      "key": "Player must be set to \"p1\" or \"p2\", not \"${slot}\".",
+      "file": "server/chat-commands/core.ts",
+      "line": 1191,
+      "command": "invitebattle",
+      "priority": "P1"
+    },
+    {
+      "key": "This room already has a player in slot ${slot}.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1207,
+      "command": "invitebattle",
+      "priority": "P1"
+    },
+    {
+      "key": "${targetUser.name} is already a player in this battle.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1215,
+      "command": "invitebattle",
+      "priority": "P1"
+    },
+    {
+      "key": "The user '${targetUser.name}' is not accepting challenges right now.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1221,
+      "command": "invitebattle",
+      "priority": "P1"
+    },
+    {
+      "key": "${targetUser.name} was kicked from a battle by ${user.name}.${displayReason}",
+      "file": "server/chat-commands/core.ts",
+      "line": 1361,
+      "command": "kickgame",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking challenges, except from staff and ${target}.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1538,
+      "command": "blockchallenges",
+      "priority": "P1"
+    },
+    {
+      "key": "You are now blocking challenges, except from staff and ${target} users.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1543,
+      "command": "blockchallenges",
+      "priority": "P1"
+    },
+    {
+      "key": "'/${target}' is a help command.",
+      "file": "server/chat-commands/core.ts",
+      "line": 1803,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "key": "${room.title} room rules",
+      "file": "server/chat-commands/info.ts",
+      "line": 2078,
+      "command": "rules",
+      "priority": "P1"
+    },
+    {
+      "key": "/rules",
+      "file": "server/chat-commands/info.ts",
+      "line": 2079,
+      "command": "rules",
+      "priority": "P1"
+    },
+    {
+      "key": "${possibleRoom.title} room rules",
+      "file": "server/chat-commands/info.ts",
+      "line": 2100,
+      "command": "rules",
+      "priority": "P1"
+    },
+    {
+      "key": "pages/proxyhelp",
+      "file": "server/chat-commands/info.ts",
+      "line": 2164,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "key": "Proxy lock help",
+      "file": "server/chat-commands/info.ts",
+      "line": 2164,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "key": "Custom avatars are given to Global Staff members, contributors (coders and spriters) to Pokemon Showdown, and Smogon badgeholders at the discretion of the PS! Administrators. They are also sometimes given out as rewards for major events such as PSPL (Pokemon Showdown Premier League). If you're curious, you can view the entire list of <a href=\"https://www.smogon.com/smeargle/customs/\">custom avatars</a>.",
+      "file": "server/chat-commands/info.ts",
+      "line": 2167,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "key": "pages/privacy",
+      "file": "server/chat-commands/info.ts",
+      "line": 2170,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "key": "Pokémon Showdown privacy policy",
+      "file": "server/chat-commands/info.ts",
+      "line": 2170,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "key": "${targetUser.name}'s status \"${targetUser.userMessage}\" was cleared by ${user.name}${displayReason}.",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1910,
+      "command": "forceclearstatus",
+      "priority": "P1"
+    },
+    {
+      "key": "The announcement was edited by ${user.name}.",
+      "file": "server/chat-plugins/announcements.ts",
+      "line": 125,
+      "command": "edit",
+      "priority": "P2"
+    },
+    {
+      "key": "Time should be a number of minutes less than one week.",
+      "file": "server/chat-plugins/announcements.ts",
+      "line": 142,
+      "command": "timer",
+      "priority": "P2"
+    },
+    {
+      "key": "To use the friends feature you must be autoconfirmed, which means being registered for at least one week and winning one rated game.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 160,
+      "command": "checkCanUse",
+      "priority": "P2"
+    },
+    {
+      "key": "That name is too long - choose a valid name.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 266,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "You are currently blocking friend requests, and so cannot accept your own.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 297,
+      "command": "accept",
+      "priority": "P2"
+    },
+    {
+      "key": "You already are allowing friend requests.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 329,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "key": "You are now allowing friend requests.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 331,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "key": "You already are blocking incoming friend requests.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 333,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "key": "You are now blocking incoming friend requests.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 335,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "key": "Unrecognized setting.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 337,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already not receiving friend notifications.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 364,
+      "command": "viewnotifications",
+      "priority": "P2"
+    },
+    {
+      "key": "You will not receive friend notifications.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 366,
+      "command": "viewnotifications",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already hiding your logins from friends.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 382,
+      "command": "togglelogins",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already allowing friends to see your login times.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 387,
+      "command": "togglelogins",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already allowing other people to view your friends list.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 403,
+      "command": "listdisplay",
+      "priority": "P2"
+    },
+    {
+      "key": "You are now allowing other people to view your friends list.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 407,
+      "command": "listdisplay",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already hiding your friends list.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 410,
+      "command": "listdisplay",
+      "priority": "P2"
+    },
+    {
+      "key": "You are now hiding your friends list.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 414,
+      "command": "listdisplay",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already sharing your battles with friends.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 434,
+      "command": "sharebattles",
+      "priority": "P2"
+    },
+    {
+      "key": "You are already not sharing your battles with friends.",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 440,
+      "command": "sharebattles",
+      "priority": "P2"
+    },
+    {
+      "key": "If someone is harassing you in private messages (PMs), click the button below and a global staff member will take a look. If you are being harassed in a chatroom, please ask a room staff member to handle it.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1512,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "If someone is harassing you in a battle, click the button below and a global staff member will take a look. If you are being harassed in a chatroom, please ask a room staff member to handle it.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1521,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "If you must use a proxy / VPN to access Pokemon Showdown (e.g. your school blocks the site normally), you will only be able to battle, not chat. When you go home, you will be unlocked and able to freely chat again.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1660,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "If you are certain that you are not currently using a proxy / VPN, please continue and open a ticket. Please explain in detail how you are connecting to Pokemon Showdown.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1662,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "If the semilock does not go away, you can try asking a global staff member for help.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1672,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "If you don't have an autoconfirmed account, you will need to contact a global staff member to appeal your semilock.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1675,
+      "command": "request",
+      "priority": "P2"
+    },
+    {
+      "key": "And ${sortedTickets.length - count} more tickets.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1814,
+      "command": "tickets",
+      "priority": "P2"
+    },
+    {
+      "key": "Ticket Bans",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1862,
+      "command": "tickets",
+      "priority": "P2"
+    },
+    {
+      "key": "Queued Tickets",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 1881,
+      "command": "text",
+      "priority": "P2"
+    },
+    {
+      "key": "You need to choose a username before doing this.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2257,
+      "command": "create",
+      "priority": "P2"
+    },
+    {
+      "key": "${targetUsername} does not have an open ticket.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2722,
+      "command": "close",
+      "priority": "P2"
+    },
+    {
+      "key": "${target} is not ticket banned.",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2852,
+      "command": "unban",
+      "priority": "P2"
+    },
+    {
+      "key": "That option is already selected.",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 81,
+      "command": "select",
+      "priority": "P2"
+    },
+    {
+      "key": "Extra escape character. To end a poll with '\\', enter it as '\\\\'",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 415,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "Too many options for poll (maximum is ${MAX_QUESTIONS}).",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 449,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "Can't delete poll at slot ${target} - \"${target}\" is not a number.",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 496,
+      "command": "deletequeue",
+      "priority": "P2"
+    },
+    {
+      "key": "The poll timer was turned on: the poll will end in ${Chat.toDurationString(timeoutMins * MINUTES)}.",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 575,
+      "command": "timer",
+      "priority": "P2"
+    },
+    {
+      "key": "The poll timer was set to ${timeoutMins} minute(s) by ${user.name}.",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 577,
+      "command": "timer",
+      "priority": "P2"
+    },
+    {
+      "key": "The poll timer is on and will end in ${Chat.toDurationString(poll.timeoutMins * MINUTES)}.",
+      "file": "server/chat-plugins/poll.ts",
+      "line": 581,
+      "command": "timer",
+      "priority": "P2"
+    },
+    {
+      "key": "every ${minutes} chat message(s)",
+      "file": "server/chat-plugins/repeats.ts",
+      "line": 143,
+      "command": "repeats",
+      "priority": "P2"
+    },
+    {
+      "key": "There is no game in progress.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 153,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "key": "The currently running game is not Trivia, it's ${game.title}.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 156,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "key": "The currently running game is not Mastermind, it's ${game.title}.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 170,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "key": "Random (${category})",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 401,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "key": "You have already signed up for this game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 454,
+      "command": "addTriviaPlayer",
+      "priority": "P2"
+    },
+    {
+      "key": "You were kicked from the game and thus cannot join it again.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 460,
+      "command": "addTriviaPlayer",
+      "priority": "P2"
+    },
+    {
+      "key": "You were kicked from the game and cannot join until the next game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 467,
+      "command": "addTriviaPlayer",
+      "priority": "P2"
+    },
+    {
+      "key": "This game does not allow latejoins.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 483,
+      "command": "addTriviaPlayer",
+      "priority": "P2"
+    },
+    {
+      "key": "Mode: ${this.game.mode} | Category: ${this.game.category} | Cap: ${this.getDisplayableCap()}<br />",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 524,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": "Sign up for the Trivia game!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 525,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": " (You can also type <code>/trivia join</code> to sign up manually.)",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 526,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": "Mode: ${this.game.mode} | Category: ${this.game.category} | Cap: ${this.getDisplayableCap()}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 531,
+      "command": "getDescription",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${user.name} has already been kicked from the game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 551,
+      "command": "kick",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${user.name} is not a player in the game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 572,
+      "command": "kick",
+      "priority": "P2"
+    },
+    {
+      "key": "You are not a player in the current game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 585,
+      "command": "leave",
+      "priority": "P2"
+    },
+    {
+      "key": "The game has already been started.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 594,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "The game will begin in ${START_TIMEOUT / 1000} seconds...",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 596,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "The trivia game is already paused.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 602,
+      "command": "pause",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot pause the trivia game during a question.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 604,
+      "command": "pause",
+      "priority": "P2"
+    },
+    {
+      "key": "The Trivia game has been paused.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 607,
+      "command": "pause",
+      "priority": "P2"
+    },
+    {
+      "key": "The trivia game is not paused.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 611,
+      "command": "resume",
+      "priority": "P2"
+    },
+    {
+      "key": "The Trivia game has been resumed.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 613,
+      "command": "resume",
+      "priority": "P2"
+    },
+    {
+      "key": "No questions are left!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 640,
+      "command": "askQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "The game has reached a stalemate",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 641,
+      "command": "askQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "Question ${this.questionNumber}: ${question.question}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 673,
+      "command": "sendQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "Category: ${ALL_CATEGORIES[question.category]}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 674,
+      "command": "sendQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "The answering period has ended!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 732,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "You answered ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 740,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "You gained ${player.points} points and answered ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 740,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "${player.correctAnswers} questions correctly.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 741,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "${Utils.escapeHTML(p1.name)} won the game with a final score of <strong>${p1.player.points}</strong>",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 832,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": ", and ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 836,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${initialPart}their leaderboard score has increased by <strong>${prizes[0]}</strong> points!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 841,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${initialPart}their leaderboard score has increased by <strong>${prizes[0]}</strong> points! ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 843,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${Utils.escapeHTML(p2.name)} was a runner-up and their leaderboard score has increased by <strong>${prizes[1]}</strong> points!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 844,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${p2.name} and ${p3.name} were runners-up. ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 846,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "Their leaderboard score has increased by ${prizes[0]}, ${prizes[1]}, and ${prizes[2]}, respectively!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 847,
+      "command": "getWinningMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${mapper(winner)} won the game of ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 855,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "ranked ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 856,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "unranked ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 856,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${this.game.mode} mode trivia under the ${this.game.category} category with ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 857,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "a cap of ${this.getDisplayableCap()} ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 858,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "with ${winner.player.points} points and ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 859,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "${winner.player.correctAnswers} correct answers",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 860,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": " Second place: ${mapper(winner)} (${winner.player.points} points)",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 861,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": ", third place: ${mapper(winner)} (${winner.player.points} points)",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 862,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "a cap of ${this.getDisplayableCap()}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 871,
+      "command": "getStaffEndMessage",
+      "priority": "P2"
+    },
+    {
+      "key": "The game was forcibly ended by ${user.name}.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 877,
+      "command": "end",
+      "priority": "P2"
+    },
+    {
+      "key": "You are not a player in the current trivia game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 895,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "The trivia game is paused.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 896,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "There is no question to answer.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 897,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "You have already attempted to answer the current question.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 899,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "Correct: ${players}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 911,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "Answer(s): ${this.curAnswers.join(', ')}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 912,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "They gained <strong>5</strong> points!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 913,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "The top 5 players are: ${this.formatPlayerList({ max: 5 })}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 914,
+      "command": "answerQuestion",
+      "priority": "P2"
+    },
+    {
+      "key": "Correct: no one...",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 946,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Answers: ${this.curAnswers.join(', ')}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 947,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Nobody gained any points.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 948,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Answer(s): ${this.curAnswers.join(', ')}<br />",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 989,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Correct",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 993,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "No one answered correctly...",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1046,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Each of them gained <strong>${points}</strong> point(s)!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1117,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "They gained <strong>${points}</strong> point(s)!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1117,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Correct: ${players}<br />",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1185,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Answers: ${this.curAnswers.join(', ')}<br />",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1186,
+      "command": "tallyAnswers",
+      "priority": "P2"
+    },
+    {
+      "key": "Signups for a new Mastermind game have begun!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1232,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": "The top <strong>${this.numFinalists}</strong> players will advance to the finals!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1233,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": "Type <code>/mastermind join</code> to sign up for the game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1234,
+      "command": "init",
+      "priority": "P2"
+    },
+    {
+      "key": "There is already a round of Mastermind in progress.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1276,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "That user is not signed up for Mastermind!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1279,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "The user \"${playerID}\" has already played their round of Mastermind.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1282,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot start the game of Mastermind until there are more players than finals slots.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1285,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "The round of Mastermind has ended!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1297,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "${player} earned ${points} points!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1298,
+      "command": "startRound",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot start finals until the user '${player}' has played a round.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1319,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "There are no questions in the Trivia database.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1324,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "No one scored any points, so it's a tie!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1337,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "${winnerName} won the game of Mastermind with ${winner.player.points} points!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1340,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "${secondPlace} and ${thirdPlace} were runners-up with ${second.player.points} and ${third.player.points} points, respectively.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1347,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "${secondPlace} was a runner up with ${second.player.points} points.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1350,
+      "command": "startFinals",
+      "priority": "P2"
+    },
+    {
+      "key": "The game of Mastermind was forcibly ended by ${user.name}.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1384,
+      "command": "end",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${toKick.name} is not a player in the game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1402,
+      "command": "kick",
+      "priority": "P2"
+    },
+    {
+      "key": "Kicking ${toKick.name} would leave this game of Mastermind without enough players to reach ${this.numFinalists} finalists.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1407,
+      "command": "kick",
+      "priority": "P2"
+    },
+    {
+      "key": "A Mastermind round in the ${this.game.category} category for ${name} is starting!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1445,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "The Mastermind finals are starting!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1493,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot pass in the finals.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1510,
+      "command": "pass",
+      "priority": "P2"
+    },
+    {
+      "key": "There is already a game of ${room.game.title} in progress.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1527,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "\"${mode}\" is an invalid mode.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1540,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "\"${length}\" is an invalid game length.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1558,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "There are not enough questions in the randomly chosen category to finish a trivia game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1566,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "There are not enough questions in the trivia database to finish a trivia game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1571,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "There are not enough questions under the specified categories to finish a trivia game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1575,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "You are now signed up for this game!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1607,
+      "command": "join",
+      "priority": "P2"
+    },
+    {
+      "key": "You have left the current game of Trivia.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1623,
+      "command": "leave",
+      "priority": "P2"
+    },
+    {
+      "key": "No valid answer was entered.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1649,
+      "command": "answer",
+      "priority": "P2"
+    },
+    {
+      "key": "You have selected \"${answer}\" as your answer.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1655,
+      "command": "answer",
+      "priority": "P2"
+    },
+    {
+      "key": "Only Room Owners and higher can force a Trivia game to end with winners in a non-infinite length.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1691,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "${user.name} ended the game of Trivia!",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1694,
+      "command": "win",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${target} does not exist.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1706,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "There is a paused trivia game",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1707,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "There is a trivia game in progress",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1707,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "and it is in its ${game.phase} phase.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1708,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "Mode: ${game.game.mode} | Category: ${game.game.category} | Cap: ${game.getDisplayableCap()}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1709,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "Current score: ${player.points} | Correct Answers: ${player.correctAnswers}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1714,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "User ${targetUser.name} is not a player in the current trivia game.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1717,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "Players: ${game.formatPlayerList({ max: null, requirePoints: false })}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1719,
+      "command": "status",
+      "priority": "P2"
+    },
+    {
+      "key": "Invalid arguments specified in \"${param}\". View /trivia help for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1737,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "'${param[0].trim()}' is not a valid category. View /trivia help for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1744,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot submit questions in the '${ALL_CATEGORIES[category]}' category",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1748,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "'${param[1].trim()}' is not a valid question.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1754,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "Question \"${param[1].trim()}\" is too long! It must remain under ${MAX_QUESTION_LENGTH} characters.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1759,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "No valid answers were specified for question '${param[1].trim()}'.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1770,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "Some of the answers entered for question '${param[1].trim()}' were too long!\n",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1775,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "key": "No questions await review.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1815,
+      "command": "review",
+      "priority": "P2"
+    },
+    {
+      "key": "Answer(s)",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1824,
+      "command": "review",
+      "priority": "P2"
+    },
+    {
+      "key": "Category",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1824,
+      "command": "review",
+      "priority": "P2"
+    },
+    {
+      "key": "Question",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1824,
+      "command": "review",
+      "priority": "P2"
+    },
+    {
+      "key": "Submitted By",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1824,
+      "command": "review",
+      "priority": "P2"
+    },
+    {
+      "key": "'${target}' is not a valid set of submission index numbers.\n",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1889,
+      "command": "accept",
+      "priority": "P2"
+    },
+    {
+      "key": "View /trivia review and /trivia help for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1890,
+      "command": "accept",
+      "priority": "P2"
+    },
+    {
+      "key": "'${target}' is an invalid argument. View /trivia help questions for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1906,
+      "command": "accept",
+      "priority": "P2"
+    },
+    {
+      "key": "'${target}' is not a valid argument. View /trivia help questions for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1921,
+      "command": "delete",
+      "priority": "P2"
+    },
+    {
+      "key": "${user.name} removed question '${target}' (category: ${category}) from the question database.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1928,
+      "command": "delete",
+      "priority": "P2"
+    },
+    {
+      "key": "${user.name} changed question category from '${oldCat}' to '${param[0]}' for '${param[1].trim()}' ",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1964,
+      "command": "move",
+      "priority": "P2"
+    },
+    {
+      "key": "from the question database.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1965,
+      "command": "move",
+      "priority": "P2"
+    },
+    {
+      "key": "No questions have been submitted yet.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2098,
+      "command": "qs",
+      "priority": "P2"
+    },
+    {
+      "key": "Question Count",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2100,
+      "command": "qs",
+      "priority": "P2"
+    },
+    {
+      "key": "'${target}' is not a valid category. View /help trivia for more information.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2119,
+      "command": "qs",
+      "priority": "P2"
+    },
+    {
+      "key": "There are no questions in the ${ALL_CATEGORIES[category]} category.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2124,
+      "command": "qs",
+      "priority": "P2"
+    },
+    {
+      "key": "There are <strong>${list.length}</strong> questions in the ${cat} category.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2130,
+      "command": "qs",
+      "priority": "P2"
+    },
+    {
+      "key": "No valid search arguments entered.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2165,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "No valid search category was entered. Valid categories: submissions, subs, questions, qs",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2177,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "No valid search query was entered.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2183,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "No results found under the ${type} list.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2186,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "There are <strong>${results.length}</strong> matches for your query:",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2189,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "<tr><td><strong>${i + 1}</strong></td><td>${q.category}</td><td>${q.question}</td></tr>",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2191,
+      "command": "search",
+      "priority": "P2"
+    },
+    {
+      "key": "User '${name}' has not played any Trivia games yet.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2255,
+      "command": "rank",
+      "priority": "P2"
+    },
+    {
+      "key": "No Trivia games have been played yet.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2312,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "Leaderboard score",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2315,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "Rank",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2315,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "Total correct answers",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2315,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "Total game points",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2315,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "User",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2315,
+      "command": "ladder",
+      "priority": "P2"
+    },
+    {
+      "key": "${user.name} removed all questions of category '${category}'.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2370,
+      "command": "clearqs",
+      "priority": "P2"
+    },
+    {
+      "key": "You cannot clear the category '${ALL_CATEGORIES[category]}'.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2372,
+      "command": "clearqs",
+      "priority": "P2"
+    },
+    {
+      "key": "'${category}' is an invalid category.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2375,
+      "command": "clearqs",
+      "priority": "P2"
+    },
+    {
+      "key": "${game.mode} mode, ${game.length} length Trivia game in the ${game.category} category",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2395,
+      "command": "history",
+      "priority": "P2"
+    },
+    {
+      "key": "hosted by ${game.creator}",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2396,
+      "command": "history",
+      "priority": "P2"
+    },
+    {
+      "key": "You must specify a number that is at least 2 for finalists.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2590,
+      "command": "new",
+      "priority": "P2"
+    },
+    {
+      "key": "${category} is not a valid category.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2610,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "You must specify a round length of at least 1 second.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2615,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "There are no questions in the ${categoryName} category.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2620,
+      "command": "start",
+      "priority": "P2"
+    },
+    {
+      "key": "You must specify a length of at least 1 second.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2638,
+      "command": "finals",
+      "priority": "P2"
+    },
+    {
+      "key": "You have left the current game of Mastermind.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2654,
+      "command": "leave",
+      "priority": "P2"
+    },
+    {
+      "key": "No round of Mastermind is currently being played.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2661,
+      "command": "pass",
+      "priority": "P2"
+    },
+    {
+      "key": "You are not a player in the current round of Mastermind.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2663,
+      "command": "pass",
+      "priority": "P2"
+    },
+    {
+      "key": "There is a Mastermind game in progress, and it is in its ${game.phase} phase.",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2675,
+      "command": "players",
+      "priority": "P2"
+    },
+    {
+      "key": "Players",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2676,
+      "command": "players",
+      "priority": "P2"
+    },
+    {
+      "key": "This room has slow-chat enabled. You can only talk once every ${room.settings.slowchat} seconds.",
+      "file": "server/chat.ts",
+      "line": 780,
+      "command": "checkSlowchat",
+      "priority": "P3"
+    },
+    {
+      "key": "You are locked due to your proxy / VPN and can't talk in chat.",
+      "file": "server/chat.ts",
+      "line": 1144,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "|html|<div class=\"message-error\">You must be registered to chat in temporary rooms (like battles).</div>",
+      "file": "server/chat.ts",
+      "line": 1151,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "You may register in the <button name=\"openOptions\"><i class=\"fa fa-cog\"></i> Options</button> menu.",
+      "file": "server/chat.ts",
+      "line": 1152,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "Moderated chat is set. To speak in this room, your account must be autoconfirmed, which means being registered for at least one week and winning at least one rated game (any game started through the 'Battle!' button).",
+      "file": "server/chat.ts",
+      "line": 1162,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "|html|You may register in the <button name=\"openOptions\"><i class=\"fa fa-cog\"></i> Options</button> menu.",
+      "file": "server/chat.ts",
+      "line": 1165,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "|html|<div class=\"message-error\">You must be registered to send private messages.</div>",
+      "file": "server/chat.ts",
+      "line": 1189,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "That user is unregistered and cannot be PMed.",
+      "file": "server/chat.ts",
+      "line": 1195,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "You are locked due to your proxy / VPN and can only private message members of the global moderation team.",
+      "file": "server/chat.ts",
+      "line": 1200,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "key": "This ${Config.groups[targetUser.tempGroup].name} is too busy to answer private messages right now. Please contact a different staff member.",
+      "file": "server/chat.ts",
+      "line": 1219,
+      "command": "checkChat",
+      "priority": "P3"
+    }
+  ],
+  "directEnglishCandidates": [
+    {
+      "text": "Fetching newest version of code in the repository ${codePath}...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 70,
+      "command": "",
+      "priority": "P1"
+    },
+    {
+      "text": "There were no updates.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 75,
+      "command": "",
+      "priority": "P1"
+    },
+    {
+      "text": "Saving changes...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 92,
+      "command": "",
+      "priority": "P1"
+    },
+    {
+      "text": "Rebasing...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 97,
+      "command": "",
+      "priority": "P1"
+    },
+    {
+      "text": "Restoring saved changes...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 106,
+      "command": "",
+      "priority": "P1"
+    },
+    {
+      "text": "${userid}'s namecolor was removed.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 296,
+      "command": "setnamecolor",
+      "priority": "P1"
+    },
+    {
+      "text": "Closed the bot page ${pageid} for ${Chat.toListString(successes)}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 435,
+      "command": "sendhtmlpage",
+      "priority": "P1"
+    },
+    {
+      "text": "Unable to close the bot page for ${Chat.toListString(errors)}.",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 438,
+      "command": "sendhtmlpage",
+      "priority": "P1"
+    },
+    {
+      "text": "Sent ${Chat.toListString(successes)}${selector ? ` the selector ${selector} on` : ''} the bot page ${pageid}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 442,
+      "command": "sendhtmlpage",
+      "priority": "P1"
+    },
+    {
+      "text": "Unable to send the bot page ${pageid} to ${Chat.toListString(errors)}.",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 445,
+      "command": "sendhtmlpage",
+      "priority": "P1"
+    },
+    {
+      "text": "Sent a highlight to ${targetUser.name} on the bot page ${pageid}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 488,
+      "command": "highlighthtmlpage",
+      "priority": "P1"
+    },
+    {
+      "text": "Sent private HTML to ${Chat.toListString(successes)}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 542,
+      "command": "sendprivatehtmlbox",
+      "priority": "P1"
+    },
+    {
+      "text": "Unable to send private HTML to ${Chat.toListString(errors)}.",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 543,
+      "command": "sendprivatehtmlbox",
+      "priority": "P1"
+    },
+    {
+      "text": "The user \"${targetUser.name}\" is not a bot in this room.",
+      "method": "popupReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 563,
+      "command": "botmsg",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching chat commands...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 650,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Reloading chat plugins...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 668,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 670,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching processmanager prototypes...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 678,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 715,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching ${message}...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 734,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 762,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching tournaments...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 772,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 776,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching formats...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 787,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 804,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching loginserver...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 806,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE. New login server requests will use the new code.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 809,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching validator...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 818,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE. Any battles started after now will have teams be validated according to the new code.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 823,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching punishments...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 829,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 831,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching ip-tools...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 833,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 837,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Hotpatching modlog...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 851,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 856,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "Disabling hot-patch has been moved to its own command:",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 858,
+      "command": "hotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "You have enabled hot-patching ${hotpatch}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 919,
+      "command": "nohotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "You have disabled hot-patching ${hotpatch}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 928,
+      "command": "nohotpatch",
+      "priority": "P1"
+    },
+    {
+      "text": "saving...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1038,
+      "command": "savelearnsets",
+      "priority": "P1"
+    },
+    {
+      "text": "learnsets.js saved.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1051,
+      "command": "savelearnsets",
+      "priority": "P1"
+    },
+    {
+      "text": "This command has been replaced by /datacenter add",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1089,
+      "command": "adddatacenters",
+      "priority": "P1"
+    },
+    {
+      "text": "${Chat.count(disabledCommands.length, \"commands\")} are disabled right now.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1148,
+      "command": "lockdown",
+      "priority": "P1"
+    },
+    {
+      "text": "Be aware that restarting will re-enable them.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1149,
+      "command": "lockdown",
+      "priority": "P1"
+    },
+    {
+      "text": "Currently disabled: ${disabledCommands.join(', ')}",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1150,
+      "command": "lockdown",
+      "priority": "P1"
+    },
+    {
+      "text": "Preparation for the server shutdown was canceled.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1227,
+      "command": "endlockdown",
+      "priority": "P1"
+    },
+    {
+      "text": "Saving battles...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1296,
+      "command": "savebattles",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1298,
+      "command": "savebattles",
+      "priority": "P1"
+    },
+    {
+      "text": "${count} battles saved.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1299,
+      "command": "savebattles",
+      "priority": "P1"
+    },
+    {
+      "text": "Saving battles...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1317,
+      "command": "kill",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1327,
+      "command": "kill",
+      "priority": "P1"
+    },
+    {
+      "text": "${count} battles saved.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1328,
+      "command": "kill",
+      "priority": "P1"
+    },
+    {
+      "text": "Restarting...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1415,
+      "command": "updateloginserver",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE. Server updated and restarted.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1431,
+      "command": "updateloginserver",
+      "priority": "P1"
+    },
+    {
+      "text": "FAILED. Conflicts were found while updating - the restart was aborted.",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1434,
+      "command": "updateloginserver",
+      "priority": "P1"
+    },
+    {
+      "text": "Restarting...",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1446,
+      "command": "updateclient",
+      "priority": "P1"
+    },
+    {
+      "text": "DONE. Client updated.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1464,
+      "command": "updateclient",
+      "priority": "P1"
+    },
+    {
+      "text": "FAILED. Conflicts were found while updating.",
+      "method": "errorReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1467,
+      "command": "updateclient",
+      "priority": "P1"
+    },
+    {
+      "text": "Rebuilt.",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1484,
+      "command": "rebuild",
+      "priority": "P1"
+    },
+    {
+      "text": "$ ${target}",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1494,
+      "command": "bash",
+      "priority": "P1"
+    },
+    {
+      "text": "${stdout}${stderr}",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1497,
+      "command": "bash",
+      "priority": "P1"
+    },
+    {
+      "text": "${command}${generateHTML('<', message)}",
+      "method": "sendReply",
+      "file": "server/chat-commands/admin.ts",
+      "line": 1539,
+      "command": "eval",
+      "priority": "P1"
+    },
+    {
+      "text": "Linking...",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 293,
+      "command": "linksmogon",
+      "priority": "P1"
+    },
+    {
+      "text": "That user is online, so a normal PM is being sent.",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 412,
+      "command": "offlinemsg",
+      "priority": "P1"
+    },
+    {
+      "text": "You are no longer blocking room invites.",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 569,
+      "command": "blockinvites",
+      "priority": "P1"
+    },
+    {
+      "text": "You are not challenging ${this.pmTarget.name}. Maybe they accepted/rejected before you cancelled?",
+      "method": "popup",
+      "file": "server/chat-commands/core.ts",
+      "line": 1576,
+      "command": "cancelchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.pmTarget.id} is not challenging you. Maybe they cancelled before you accepted?",
+      "method": "popup",
+      "file": "server/chat-commands/core.ts",
+      "line": 1595,
+      "command": "accept",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.pmTarget.id} is not challenging you. Maybe they cancelled before you rejected?",
+      "method": "popup",
+      "file": "server/chat-commands/core.ts",
+      "line": 1617,
+      "command": "reject",
+      "priority": "P1"
+    },
+    {
+      "text": "${(matchMessage ? matchMessage + \"\\n\\n\" : \"\")}${this.tr`Your team is valid for ${format.name}.`}",
+      "method": "popup",
+      "file": "server/chat-commands/core.ts",
+      "line": 1646,
+      "command": "vtm",
+      "priority": "P1"
+    },
+    {
+      "text": "${(matchMessage ? matchMessage + \"\\n\\n\" : \"\")}${this.tr`Your team was rejected for the following reasons:`}\n\n- ${result.slice(1).replace(/\\n/g, '\\n- ')}",
+      "method": "popup",
+      "file": "server/chat-commands/core.ts",
+      "line": 1648,
+      "command": "vtm",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`COMMANDS`}: /report, /msg, /reply, /logout, /challenge, /search, /rating, /whois, /user, /join, /leave, /userauth, /roomauth",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1721,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`BATTLE ROOM COMMANDS`}: /savereplay, /hideroom, /inviteonly, /invite, /timer, /forfeit",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1722,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`OPTION COMMANDS`}: /nick, /avatar, /ignore, /status, /away, /busy, /back, /timestamps, /highlight, /showjoins, /hidejoins, /blockchallenges, /blockpms",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1723,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`INFORMATIONAL/RESOURCE COMMANDS`}: /groups, /faq, /rules, /intro, /formatshelp, /othermetas, /analysis, /punishments, /calc, /git, /cap, /roomhelp, /roomfaq ${broadcastMsg}",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1724,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`DATA COMMANDS`}: /data, /dexsearch, /movesearch, /itemsearch, /learn, /statcalc, /effectiveness, /weakness, /coverage, /randommove, /randompokemon ${broadcastMsg}",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1725,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`DRIVER COMMANDS`}: /warn, /mute, /hourmute, /unmute, /alts, /forcerename, /modlog, /modnote, /modchat, /lock, /weeklock, /unlock, /announce",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1727,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`MODERATOR COMMANDS`}: /globalban, /unglobalban, /ip, /markshared, /unlockip",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1728,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${this.tr`ADMIN COMMANDS`}: /declare, /forcetie, /forcewin, /promote, /demote, /banip, /host, /ipsearch",
+      "method": "sendReply",
+      "file": "server/chat-commands/core.ts",
+      "line": 1729,
+      "command": "help",
+      "priority": "P1"
+    },
+    {
+      "text": "${targetUsername1} and ${targetUsername2} have no common battles.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 443,
+      "command": "sharedbattles",
+      "priority": "P1"
+    },
+    {
+      "text": "IP ${target}: ${host || \"ERROR\"} [${hostType}]${dnsblMessage}",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 476,
+      "command": "host",
+      "priority": "P1"
+    },
+    {
+      "text": "Users with host ${ipOrHost}${targetRoom ? ` in the room ${targetRoom.title}` : ``}:",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 497,
+      "command": "ipsearch",
+      "priority": "P1"
+    },
+    {
+      "text": "Users with IP ${ipOrHost}${targetRoom ? ` in the room ${targetRoom.title}` : ``}:",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 506,
+      "command": "ipsearch",
+      "priority": "P1"
+    },
+    {
+      "text": "Users in IP range ${ipOrHost}${targetRoom ? ` in the room ${targetRoom.title}` : ``}:",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 514,
+      "command": "ipsearch",
+      "priority": "P1"
+    },
+    {
+      "text": "No users found.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 527,
+      "command": "ipsearch",
+      "priority": "P1"
+    },
+    {
+      "text": "More than 100 users found. Use /ipsearchall for the full list.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 531,
+      "command": "ipsearch",
+      "priority": "P1"
+    },
+    {
+      "text": "This command must be broadcast:",
+      "method": "errorReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 541,
+      "command": "checkchallenges",
+      "priority": "P1"
+    },
+    {
+      "text": "In PMs, this command can only be used by itself to ignore the person you're talking to: \"/${this.cmd}\", not \"/${this.cmd} ${target}\"",
+      "method": "errorReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 568,
+      "command": "ignore",
+      "priority": "P1"
+    },
+    {
+      "text": "You're using a custom client that doesn't support the ignore command.",
+      "method": "errorReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 570,
+      "command": "ignore",
+      "priority": "P1"
+    },
+    {
+      "text": "No Pokémon or type named '${originalSearch}' was found${Dex.gen > dex.gen ? ` in Gen ${dex.gen}` : \"\"}. Searching for '${target}' instead.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 1002,
+      "command": "weakness",
+      "priority": "P1"
+    },
+    {
+      "text": "${atkName} is ${factor}x effective against ${defName}.${additionalInfo}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1136,
+      "command": "effectiveness",
+      "priority": "P1"
+    },
+    {
+      "text": "The full table cannot be broadcast.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1167,
+      "command": "coverage",
+      "priority": "P1"
+    },
+    {
+      "text": "Coverage for ${sources.join(' + ')}:<br />${buffer}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1317,
+      "command": "coverage",
+      "priority": "P1"
+    },
+    {
+      "text": "Level should be between 1 and 9999.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1372,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "The amount of EVs should be between 0 and 255.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1462,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "Modifier should be a number between -6 and +6",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1495,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "The target real stat must be greater than 0.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1511,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "No stat found.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1527,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "No valid value for base stat possible with given parameters.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1548,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "No valid EV/IV combination possible with given parameters. Maybe try a different nature?${ev}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1566,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "Too many parameters given; nothing to calculate.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1569,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "No valid value for base stat found.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1572,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "Base ${baseStat} ${calcHP ? ' HP ' : ' '}at level ${level} with ${iv} IVs, ${ev}${nature === 1.1 ? '+' : nature === 0.9 ? '-' : ''} EVs${modifier > 0 && !calcHP ? ` at ${positiveMod ? '+' : '-'}${modifier}` : ''}: <b>${Math.floor(output)}</b>.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1587,
+      "command": "statcalc",
+      "priority": "P1"
+    },
+    {
+      "text": "Uptime: <b>${uptimeText}</b>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1612,
+      "command": "uptime",
+      "priority": "P1"
+    },
+    {
+      "text": "Server time: <b>${servertime.toLocaleString()}</b>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1620,
+      "command": "servertime",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://www.smogon.com/forums/posts/10715136/\">Pok&eacute;mon Showdown Staff List</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1727,
+      "command": "staff",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://www.smogon.com/forums/forums/209/\">Pok&eacute;mon Showdown Forums</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1733,
+      "command": "forums",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://play.pokemonshowdown.com/suggestions\">Make a suggestion for Pok&eacute;mon Showdown</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1752,
+      "command": "suggestions",
+      "priority": "P1"
+    },
+    {
+      "text": "<center><button name=\"saveReplay\"><i class=\"fa fa-upload\"></i> Save Replay</button> &mdash; <a href=\"https://www.smogon.com/forums/threads/3520646/\">Questions</a> &mdash; <a href=\"https://play.pokemonshowdown.com/bugs\">Bug Reports</a></center>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1761,
+      "command": "bugs",
+      "priority": "P1"
+    },
+    {
+      "text": "<button name=\"openOptions\" class=\"button\"><i style=\"font-size: 16px; vertical-align: -1px\" class=\"fa fa-cog\"></i> Options</button> (The Sound and Options buttons are at the top right, next to your username)",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1775,
+      "command": "optionsbutton",
+      "priority": "P1"
+    },
+    {
+      "text": "<button name=\"openSounds\" class=\"button\"><i style=\"font-size: 16px; vertical-align: -1px\" class=\"fa fa-volume-up\"></i> Sound</button> (The Sound and Options buttons are at the top right, next to your username)",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1783,
+      "command": "soundbutton",
+      "priority": "P1"
+    },
+    {
+      "text": "No matched formats found.",
+      "method": "errorReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 1915,
+      "command": "formathelp",
+      "priority": "P1"
+    },
+    {
+      "text": "<h2>${format.name}</h2><hr />${formatDesc ? formatDesc + '<hr />' : ''}${descHtml.join(\"<br />\")}${rulesetHtml ? `<br />${rulesetHtml}` : ''}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 1963,
+      "command": "formathelp",
+      "priority": "P1"
+    },
+    {
+      "text": "'${target}' is an invalid FAQ.",
+      "method": "errorReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2176,
+      "command": "faq",
+      "priority": "P1"
+    },
+    {
+      "text": "${pokemon.name} did not exist in ${generation.toUpperCase()}!",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2241,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "Triples formats are not an available format in Pok&eacute;mon generation ${generation.toUpperCase()}.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2262,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://www.smogon.com/dex/${generation}/items/${item.id}\">${generation.toUpperCase()} ${item.name} item analysis</a>, brought to you by <a href=\"https://www.smogon.com\">Smogon University</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2309,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://www.smogon.com/dex/${generation}/abilities/${ability.id}\">${generation.toUpperCase()} ${ability.name} ability analysis</a>, brought to you by <a href=\"https://www.smogon.com\">Smogon University</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2315,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"https://www.smogon.com/dex/${generation}/moves/${toID(move.name)}\">${generation.toUpperCase()} ${move.name} move analysis</a>, brought to you by <a href=\"https://www.smogon.com\">Smogon University</a>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2321,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "Triples formats are not an available format in Pok&eacute;mon generation ${generation.toUpperCase()}.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2339,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "Pok&eacute;mon, item, move, ability, or format not found for generation ${generation.toUpperCase()}.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2362,
+      "command": "smogdex",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"${link}\">${ability.name} ability description</a>, provided by Bulbapedia",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2414,
+      "command": "bulbapedia",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"${link}\">${move.name} move description</a>, provided by Bulbapedia",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2424,
+      "command": "bulbapedia",
+      "priority": "P1"
+    },
+    {
+      "text": "<a href=\"${link}\">Nature descriptions</a>, provided by Bulbapedia",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2431,
+      "command": "bulbapedia",
+      "priority": "P1"
+    },
+    {
+      "text": "Pok&eacute;mon, item, move, ability, or nature not found.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2435,
+      "command": "bulbapedia",
+      "priority": "P1"
+    },
+    {
+      "text": "You will be prompted to register upon winning a rated battle. Alternatively, there is a register button in the <button name=\"openOptions\"><i class=\"fa fa-cog\"></i> Options</button> menu in the upper right.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2445,
+      "command": "register",
+      "priority": "P1"
+    },
+    {
+      "text": "The amount of dice rolled should be a natural number up to ${maxDice}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2468,
+      "command": "dice",
+      "priority": "P1"
+    },
+    {
+      "text": "Rolling (1 to ${diceFaces})${offsetFragment}: ${rollSum}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/info.ts",
+      "line": 2540,
+      "command": "dice",
+      "priority": "P1"
+    },
+    {
+      "text": "You have requested to show the link: ${link}${comment ? ` (with the comment ${comment})` : ''}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2619,
+      "command": "requestshow",
+      "priority": "P1"
+    },
+    {
+      "text": "No parameters given.",
+      "method": "popupReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2866,
+      "command": "makecustomchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "No format specified.",
+      "method": "popupReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2872,
+      "command": "makecustomchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "The format '${format}' does not exist.",
+      "method": "popupReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2876,
+      "command": "makecustomchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "User '${targetUserID}' not found.",
+      "method": "popupReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2883,
+      "command": "makecustomchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "Invalid rule or modifier: ${name}",
+      "method": "popupReply",
+      "file": "server/chat-commands/info.ts",
+      "line": 2902,
+      "command": "makecustomchallenge",
+      "priority": "P1"
+    },
+    {
+      "text": "You were appointed Room Owner by ${user.name} in ${room.roomid}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 166,
+      "command": "roomowner",
+      "priority": "P1"
+    },
+    {
+      "text": "You were demoted to Room ${nextGroupName} by ${user.name} in ${room.roomid}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 247,
+      "command": "roompromote",
+      "priority": "P1"
+    },
+    {
+      "text": "You were promoted to ${nextGroupName} by ${user.name} in ${room.roomid}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 253,
+      "command": "roompromote",
+      "priority": "P1"
+    },
+    {
+      "text": "You were promoted to Room ${nextGroupName} by ${user.name} in ${room.roomid}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 257,
+      "command": "roompromote",
+      "priority": "P1"
+    },
+    {
+      "text": "This server has no global authority.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 310,
+      "command": "authority",
+      "priority": "P1"
+    },
+    {
+      "text": "The room '${targetRoom.title}' has no auth. ${userLookup}",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 365,
+      "command": "roomauth",
+      "priority": "P1"
+    },
+    {
+      "text": "${buffer.join(\"\\n\\n\")}${userLookup}",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 375,
+      "command": "roomauth",
+      "priority": "P1"
+    },
+    {
+      "text": "To prevent DoS attacks, you can only use /autojoin for 16 or fewer rooms, when you haven't joined any rooms yet. Please use /join for each room separately.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 466,
+      "command": "autojoin",
+      "priority": "P1"
+    },
+    {
+      "text": "You are in the wrong room; please go to <<${targetRoom.roomid}>> instead",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 653,
+      "command": "redir",
+      "priority": "P1"
+    },
+    {
+      "text": "${name} is a trusted user. If you are sure you would like to ban them, use /force${week ? 'week' : 'room'}ban.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 775,
+      "command": "ban",
+      "priority": "P1"
+    },
+    {
+      "text": "${name} is a trusted user. If you are sure you would like to lock them use /force${month ? 'month' : (week ? 'week' : '')}lock.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 910,
+      "command": "lock",
+      "priority": "P1"
+    },
+    {
+      "text": "${user.name} has unlocked you.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1003,
+      "command": "unlock",
+      "priority": "P1"
+    },
+    {
+      "text": "${name} is a trusted user. If you are sure you would like to ban them use /forceglobalban.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1116,
+      "command": "globalban",
+      "priority": "P1"
+    },
+    {
+      "text": "(This room has zero roomvoices)",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1204,
+      "command": "deroomvoiceall",
+      "priority": "P1"
+    },
+    {
+      "text": "You ${duration}-banned the ${ipDesc}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1284,
+      "command": "banip",
+      "priority": "P1"
+    },
+    {
+      "text": "You were demoted to Global ${groupName} by ${user.name}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1494,
+      "command": "promote",
+      "priority": "P1"
+    },
+    {
+      "text": "You were promoted to Global ${groupName} by ${user.name}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1498,
+      "command": "promote",
+      "priority": "P1"
+    },
+    {
+      "text": "You were appointed Section Leader of ${RoomSections.sectionNames[section]} by ${user.name}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1592,
+      "command": "sectionleader",
+      "priority": "P1"
+    },
+    {
+      "text": "They are also no longer manually trusted. If they should be, use '/trustuser'.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1597,
+      "command": "sectionleader",
+      "priority": "P1"
+    },
+    {
+      "text": "You were demoted from Section Leader of ${RoomSections.sectionNames[section]} by ${user.name}.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1599,
+      "command": "sectionleader",
+      "priority": "P1"
+    },
+    {
+      "text": "Closed the notification previously sent to ${targetUser.name}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1789,
+      "command": "notifyuser",
+      "priority": "P1"
+    },
+    {
+      "text": "Sent a notification to ${targetUser.name}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1799,
+      "command": "notifyuser",
+      "priority": "P1"
+    },
+    {
+      "text": "${user.name} has cleared your status message for being inappropriate${displayReason || '.'}",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 1913,
+      "command": "forceclearstatus",
+      "priority": "P1"
+    },
+    {
+      "text": "${user.name} has unnamelocked you.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 2008,
+      "command": "unnamelock",
+      "priority": "P1"
+    },
+    {
+      "text": "${targetUser.name} is a trusted user. If you are sure you would like to blacklist them use /forceblacklist.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 2122,
+      "command": "blacklist",
+      "priority": "P1"
+    },
+    {
+      "text": "${user.name} has allowed you to battle again.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 2249,
+      "command": "unbattleban",
+      "priority": "P1"
+    },
+    {
+      "text": "${user.name} has allowed you to use groupchats again.",
+      "method": "popup",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 2332,
+      "command": "ungroupchatban",
+      "priority": "P1"
+    },
+    {
+      "text": "This room has no blacklisted users.",
+      "method": "sendReply",
+      "file": "server/chat-commands/moderation.ts",
+      "line": 2449,
+      "command": "showblacklist",
+      "priority": "P1"
+    },
+    {
+      "text": "Moderated chat is currently set to: ${modchatSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 81,
+      "command": "modchat",
+      "priority": "P1"
+    },
+    {
+      "text": "The rank '${target}' was unrecognized as a modchat level.",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 131,
+      "command": "modchat",
+      "priority": "P1"
+    },
+    {
+      "text": "This room has automodchat OFF.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 164,
+      "command": "automodchat",
+      "priority": "P1"
+    },
+    {
+      "text": "Automodchat is currently set to set modchat to ${curRank} after ${curTime} minutes.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 166,
+      "command": "automodchat",
+      "priority": "P1"
+    },
+    {
+      "text": "Your next battle will be publicly visible.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 228,
+      "command": "inviteonlynext",
+      "priority": "P1"
+    },
+    {
+      "text": "Your next battle will be invite-only${Rooms.RoomBattle.battleForcedSetting(user, 'privacy') ? `, unless it is rated` : ``}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 232,
+      "command": "inviteonlynext",
+      "priority": "P1"
+    },
+    {
+      "text": "Modjoin is currently set to: ${modjoinSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 260,
+      "command": "modjoin",
+      "priority": "P1"
+    },
+    {
+      "text": "Unrecognized modjoin setting.",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 316,
+      "command": "modjoin",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's primary language is ${Chat.languages.get(room.settings.language || '') || 'English'}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 342,
+      "command": "roomlanguage",
+      "priority": "P1"
+    },
+    {
+      "text": "The room's language has been set to ${Chat.languages.get(targetLanguage)}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 353,
+      "command": "roomlanguage",
+      "priority": "P1"
+    },
+    {
+      "text": "Slow chat is currently set to: ${slowchatSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 364,
+      "command": "slowchat",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's stretch filter is currently: ${stretchSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 504,
+      "command": "stretchfilter",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's caps filter is currently: ${capsSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 533,
+      "command": "capsfilter",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's emoji filter is currently: ${emojiSetting}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 561,
+      "command": "emojifilter",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's link filter is currently: ${room.settings.filterEmojis ? \"ON\" : \"OFF\"}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 586,
+      "command": "linkfilter",
+      "priority": "P1"
+    },
+    {
+      "text": "\"${word}\" might be a regular expression, did you mean \"/banword addregex\"?",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 632,
+      "command": "add",
+      "priority": "P1"
+    },
+    {
+      "text": "Banned phrases successfully added.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 661,
+      "command": "add",
+      "priority": "P1"
+    },
+    {
+      "text": "Banned phrase successfully added.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 665,
+      "command": "add",
+      "priority": "P1"
+    },
+    {
+      "text": "The list is currently: ${room.settings.banwords.join(', ')}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 667,
+      "command": "add",
+      "priority": "P1"
+    },
+    {
+      "text": "Banned phrases successfully deleted.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 692,
+      "command": "delete",
+      "priority": "P1"
+    },
+    {
+      "text": "Banned phrase successfully deleted.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 696,
+      "command": "delete",
+      "priority": "P1"
+    },
+    {
+      "text": "This room has no banned phrases.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 712,
+      "command": "list",
+      "priority": "P1"
+    },
+    {
+      "text": "Banned phrases in room ${room.roomid}: ${room.settings.banwords.join(', ')}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 714,
+      "command": "list",
+      "priority": "P1"
+    },
+    {
+      "text": "Approvals are currently ${room.settings.requestShowEnabled ? `ENABLED` : `DISABLED`} for ${room}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 733,
+      "command": "showapprovals",
+      "priority": "P1"
+    },
+    {
+      "text": "This room is: ${room.settings.highTraffic ? 'high' : 'low'} traffic",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 768,
+      "command": "hightraffic",
+      "priority": "P1"
+    },
+    {
+      "text": "The private chat room '${target}' was created.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 812,
+      "command": "makechatroom",
+      "priority": "P1"
+    },
+    {
+      "text": "The chat room '${target}' was created.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 822,
+      "command": "makechatroom",
+      "priority": "P1"
+    },
+    {
+      "text": "You've just made a groupchat; it is now your responsibility, regardless of whether or not you actively partake in the room. For more info, read your groupchat's staff intro.",
+      "method": "popup",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 914,
+      "command": "makegroupchat",
+      "priority": "P1"
+    },
+    {
+      "text": "Room uptime: <b>${uptime}</b>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 930,
+      "command": "roomuptime",
+      "priority": "P1"
+    },
+    {
+      "text": "NOTE: You probably want to use `/deleteroom` now that it exists.",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 936,
+      "command": "deregisterchatroom",
+      "priority": "P1"
+    },
+    {
+      "text": "The room '${target}' was deregistered.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 946,
+      "command": "deregisterchatroom",
+      "priority": "P1"
+    },
+    {
+      "text": "It will be deleted as of the next server restart.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 947,
+      "command": "deregisterchatroom",
+      "priority": "P1"
+    },
+    {
+      "text": "This room is a secret room. Use \"/publicroom\" to make it public, or \"/hiddenroom force\" to force it hidden.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1127,
+      "command": "privateroom",
+      "priority": "P1"
+    },
+    {
+      "text": "You are no longer forcing the room to stay private, but ${privacySetters} also need${Chat.plural(room.privacySetter, \"\", \"s\")} to use /publicroom to make the room public.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1154,
+      "command": "privateroom",
+      "priority": "P1"
+    },
+    {
+      "text": "This room is already ${settingName}, but is now forced to stay that way until you use /publicroom.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1174,
+      "command": "privateroom",
+      "priority": "P1"
+    },
+    {
+      "text": "Your next battle will be publicly visible.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1197,
+      "command": "hidenext",
+      "priority": "P1"
+    },
+    {
+      "text": "Your next battle will be hidden${Rooms.RoomBattle.battleForcedSetting(user, 'privacy') ? `, unless it is rated` : ``}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1201,
+      "command": "hidenext",
+      "priority": "P1"
+    },
+    {
+      "text": "This is a subroom of ${room.parent.title}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1303,
+      "command": "subrooms",
+      "priority": "P1"
+    },
+    {
+      "text": "This room doesn't have any subrooms.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1313,
+      "command": "subrooms",
+      "priority": "P1"
+    },
+    {
+      "text": "<p style=\"font-weight:bold;\">${Utils.escapeHTML(room.title)}'s subroom${Chat.plural(subRooms)}:</p><ul><li>${subRoomText.join('</li><br/><li>')}</li></ul></strong>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1320,
+      "command": "subrooms",
+      "priority": "P1"
+    },
+    {
+      "text": "This room does not have a description set.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1334,
+      "command": "roomdesc",
+      "priority": "P1"
+    },
+    {
+      "text": "(The room description is now: ${target})",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1355,
+      "command": "roomdesc",
+      "priority": "P1"
+    },
+    {
+      "text": "This room does not have an introduction set.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1368,
+      "command": "roomintro",
+      "priority": "P1"
+    },
+    {
+      "text": "<details open><summary>Source:</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/roomintro ${code}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1372,
+      "command": "roomintro",
+      "priority": "P1"
+    },
+    {
+      "text": "(The room introduction has been changed to:)",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1387,
+      "command": "roomintro",
+      "priority": "P1"
+    },
+    {
+      "text": "This room does not have a staff introduction set.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1420,
+      "command": "staffintro",
+      "priority": "P1"
+    },
+    {
+      "text": "<details open><summary>Source:</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/staffintro ${code}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1424,
+      "command": "staffintro",
+      "priority": "P1"
+    },
+    {
+      "text": "(The staff introduction has been changed to:)",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1440,
+      "command": "staffintro",
+      "priority": "P1"
+    },
+    {
+      "text": "This room does not have any aliases.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1468,
+      "command": "roomalias",
+      "priority": "P1"
+    },
+    {
+      "text": "This room has the following aliases: ${room.settings.aliases.join(\", \")}",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1469,
+      "command": "roomalias",
+      "priority": "P1"
+    },
+    {
+      "text": "Invalid room alias: ${target.trim()}",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1473,
+      "command": "roomalias",
+      "priority": "P1"
+    },
+    {
+      "text": "Invalid room alias: ${target.trim()}",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1506,
+      "command": "removeroomalias",
+      "priority": "P1"
+    },
+    {
+      "text": "This room is currently displaying ${room.settings.dataCommandTierDisplay} as the tier when using /data.",
+      "method": "sendReplyBox",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1537,
+      "command": "roomtierdisplay",
+      "priority": "P1"
+    },
+    {
+      "text": "Invalid tier display: ${target.trim()}",
+      "method": "errorReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1552,
+      "command": "roomtierdisplay",
+      "priority": "P1"
+    },
+    {
+      "text": "(The room's tier display is now: ${displayIDToName[toID(target)]})",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1557,
+      "command": "roomtierdisplay",
+      "priority": "P1"
+    },
+    {
+      "text": "(The room's tier display is now: tiers)",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1563,
+      "command": "roomtierdisplay",
+      "priority": "P1"
+    },
+    {
+      "text": "The room section is now: ${section ? sectionNames[section] : 'none'}",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1588,
+      "command": "roomsection",
+      "priority": "P1"
+    },
+    {
+      "text": "This room's default format is ${room.settings.defaultFormat}.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1605,
+      "command": "roomdefaultformat",
+      "priority": "P1"
+    },
+    {
+      "text": "This room has no default format.",
+      "method": "sendReply",
+      "file": "server/chat-commands/room-settings.ts",
+      "line": 1607,
+      "command": "roomdefaultformat",
+      "priority": "P1"
+    },
+    {
+      "text": "Recommendation successfully sent.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 855,
+      "command": "score",
+      "priority": "P2"
+    },
+    {
+      "text": "The current abuse monitor threshold is ${settings.threshold}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 877,
+      "command": "threshold",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid number: ${target}",
+      "method": "errorReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 881,
+      "command": "threshold",
+      "priority": "P2"
+    },
+    {
+      "text": "That room has not been flagged by the abuse monitor.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 902,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid result - must be 'success' or 'failure'.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 909,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "The room \"${roomid}\" does not exist.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 958,
+      "command": "nojoinpunish",
+      "priority": "P2"
+    },
+    {
+      "text": "Respawning...",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 998,
+      "command": "respawn",
+      "priority": "P2"
+    },
+    {
+      "text": "DONE. ${Chat.count(unspawned, 'processes', 'process')} unspawned.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1000,
+      "command": "respawn",
+      "priority": "P2"
+    },
+    {
+      "text": "Change average: ${change}",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1039,
+      "command": "rescale",
+      "priority": "P2"
+    },
+    {
+      "text": "${results.changes} log(s) cleared for ${targetId}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1082,
+      "command": "userclear",
+      "priority": "P2"
+    },
+    {
+      "text": "Log ${num} deleted.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1103,
+      "command": "deletelog",
+      "priority": "P2"
+    },
+    {
+      "text": "Updated punishment(s) ${changed.join(', ')}",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1228,
+      "command": "changeall",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid key:  ${key}",
+      "method": "errorReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1358,
+      "command": "addpunishment",
+      "priority": "P2"
+    },
+    {
+      "text": "Backup '${target}' deleted.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1526,
+      "command": "deletebackup",
+      "priority": "P2"
+    },
+    {
+      "text": "Automatic punishments are: ${!settings.recommendOnly ? 'ON' : 'OFF'}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1562,
+      "command": "togglepunishments",
+      "priority": "P2"
+    },
+    {
+      "text": "No logs found for that roomid.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1582,
+      "command": "submitreview",
+      "priority": "P2"
+    },
+    {
+      "text": "You have already submitted a review for this room.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1585,
+      "command": "submitreview",
+      "priority": "P2"
+    },
+    {
+      "text": "Your review must be between 1 and 2000 characters.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1588,
+      "command": "submitreview",
+      "priority": "P2"
+    },
+    {
+      "text": "Your review has been submitted.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1599,
+      "command": "submitreview",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid accuracy. Must be a number between 0 and 1.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1618,
+      "command": "resolvereview",
+      "priority": "P2"
+    },
+    {
+      "text": "Must specify a user and a target date (or modlog entry number).",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1677,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Specify a target user and a target (either a modlog entry # or a date).",
+      "method": "popupReply",
+      "file": "server/chat-plugins/abuse-monitor.ts",
+      "line": 1710,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "The announcement timer is on and will end in ${announcement.timeoutMins} minute${Chat.plural(announcement.timeoutMins)}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/announcements.ts",
+      "line": 151,
+      "command": "timer",
+      "priority": "P2"
+    },
+    {
+      "text": "${user.name} returned player ${player} to the draft pool.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/auction.ts",
+      "line": 981,
+      "command": "assignplayer",
+      "priority": "P2"
+    },
+    {
+      "text": "Auctions have been disabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/auction.ts",
+      "line": 1107,
+      "command": "disable",
+      "priority": "P2"
+    },
+    {
+      "text": "Auctions have been enabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/auction.ts",
+      "line": 1117,
+      "command": "enable",
+      "priority": "P2"
+    },
+    {
+      "text": "Running auctions: ${runningAuctions.join(', ') || 'None'}",
+      "method": "sendReply",
+      "file": "server/chat-plugins/auction.ts",
+      "line": 1123,
+      "command": "running",
+      "priority": "P2"
+    },
+    {
+      "text": "Some arguments are missing or invalid for battlesearch. Use /battlesearch to start over.",
+      "method": "popup",
+      "file": "server/chat-plugins/battlesearch.ts",
+      "line": 332,
+      "command": "battlesearch",
+      "priority": "P2"
+    },
+    {
+      "text": "${expression}<br />= ${resultStr}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/calculator.ts",
+      "line": 198,
+      "command": "calculate",
+      "priority": "P2"
+    },
+    {
+      "text": "Please do not say '${match[0]}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 216,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "Please do not say '${match[0]}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 232,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "Please do not say '${match[0]}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 247,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "Do not say '${word}'.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 275,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "Please do not say '${word}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 286,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "You have been muted for using a banned phrase. Please do not say '${match[0]}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 333,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "Please do not use URL shorteners such as '${word}'${publicReason ? ` ${publicReason}` : ``}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chat-monitor.ts",
+      "line": 359,
+      "command": "monitor",
+      "priority": "P2"
+    },
+    {
+      "text": "That's too short of a search query.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/chatlog.ts",
+      "line": 1025,
+      "command": "chatlog",
+      "priority": "P2"
+    },
+    {
+      "text": "<details><summary>Source</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/setdaily ${key},${image ? `${typeof image === 'string' ? image : image[0]},` : ''}${code}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/daily-spotlight.ts",
+      "line": 297,
+      "command": "daily",
+      "priority": "P2"
+    },
+    {
+      "text": "You sent a friend request to '${target}'.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 271,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Removed friend '${target}'.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 280,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "You are now hiding your login times from your friends.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 385,
+      "command": "togglelogins",
+      "priority": "P2"
+    },
+    {
+      "text": "You are now allowing your friends to see your login times.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 390,
+      "command": "togglelogins",
+      "priority": "P2"
+    },
+    {
+      "text": "You are currently ${setting ? 'displaying' : 'hiding'} your friends list.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 416,
+      "command": "listdisplay",
+      "priority": "P2"
+    },
+    {
+      "text": "You invalidated each entry in the friends database cache.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 427,
+      "command": "invalidatecache",
+      "priority": "P2"
+    },
+    {
+      "text": "You are now allowing your friends to see your ongoing battles.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 437,
+      "command": "sharebattles",
+      "priority": "P2"
+    },
+    {
+      "text": "You are now hiding your ongoing battles from your friends.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/friends.ts",
+      "line": 443,
+      "command": "sharebattles",
+      "priority": "P2"
+    },
+    {
+      "text": "Hangman has been disabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/hangman.ts",
+      "line": 376,
+      "command": "disable",
+      "priority": "P2"
+    },
+    {
+      "text": "Hangman has been enabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/hangman.ts",
+      "line": 387,
+      "command": "enable",
+      "priority": "P2"
+    },
+    {
+      "text": "The tag ${tag} is already on the term ${term} and has been skipped.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/hangman.ts",
+      "line": 496,
+      "command": "addtag",
+      "priority": "P2"
+    },
+    {
+      "text": "Specify at least one valid tag.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/hangman.ts",
+      "line": 501,
+      "command": "addtag",
+      "priority": "P2"
+    },
+    {
+      "text": "The user '${ticketId}' does not have a ticket open at present.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets-auto.ts",
+      "line": 712,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "The result must be 'success' or 'failure'.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets-auto.ts",
+      "line": 715,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "<button name=\"joinRoom\" value=\"view-help-request--report${meta}\" class=\"button\"><strong>${this.tr`Report someone`}</strong></button>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2227,
+      "command": "report",
+      "priority": "P2"
+    },
+    {
+      "text": "<button name=\"joinRoom\" value=\"view-help-request--appeal${meta}\" class=\"button\"><strong>${this.tr`Appeal a punishment`}</strong></button>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2237,
+      "command": "appeal",
+      "priority": "P2"
+    },
+    {
+      "text": "<button name=\"joinRoom\" value=\"view-help-request${meta}\" class=\"button\"><strong>${this.tr`Request help`}</strong></button>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2252,
+      "command": "create",
+      "priority": "P2"
+    },
+    {
+      "text": "You already have a pending ticket, please wait.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2277,
+      "command": "submit",
+      "priority": "P2"
+    },
+    {
+      "text": "You already have a pending ticket, please wait.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2285,
+      "command": "submit",
+      "priority": "P2"
+    },
+    {
+      "text": "Please tell us what is happening.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2336,
+      "command": "submit",
+      "priority": "P2"
+    },
+    {
+      "text": "Your report is too long. Please use fewer words.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2341,
+      "command": "submit",
+      "priority": "P2"
+    },
+    {
+      "text": "Your report has been submitted.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2368,
+      "command": "submit",
+      "priority": "P2"
+    },
+    {
+      "text": "That ticket was not found.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2505,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "That ticket has already been resolved.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2507,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "That ticket cannot be resolved with /helpticket resolve. Join it instead.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2510,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "You resolved ${ticketId}'s ticket.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2529,
+      "command": "resolve",
+      "priority": "P2"
+    },
+    {
+      "text": "Added the note \"${note}\" to ${ticketId}'s ticket.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2586,
+      "command": "addnote",
+      "priority": "P2"
+    },
+    {
+      "text": "You removed the note '${note}' (by ${staff}) on ${ticket.userid}'s ticket.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2612,
+      "command": "removenote",
+      "priority": "P2"
+    },
+    {
+      "text": "You closed ${ticket.creator}'s ticket.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2740,
+      "command": "close",
+      "priority": "P2"
+    },
+    {
+      "text": "${user.name} has ticket unbanned you.",
+      "method": "popup",
+      "file": "server/chat-plugins/helptickets.ts",
+      "line": 2858,
+      "command": "unban",
+      "priority": "P2"
+    },
+    {
+      "text": "Added ${formatRange(range)}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/hosts.ts",
+      "line": 271,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Removed ${formatRange(range)}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/hosts.ts",
+      "line": 294,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "Renamed ${formatRange(toRename)} to ${range.host}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/hosts.ts",
+      "line": 324,
+      "command": "rename",
+      "priority": "P2"
+    },
+    {
+      "text": "You must specify who owns this shared IP.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/hosts.ts",
+      "line": 472,
+      "command": "markshared",
+      "priority": "P2"
+    },
+    {
+      "text": "A reason is required.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/hosts.ts",
+      "line": 524,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "There is already a tracker for this room. Use /laddertrack override if you want to set a new one.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 452,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid rating. Must be a number above 1000.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 460,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid cutoff. Must be a number above 1000.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 466,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid date.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 475,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "You must specify a format.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 481,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "You must specify a prefix.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 486,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "Ladder tracking started.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 494,
+      "command": "''",
+      "priority": "P2"
+    },
+    {
+      "text": "Current prefix: ${tracker.prefix}",
+      "method": "sendReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 516,
+      "command": "prefix",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid date.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 526,
+      "command": "deadline",
+      "priority": "P2"
+    },
+    {
+      "text": "There is no active ladder tracker for this room.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 540,
+      "command": "rating",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid rating.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 543,
+      "command": "rating",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid rating. Must be a number above 1000.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 545,
+      "command": "rating",
+      "priority": "P2"
+    },
+    {
+      "text": "<b>Rating:</b> ${tracker.rating}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 554,
+      "command": "rating",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid cutoff.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 561,
+      "command": "cutoff",
+      "priority": "P2"
+    },
+    {
+      "text": "<b>Cutoff:</b> ${tracker.config.cutoff || 0}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 567,
+      "command": "cutoff",
+      "priority": "P2"
+    },
+    {
+      "text": "Differences are already ${setting ? 'shown' : 'hidden'}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/laddertours.ts",
+      "line": 637,
+      "command": "showdiffs",
+      "priority": "P2"
+    },
+    {
+      "text": "${skipped.join(', ')} ${Chat.plural(skipped.length, 'were', 'was')} not online, not in the room, or are host banned and were removed from the host queue.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 2318,
+      "command": "host",
+      "priority": "P2"
+    },
+    {
+      "text": "<strong>Host Queue:</strong> ${hostQueue.join(', ')}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 2402,
+      "command": "queue",
+      "priority": "P2"
+    },
+    {
+      "text": "IDEA discards are now ${game.IDEA.discardsHidden ? 'hidden' : 'visible'}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 2660,
+      "command": "ideadiscards",
+      "priority": "P2"
+    },
+    {
+      "text": "<details><summary>IDEA discards:</summary>${game.IDEA.discardsHTML}</details>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 2665,
+      "command": "ideadiscards",
+      "priority": "P2"
+    },
+    {
+      "text": "${targetUsername} is not a player.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 2877,
+      "command": "revealrole",
+      "priority": "P2"
+    },
+    {
+      "text": "${targetPlayer.name} has been ${!silence ? 'un' : ''}silenced.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3102,
+      "command": "silence",
+      "priority": "P2"
+    },
+    {
+      "text": "${targetPlayer.name} can ${!nighttalk ? 'no longer' : 'now'} talk during the night.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3127,
+      "command": "nighttalk",
+      "priority": "P2"
+    },
+    {
+      "text": "${targetPlayer}'s hammer restriction was removed.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3157,
+      "command": "priest",
+      "priority": "P2"
+    },
+    {
+      "text": "${targetPlayer.name} is now ${targetPlayer.hammerRestriction ? \"an actor (can only hammer)\" : \"a priest (can't hammer)\"}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3164,
+      "command": "priest",
+      "priority": "P2"
+    },
+    {
+      "text": "Players (${players.length}): ${players.map(p => p.safeName).sort().join(', ')}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3315,
+      "command": "players",
+      "priority": "P2"
+    },
+    {
+      "text": "${showOrl ? `Original Rolelist: ` : `Rolelist: `}${roleString}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3336,
+      "command": "rolelist",
+      "priority": "P2"
+    },
+    {
+      "text": "<button name=\"joinRoom\" value=\"view-mafia-${room.roomid}\" class=\"button\"><strong>Spectate the game</strong></button>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3357,
+      "command": "view",
+      "priority": "P2"
+    },
+    {
+      "text": "You have cancelled your request to sub out.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3384,
+      "command": "sub",
+      "priority": "P2"
+    },
+    {
+      "text": "Your role is: ${role.safeName}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3619,
+      "command": "data",
+      "priority": "P2"
+    },
+    {
+      "text": "<button name=\"joinRoom\" value=\"view-mafialadder-${cmd}\" class=\"button\"><strong>${cmd}</strong></button>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3817,
+      "command": "leaderboard",
+      "priority": "P2"
+    },
+    {
+      "text": "The role ${id} was added to the database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 3988,
+      "command": "addrole",
+      "priority": "P2"
+    },
+    {
+      "text": "The alignment ${id} was added to the database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4023,
+      "command": "addalignment",
+      "priority": "P2"
+    },
+    {
+      "text": "The theme ${id} was added to the database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4071,
+      "command": "addtheme",
+      "priority": "P2"
+    },
+    {
+      "text": "The IDEA ${id} was added to the database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4115,
+      "command": "addidea",
+      "priority": "P2"
+    },
+    {
+      "text": "The term ${id} was added to the database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4143,
+      "command": "addterm",
+      "priority": "P2"
+    },
+    {
+      "text": "The alias ${from} was added, pointing to ${to}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4169,
+      "command": "addalias",
+      "priority": "P2"
+    },
+    {
+      "text": "The entry ${entry} was deleted from the ${source} database.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4214,
+      "command": "deletedata",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid source. Valid sources are ${Object.keys(MafiaData).filter(key => key !== `aliases`).join(', ')}.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4279,
+      "command": "listdata",
+      "priority": "P2"
+    },
+    {
+      "text": "Mafia aliases:<br/>${aliases}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4318,
+      "command": "listdata",
+      "priority": "P2"
+    },
+    {
+      "text": "No ${searchType} found.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4337,
+      "command": "listdata",
+      "priority": "P2"
+    },
+    {
+      "text": "Mafia has been disabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4377,
+      "command": "disable",
+      "priority": "P2"
+    },
+    {
+      "text": "Mafia has been enabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/mafia.ts",
+      "line": 4390,
+      "command": "enable",
+      "priority": "P2"
+    },
+    {
+      "text": "Access denied",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 158,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "Access denied",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 162,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "You cannot search for IPs.",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 171,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "Your search query is too long.",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 175,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "The moderator log is currently disabled.",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 200,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "The modlog query took ${response.duration} ms to complete.",
+      "method": "popup",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 215,
+      "command": "",
+      "priority": "P2"
+    },
+    {
+      "text": "You must specify a search type and search value.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/modlog-viewer.ts",
+      "line": 266,
+      "command": "modlog",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid primary username.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 396,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "No permalock nomination found for ${primary}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 398,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid standing.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 401,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "A reason must be given.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 402,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "Error making post: ${res?.error}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 440,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "Error changing standing: ${result[1].message}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 450,
+      "command": "actmain",
+      "priority": "P2"
+    },
+    {
+      "text": "A reason must be given.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 467,
+      "command": "standing",
+      "priority": "P2"
+    },
+    {
+      "text": "Standing successfully changed to ${standingNum} for ${id}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 478,
+      "command": "standing",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid IP: ${ip}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 485,
+      "command": "ipstanding",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid standing: ${standingName}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 489,
+      "command": "ipstanding",
+      "priority": "P2"
+    },
+    {
+      "text": "Specify a reason.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 492,
+      "command": "ipstanding",
+      "priority": "P2"
+    },
+    {
+      "text": "Error changing standing: ${res[1].message}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 501,
+      "command": "ipstanding",
+      "priority": "P2"
+    },
+    {
+      "text": "All standings on the IP ${ip} changed successfully to ${standingNum}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 503,
+      "command": "ipstanding",
+      "priority": "P2"
+    },
+    {
+      "text": "Removed ${targetID}'s permalock post icon.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/permalocks.ts",
+      "line": 533,
+      "command": "deleteicon",
+      "priority": "P2"
+    },
+    {
+      "text": "${Chat.getReadmoreBlock(quote)}${attribution}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/quotes.ts",
+      "line": 41,
+      "command": "randquote",
+      "priority": "P2"
+    },
+    {
+      "text": "${Chat.formatText(quote, false, true)}${attribution}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/quotes.ts",
+      "line": 116,
+      "command": "viewquote",
+      "priority": "P2"
+    },
+    {
+      "text": "Error: ${cap1v1Set.e}",
+      "method": "errorReply",
+      "file": "server/chat-plugins/randombattles/index.ts",
+      "line": 702,
+      "command": "cap1v1",
+      "priority": "P2"
+    },
+    {
+      "text": "You must specify at least one condition.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/randombattles/index.ts",
+      "line": 773,
+      "command": "randombattlesetprobabilities",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid condition format: ${arg}",
+      "method": "errorReply",
+      "file": "server/chat-plugins/randombattles/index.ts",
+      "line": 781,
+      "command": "randombattlesetprobabilities",
+      "priority": "P2"
+    },
+    {
+      "text": "No answer found.",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/responder.ts",
+      "line": 308,
+      "command": "question",
+      "priority": "P2"
+    },
+    {
+      "text": "The Help auto-response filter is currently set to: ${room.responder ? 'ON' : \"OFF\"}",
+      "method": "sendReply",
+      "file": "server/chat-plugins/responder.ts",
+      "line": 334,
+      "command": "toggle",
+      "priority": "P2"
+    },
+    {
+      "text": "Roomevent categories in ${room.title}: ${categoryButtons.join(' ')}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/room-events.ts",
+      "line": 488,
+      "command": "categories",
+      "priority": "P2"
+    },
+    {
+      "text": "'${target}' is an invalid topic.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/room-faqs.ts",
+      "line": 184,
+      "command": "roomfaq",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid topic.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/room-faqs.ts",
+      "line": 189,
+      "command": "roomfaq",
+      "priority": "P2"
+    },
+    {
+      "text": "<details><summary>Source</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/${command} ${topic}, ${code}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/room-faqs.ts",
+      "line": 198,
+      "command": "roomfaq",
+      "priority": "P2"
+    },
+    {
+      "text": "Sample Teams are being deprecated. Please do ``/tier [formatid]`` to view their resources.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/sample-teams.ts",
+      "line": 308,
+      "command": "sampleteams",
+      "priority": "P2"
+    },
+    {
+      "text": "If you are room staff for a room and would like to access old samples for your room's formats, please contact an admin.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/sample-teams.ts",
+      "line": 309,
+      "command": "sampleteams",
+      "priority": "P2"
+    },
+    {
+      "text": "User '${targetId}' does not have any points on the scavenger games leaderboard.",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1169,
+      "command": "rank",
+      "priority": "P2"
+    },
+    {
+      "text": "User \"${userid}\" is not in team \"${team.name}.\"",
+      "method": "errorReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1267,
+      "command": "editplayers",
+      "priority": "P2"
+    },
+    {
+      "text": "You cannot remove \"${userid}\", who is the leader of \"${team.name}\".",
+      "method": "errorReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1270,
+      "command": "editplayers",
+      "priority": "P2"
+    },
+    {
+      "text": "User \"${userid}\" is not currently online.",
+      "method": "errorReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1278,
+      "command": "editplayers",
+      "priority": "P2"
+    },
+    {
+      "text": "User \"${userid}\" is already part of \"${team.name}.\"",
+      "method": "errorReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1284,
+      "command": "editplayers",
+      "priority": "P2"
+    },
+    {
+      "text": "User \"${userid}\" is already part of another team - \"${targetUserTeam.name}\".",
+      "method": "errorReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1287,
+      "command": "editplayers",
+      "priority": "P2"
+    },
+    {
+      "text": "Hint has been removed.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1688,
+      "command": "removehint",
+      "priority": "P2"
+    },
+    {
+      "text": "Hint has been modified.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1721,
+      "command": "edithint",
+      "priority": "P2"
+    },
+    {
+      "text": "The default scavenger timer is currently set at: ${duration_string} minutes.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 1923,
+      "command": "defaulttimer",
+      "priority": "P2"
+    },
+    {
+      "text": "User '${targetId}' does not have any points on the scavengers leaderboard.",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2025,
+      "command": "rank",
+      "priority": "P2"
+    },
+    {
+      "text": "The points rewarded for winning hunts within a minute is:<br />${points.join('<br />')}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2049,
+      "command": "setblitz",
+      "priority": "P2"
+    },
+    {
+      "text": "The points rewarded for hosting a regular hunt is ${pointSetting}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2092,
+      "command": "sethostpoints",
+      "priority": "P2"
+    },
+    {
+      "text": "The points rewarded for winning hunts is:<br />${points.join('<br />')}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2133,
+      "command": "setpoints",
+      "priority": "P2"
+    },
+    {
+      "text": "The current official twist is: ${twist}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2179,
+      "command": "settwist",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid setting - ON, OFF, TOGGLE",
+      "method": "sendReply",
+      "file": "server/chat-plugins/scavengers.ts",
+      "line": 2379,
+      "command": "ipcheck",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid title. Must have at least one alphanumeric character.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 118,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid section ID: \"${sectionID}\"",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 122,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "A tour with that ID already exists. Please choose another.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 125,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid info URL: \"${url}\"",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 129,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid ending date: ${rawEnds}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 132,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid ending date: ${rawEnds}.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 136,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid image URL: ${rawImg}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 141,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid image URL: ${rawImg}",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 147,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "All images must have the artist named and a link to the profile of the user who created them.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 151,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid artist credit URL.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 156,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Must provide both a short description and a full description.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 161,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Tour not found. Create one first.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 177,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid section: \"${sectionID}\"",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 191,
+      "command": "end",
+      "priority": "P2"
+    },
+    {
+      "text": "Tour with ID \"${tourID}\" not found.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 195,
+      "command": "end",
+      "priority": "P2"
+    },
+    {
+      "text": "Tour \"${title}\" ended.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/smogtours.ts",
+      "line": 199,
+      "command": "end",
+      "priority": "P2"
+    },
+    {
+      "text": "Added a suspect test notice for ${suspectString} in ${format.name}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 123,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Remember to add a B value for your test's COIL setting with /suspects setbvalue.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 124,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Removed a suspect test notice for ${test.suspect} in ${test.tier}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 148,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "Remember to remove COIL settings with /suspects deletecoil if you had them enabled.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 149,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "Current users with /suspects access: <username>${suspectTests.whitelist.join('</username>, <username>')}</username>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 159,
+      "command": "whitelist",
+      "priority": "P2"
+    },
+    {
+      "text": "Updating...",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 246,
+      "command": "setbvalue",
+      "priority": "P2"
+    },
+    {
+      "text": "COIL B value for ${format.name} set to ${bVal}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 262,
+      "command": "setbvalue",
+      "priority": "P2"
+    },
+    {
+      "text": "Removed COIL B value for ${format.name}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/suspect-tests.ts",
+      "line": 264,
+      "command": "setbvalue",
+      "priority": "P2"
+    },
+    {
+      "text": "Server-side teams are not available.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 155,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "You're trying to edit a team that doesn't exist.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 162,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "This is not your team.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 166,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Your team has too many Pokemon (max ${MAX_SETS}).",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 177,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Filtered words (${set.name}) are not allowed in nicknames.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 183,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid Pokemon ${set.species} in team.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 190,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Only 24 moves are allowed per set.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 198,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid move ${m} on ${set.species}.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 203,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid ability ${set.ability} on ${set.species}.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 218,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid item ${set.item} on ${set.species}.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 222,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid nature ${set.nature} on ${set.species}.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 226,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid Tera Type ${set.teraType} on ${set.species}.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 230,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Your team's name is too long.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 246,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Your team's name has a filtered word.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 251,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "You have too many teams stored. If you wish to upload this team, delete some first.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 257,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid team provided.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 263,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Your team was not saved as no changes were made.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 277,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "You've already uploaded that team.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 287,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid team ID provided.",
+      "method": "popup",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 430,
+      "command": "save",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid count.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 470,
+      "command": "view",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid team ID.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 483,
+      "command": "delete",
+      "priority": "P2"
+    },
+    {
+      "text": "Team not found.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 485,
+      "command": "delete",
+      "priority": "P2"
+    },
+    {
+      "text": "Team ${teamid} deleted.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 490,
+      "command": "delete",
+      "priority": "P2"
+    },
+    {
+      "text": "Server-side teams feature is disabled.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 497,
+      "command": "setprivacy",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid team ID.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 503,
+      "command": "setprivacy",
+      "priority": "P2"
+    },
+    {
+      "text": "Invalid privacy setting.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 512,
+      "command": "setprivacy",
+      "priority": "P2"
+    },
+    {
+      "text": "Team not found.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 515,
+      "command": "setprivacy",
+      "priority": "P2"
+    },
+    {
+      "text": "You cannot change privacy for a team you don't own.",
+      "method": "popupReply",
+      "file": "server/chat-plugins/teams.ts",
+      "line": 517,
+      "command": "setprivacy",
+      "priority": "P2"
+    },
+    {
+      "text": "YouTube API enabled for Last.fm commands.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/the-studio.ts",
+      "line": 441,
+      "command": "lastfmyoutubesearch",
+      "priority": "P2"
+    },
+    {
+      "text": "YouTube API disabled for Last.fm commands.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/the-studio.ts",
+      "line": 449,
+      "command": "lastfmyoutubesearch",
+      "priority": "P2"
+    },
+    {
+      "text": "Your suggestion for '${title}' by ${artist} has been submitted.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/the-studio.ts",
+      "line": 552,
+      "command": "suggestrecommendation",
+      "priority": "P2"
+    },
+    {
+      "text": "You liked '${title}' by ${artist}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/the-studio.ts",
+      "line": 638,
+      "command": "likerecommendation",
+      "priority": "P2"
+    },
+    {
+      "text": "'${target}' is not a valid ${handler.name.toLowerCase()} name.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/thing-of-the-day.ts",
+      "line": 574,
+      "command": "nom",
+      "priority": "P2"
+    },
+    {
+      "text": "User '${target}' has no nomination for the ${handler.name} of the ${handler.timeLabel}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/thing-of-the-day.ts",
+      "line": 613,
+      "command": "remove",
+      "priority": "P2"
+    },
+    {
+      "text": "'${target}' is not a valid ${handler.name.toLowerCase()} name.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/thing-of-the-day.ts",
+      "line": 649,
+      "command": "force",
+      "priority": "P2"
+    },
+    {
+      "text": "Questions '${formattedQuestions}' were submitted for review.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1802,
+      "command": "add",
+      "priority": "P2"
+    },
+    {
+      "text": "Are you SURE that you want to PERMANENTLY move all questions in the category ${sourceCategoryName} to ${destinationCategoryName}?",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1991,
+      "command": "migrate",
+      "priority": "P2"
+    },
+    {
+      "text": "This cannot be undone.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1992,
+      "command": "migrate",
+      "priority": "P2"
+    },
+    {
+      "text": "Type the command again to confirm.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 1993,
+      "command": "migrate",
+      "priority": "P2"
+    },
+    {
+      "text": "Trivia questions in the ${fromCatName} category will ${isEnabling ? 'now' : 'no longer'} be moved to the ${toCatName} category after they are used.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2224,
+      "command": "moveusedevent",
+      "priority": "P2"
+    },
+    {
+      "text": "The scores for the last Trivia game are: ${scores}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2412,
+      "command": "lastofficialscore",
+      "priority": "P2"
+    },
+    {
+      "text": "Are you sure you want to DELETE ALL LEADERBOARD SCORES FOR '${userid}'?",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2461,
+      "command": "removeleaderboardentry",
+      "priority": "P2"
+    },
+    {
+      "text": "If so, type ${command} to confirm.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2462,
+      "command": "removeleaderboardentry",
+      "priority": "P2"
+    },
+    {
+      "text": "Your Trivia leaderboard score has been transferred to '${altid}'!",
+      "method": "sendReply",
+      "file": "server/chat-plugins/trivia/trivia.ts",
+      "line": 2488,
+      "command": "mergescore",
+      "priority": "P2"
+    },
+    {
+      "text": "UNO has been disabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 630,
+      "command": "disable",
+      "priority": "P2"
+    },
+    {
+      "text": "UNO has been enabled for this room.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 642,
+      "command": "enable",
+      "priority": "P2"
+    },
+    {
+      "text": "You have joined the game of UNO.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 772,
+      "command": "join",
+      "priority": "P2"
+    },
+    {
+      "text": "You have left the game of UNO.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 779,
+      "command": "leave",
+      "priority": "P2"
+    },
+    {
+      "text": "<tr><td colspan=\"2\" style=\"vertical-align: top; padding: 0px 5px 5px 5px\"><div style=\"overflow-y: scroll\">${players}</div></td></tr></table>",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 846,
+      "command": "cards",
+      "priority": "P2"
+    },
+    {
+      "text": "<strong>Players (${game.playerCount})</strong>:${game.getPlayers()}",
+      "method": "sendReplyBox",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 855,
+      "command": "getusers",
+      "priority": "P2"
+    },
+    {
+      "text": "Suppression of UNO game messages is currently ${game.suppressMessages ? 'on' : 'off'}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 872,
+      "command": "suppress",
+      "priority": "P2"
+    },
+    {
+      "text": "You are now spectating this private UNO game.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 892,
+      "command": "spectate",
+      "priority": "P2"
+    },
+    {
+      "text": "You are no longer spectating this private UNO game.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/uno.ts",
+      "line": 903,
+      "command": "unspectate",
+      "priority": "P2"
+    },
+    {
+      "text": "Interval is currently set to ${Chat.toDurationString(YouTube.intervalTime * 60 * 1000)}.",
+      "method": "sendReply",
+      "file": "server/chat-plugins/youtube.ts",
+      "line": 580,
+      "command": "repeat",
+      "priority": "P2"
+    },
+    {
+      "text": "You tried to send \"${message}\" to the room \"${this.room.roomid}\" but it failed because you were not in that room.",
+      "method": "popupReply",
+      "file": "server/chat.ts",
+      "line": 604,
+      "command": "parse",
+      "priority": "P3"
+    },
+    {
+      "text": "Your message could not be sent:\n\n${message}\n\nIt needs to be sent to a user or room.",
+      "method": "popup",
+      "file": "server/chat.ts",
+      "line": 715,
+      "command": "sendChatMessage",
+      "priority": "P3"
+    },
+    {
+      "text": "You can't send a message to this room without being in it.",
+      "method": "popup",
+      "file": "server/chat.ts",
+      "line": 1181,
+      "command": "checkChat",
+      "priority": "P3"
+    },
+    {
+      "text": "You are barred from starting any new games until your battle ban expires.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 51,
+      "command": "prepBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Your selected format is invalid:\n\n- ${e.message}",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 65,
+      "command": "prepBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "The ladder is temporarily disabled due to technical difficulties - you will not receive ladder rating for this game.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 120,
+      "command": "prepBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "You can't battle yourself. The best you can do is open PS in Private Browsing (or another browser) and log into a different username, and battle that username.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 154,
+      "command": "makeChallenge",
+      "priority": "P3"
+    },
+    {
+      "text": "You are already challenging someone. Cancel that challenge before challenging someone else.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 158,
+      "command": "makeChallenge",
+      "priority": "P3"
+    },
+    {
+      "text": "The user '${targetUser.name}' is not accepting challenges right now.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 172,
+      "command": "makeChallenge",
+      "priority": "P3"
+    },
+    {
+      "text": "You challenged less than 10 seconds after your last challenge! It's cancelled in case it's a misclick.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 178,
+      "command": "makeChallenge",
+      "priority": "P3"
+    },
+    {
+      "text": "There's already a challenge (${existingChall.format}) between you and ${targetUser.name}!",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 206,
+      "command": "makeChallenge",
+      "priority": "P3"
+    },
+    {
+      "text": "You changed your name and are no longer looking for a battle in ${formatid}",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 259,
+      "command": "getSearcher",
+      "priority": "P3"
+    },
+    {
+      "text": "Error: Your format ${format.id} is not ladderable.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 316,
+      "command": "searchBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Couldn't search: You are already searching for a ${formatid} battle.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 387,
+      "command": "addSearch",
+      "priority": "P3"
+    },
+    {
+      "text": "Sorry, your opponent ${missingUser} went offline before your battle could start.",
+      "method": "popup",
+      "file": "server/ladders.ts",
+      "line": 467,
+      "command": "match",
+      "priority": "P3"
+    },
+    {
+      "text": "Due to high load, you are limited to 12 battles and team validations every 3 minutes.",
+      "method": "popup",
+      "file": "server/monitor.ts",
+      "line": 236,
+      "command": "countPrepBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Due to high load, you are limited to 5 games at the same time.",
+      "method": "popup",
+      "file": "server/monitor.ts",
+      "line": 246,
+      "command": "countConcurrentBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Due to persistent spam and abuse, we do not allow Tor connections. Please use another browser.",
+      "method": "popup",
+      "file": "server/punishments.ts",
+      "line": 1785,
+      "command": "checkIpBanned",
+      "priority": "P3"
+    },
+    {
+      "text": "Your battle is currently paused, so you cannot move right now.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 619,
+      "command": "choose",
+      "priority": "P3"
+    },
+    {
+      "text": "You have already joined this battle.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 662,
+      "command": "joinGame",
+      "priority": "P3"
+    },
+    {
+      "text": "This battle already has a user in slot ${slot}.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 669,
+      "command": "joinGame",
+      "priority": "P3"
+    },
+    {
+      "text": "This battle already has ${this.playerCap} players.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 674,
+      "command": "joinGame",
+      "priority": "P3"
+    },
+    {
+      "text": "Which slot would you like to join into? Use something like `/joingame ${validSlots[0]}`",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 680,
+      "command": "joinGame",
+      "priority": "P3"
+    },
+    {
+      "text": "You must be set as a player to join a battle you didn't start. Ask a player to use /addplayer on you to join this battle.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 688,
+      "command": "joinGame",
+      "priority": "P3"
+    },
+    {
+      "text": "Players can't be swapped out in a ${this.room.tour ? \"tournament\" : \"rated\"} battle.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 711,
+      "command": "leaveGame",
+      "priority": "P3"
+    },
+    {
+      "text": "Failed to leave battle - you're not a player.",
+      "method": "popup",
+      "file": "server/room-battle.ts",
+      "line": 716,
+      "command": "leaveGame",
+      "priority": "P3"
+    },
+    {
+      "text": "The room <<${this.roomid}>> has been made private; you must log in to be in private rooms.",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 836,
+      "command": "setPrivate",
+      "priority": "P3"
+    },
+    {
+      "text": "Your replay could not be saved: ${e}",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 2105,
+      "command": "uploadReplay",
+      "priority": "P3"
+    },
+    {
+      "text": "This server's request IP ${result.errorip} is not a registered server.",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 2124,
+      "command": "uploadReplay",
+      "priority": "P3"
+    },
+    {
+      "text": "The server will be restarting soon. Best-of-${isBestOf} battles cannot be started at this time.",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 2207,
+      "command": "createBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "The server is restarting. Battles will be available again in a few minutes.",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 2215,
+      "command": "createBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Your special battle settings don't match: ${mismatch}",
+      "method": "popup",
+      "file": "server/rooms.ts",
+      "line": 2231,
+      "command": "createBattle",
+      "priority": "P3"
+    },
+    {
+      "text": "Signups for tournaments are only available for autoconfirmed users in this room.",
+      "method": "popup",
+      "file": "server/tournaments/index.ts",
+      "line": 421,
+      "command": "addUser",
+      "priority": "P3"
+    },
+    {
+      "text": "Signups for tournaments are only available for autoconfirmed users in this room.",
+      "method": "popup",
+      "file": "server/tournaments/index.ts",
+      "line": 501,
+      "command": "replaceUser",
+      "priority": "P3"
+    },
+    {
+      "text": "All available matches were checked for automatic disqualification.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 894,
+      "command": "runAutoDisqualify",
+      "priority": "P3"
+    },
+    {
+      "text": "${format.id} is not a valid tournament format.",
+      "method": "errorReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1229,
+      "command": "",
+      "priority": "P3"
+    },
+    {
+      "text": "Tournament announcements are enabled.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1360,
+      "command": "announce",
+      "priority": "P3"
+    },
+    {
+      "text": "Tournament announcements are disabled.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1362,
+      "command": "announce",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <on|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1386,
+      "command": "announce",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <format>, <type> [, <comma-separated arguments>]",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1397,
+      "command": "create",
+      "priority": "P3"
+    },
+    {
+      "text": "<div class=\"chat\"><details class=\"readmore\"><summary>Valid Formats: </summary>${buf}</details></div>",
+      "method": "sendReplyBox",
+      "file": "server/tournaments/index.ts",
+      "line": 1430,
+      "command": "formats",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour banuser <user>, <reason>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1436,
+      "command": "banuser",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour unbanuser <user>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1474,
+      "command": "unbanuser",
+      "priority": "P3"
+    },
+    {
+      "text": "Your tournament bracket has been updated.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1527,
+      "command": "getupdate",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <user>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1533,
+      "command": "challenge",
+      "priority": "P3"
+    },
+    {
+      "text": "Your team is valid for this tournament.",
+      "method": "popup",
+      "file": "server/tournaments/index.ts",
+      "line": 1555,
+      "command": "vtm",
+      "priority": "P3"
+    },
+    {
+      "text": "Your team was rejected for the following reasons:\n\n- ${reasons.replace(/\\n/g, '\\n- ')}",
+      "method": "popup",
+      "file": "server/tournaments/index.ts",
+      "line": 1560,
+      "command": "vtm",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <type> [, <comma-separated arguments>]",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1580,
+      "command": "settype",
+      "priority": "P3"
+    },
+    {
+      "text": "Tournament set to ${generator.name}${capNote}.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1599,
+      "command": "settype",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <cap>; The current player cap is ${tournament.playerCap}",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1612,
+      "command": "setplayercap",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <cap>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1614,
+      "command": "setplayercap",
+      "priority": "P3"
+    },
+    {
+      "text": "Tournament cap removed.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1630,
+      "command": "setplayercap",
+      "priority": "P3"
+    },
+    {
+      "text": "Tournament cap set to ${tournament.playerCap}.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1644,
+      "command": "setplayercap",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour rules <list of rules>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1668,
+      "command": "customrules",
+      "priority": "P3"
+    },
+    {
+      "text": "Rules can be: -bannedthing, +un[banned|restricted]thing, *restrictedthing, !removedrule, addedrule",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1669,
+      "command": "customrules",
+      "priority": "P3"
+    },
+    {
+      "text": "<details><summary>Source</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/tour rules ${tournament.customRules}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/tournaments/index.ts",
+      "line": 1672,
+      "command": "customrules",
+      "priority": "P3"
+    },
+    {
+      "text": "<details><summary>Source</summary><code style=\"white-space: pre-wrap; display: table; tab-size: 3\">/tour rules ${tournament.customRules}</code></details>",
+      "method": "sendReplyBox",
+      "file": "server/tournaments/index.ts",
+      "line": 1686,
+      "command": "customrules",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <comma-separated arguments>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1721,
+      "command": "setname",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <user>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1763,
+      "command": "disqualify",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <on|minutes|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1794,
+      "command": "setautostart",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <minutes|off>; The current automatic disqualify timer is set to ${(tournament.autoDisqualifyTimeout / 1000 / 60)} minute(s)",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1836,
+      "command": "setautodq",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <minutes|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1838,
+      "command": "setautodq",
+      "priority": "P3"
+    },
+    {
+      "text": "This tournament allows spectating other battles while in a tournament.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1874,
+      "command": "setscouting",
+      "priority": "P3"
+    },
+    {
+      "text": "This tournament disallows spectating other battles while in a tournament.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1876,
+      "command": "setscouting",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd}<allow|disallow>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1892,
+      "command": "setscouting",
+      "priority": "P3"
+    },
+    {
+      "text": "This tournament allows players to modjoin their battles.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1903,
+      "command": "setmodjoin",
+      "priority": "P3"
+    },
+    {
+      "text": "This tournament does not allow players to modjoin their battles.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1905,
+      "command": "setmodjoin",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <allow|disallow>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1921,
+      "command": "setmodjoin",
+      "priority": "P3"
+    },
+    {
+      "text": "This tournament ${tournament.autoconfirmedOnly ? 'does not allow' : 'allows'} non-autoconfirmed users to join a tournament.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1933,
+      "command": "autoconfirmedonly",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <on|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1970,
+      "command": "forcepublic",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: /tour ${cmd} <on|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 1991,
+      "command": "forcetimer",
+      "priority": "P3"
+    },
+    {
+      "text": "Usage: ${this.cmdToken}${this.fullCmd} <number|off>",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 2239,
+      "command": "playercap",
+      "priority": "P3"
+    },
+    {
+      "text": "Recent tournaments are currently ${room.settings.tournaments.blockRecents ? '' : 'NOT '} blocked from being made.",
+      "method": "sendReply",
+      "file": "server/tournaments/index.ts",
+      "line": 2286,
+      "command": "blockrecents",
+      "priority": "P3"
+    },
+    {
+      "text": "You can't change your name right now because you're in ${room.game.title}, which doesn't allow renaming.",
+      "method": "popup",
+      "file": "server/users.ts",
+      "line": 731,
+      "command": "rename",
+      "priority": "P3"
+    },
+    {
+      "text": "You are locked because someone using your IP has spammed/hacked other websites. This usually means either you're using a proxy, you're in a country where other people commonly hack, or you have a virus on your computer that's spamming websites.",
+      "method": "popup",
+      "file": "server/users.ts",
+      "line": 1142,
+      "command": "updateGroup",
+      "priority": "P3"
+    },
+    {
+      "text": "Your searches and challenges have been cancelled because you changed your username.",
+      "method": "popup",
+      "file": "server/users.ts",
+      "line": 1395,
+      "command": "cancelReady",
+      "priority": "P3"
+    },
+    {
+      "text": "Invalid message; messages should be in the format `ROOMID|MESSAGE`. See https://github.com/smogon/pokemon-showdown/blob/master/PROTOCOL.md",
+      "method": "popup",
+      "file": "server/users.ts",
+      "line": 1703,
+      "command": "",
+      "priority": "P3"
+    },
+    {
+      "text": "You're sending too many lines at once. Try using a paste service like [[Pastebin]].",
+      "method": "popup",
+      "file": "server/users.ts",
+      "line": 1730,
+      "command": "",
+      "priority": "P3"
+    }
+  ]
+}

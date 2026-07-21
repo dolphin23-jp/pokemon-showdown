@@ -57,6 +57,6 @@ export const translations: Translations = {
 		"Queued polls:": "キューに追加された投票",
 		"Refresh": "再読み込み",
 		"No polls queued.": "キューに投票はありません。",
-		"#${number} in queue": "{number}番目",
+		"#${number} in queue": "キューの${number}番目",
 	},
 };
