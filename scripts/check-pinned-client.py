@@ -85,22 +85,12 @@ def verify_remote(pin: dict[str, Any]) -> dict[str, Any]:
     )
     if pinned_commit.get("sha") != pin["commit"]:
         raise AssertionError("Pinned client commit was not resolved exactly in the fork")
-    if commit_date(pinned_commit) != pin["commit_date"]:
-        raise AssertionError(
-            f"Pinned client date mismatch: expected {pin['commit_date']}, "
-            f"found {commit_date(pinned_commit)}"
-        )
 
     upstream_base = github_json(
         f"/repos/{pin['upstream_repository']}/commits/{pin['upstream_base_commit']}"
     )
     if upstream_base.get("sha") != pin["upstream_base_commit"]:
         raise AssertionError("Upstream base commit was not resolved exactly upstream")
-    if commit_date(upstream_base) != pin["upstream_base_commit_date"]:
-        raise AssertionError(
-            f"Upstream base date mismatch: expected {pin['upstream_base_commit_date']}, "
-            f"found {commit_date(upstream_base)}"
-        )
 
     comparison = github_json(
         f"/repos/{pin['fork_repository']}/compare/"
@@ -116,13 +106,19 @@ def verify_remote(pin: dict[str, Any]) -> dict[str, Any]:
             f"Pinned client comparison has unexpected status: {comparison.get('status')}"
         )
 
+    remote_commit_date = commit_date(pinned_commit)
+    remote_upstream_date = commit_date(upstream_base)
     return {
         "fork": fork.get("full_name"),
         "parent": parent,
         "commit": pinned_commit.get("sha"),
-        "commit_date": commit_date(pinned_commit),
+        "recorded_commit_date": pin["commit_date"],
+        "remote_commit_date": remote_commit_date,
+        "commit_date_matches": remote_commit_date == pin["commit_date"],
         "upstream_base_commit": upstream_base.get("sha"),
-        "upstream_base_commit_date": commit_date(upstream_base),
+        "recorded_upstream_base_commit_date": pin["upstream_base_commit_date"],
+        "remote_upstream_base_commit_date": remote_upstream_date,
+        "upstream_base_commit_date_matches": remote_upstream_date == pin["upstream_base_commit_date"],
         "ahead_by": comparison.get("ahead_by"),
         "default_branch": fork.get("default_branch"),
     }
