@@ -337,10 +337,38 @@ jobs:
           done
           exit 1
       - name: Install Japanese screenshot fonts
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          set -euo pipefail
           fc-cache -f
+          if fc-list :lang=ja family | grep -q .; then
+            echo 'Japanese screenshot font is already available.'
+            exit 0
+          fi
+
+          for attempt in 1 2 3; do
+            echo "Installing fonts-noto-cjk (attempt ${attempt}/3)"
+            if sudo timeout 180s apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                update \
+              && sudo timeout 180s env DEBIAN_FRONTEND=noninteractive apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                install -y --no-install-recommends fonts-noto-cjk; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo 'Unable to install Japanese screenshot fonts after three bounded attempts.' >&2
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+
+          fc-cache -f
+          fc-list :lang=ja family | grep -q .
       - name: Capture iPad-sized pinned-client baseline
         shell: bash
         run: |
