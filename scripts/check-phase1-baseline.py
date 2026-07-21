@@ -129,7 +129,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
         "localization_safety_tests": [
             "scripts/test-launcher-japanese-language.js",
-            "Japanese /version response in scripts/smoke-bss-battle.py",
+            "Japanese /language response in scripts/smoke-bss-battle.py",
         ],
         "japanese_server_translation_files": [
             "translations/japanese/main.ts",
