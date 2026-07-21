@@ -41,9 +41,16 @@ def main() -> None:
 
     sys.path.insert(0, str(FOUL_PLAY_ROOT))
     from fp.battle.state import Battle, Pokemon
+    from fp.config import FoulPlayConfig
     from fp.modes.standard_battle import StandardBattleMode
     from fp.search import main as search_main
     from fp.search.poke_engine_helpers import battle_to_poke_engine_state
+
+    # Pokemon construction consults FoulPlayConfig.format_spec for generation
+    # mechanics. Initialize it before creating the deterministic fixture so the
+    # test uses the same Gen 9 mechanics as the live bot instead of the empty
+    # configuration's synthetic gen0 default.
+    FoulPlayConfig.pokemon_format = "gen9randombattle"
 
     battle = Battle(None)
     battle.generation = "gen9"
