@@ -138,7 +138,7 @@ jobs:
             /tmp/bss-faint-smoke.status
       - name: Require replacement after a faint
         run: test "$(cat /tmp/bss-faint-smoke.status)" = 0
-      - name: Verify access gate and authenticated launcher
+      - name: Verify access gate and default client delivery
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:10000/)" = 401
           curl --fail --silent \
@@ -159,6 +159,8 @@ jobs:
           grep -q 'Config.defaultserver' /tmp/authenticated-client.html
           grep -q "prefix: '/showdown'" /tmp/authenticated-client.html
           grep -q "ps.send('/trn ' + cleaned + ',0,');" /tmp/authenticated-client.html
+          test "$(curl --silent --cookie /tmp/showdown-ai.cookies --output /tmp/local-client-disabled.txt --write-out '%{http_code}' http://127.0.0.1:10000/local-client/testclient-new.html)" = 404
+          grep -q 'route is disabled' /tmp/local-client-disabled.txt
       - name: Start unprotected visual baseline container
         run: |
           docker run --detach --name showdown-baseline \
@@ -178,12 +180,55 @@ jobs:
             sleep 2
           done
           exit 1
+      - name: Start opt-in pinned client container
+        run: |
+          docker run --detach --name showdown-pinned-client \
+            -p 10002:10000 \
+            -e PORT=10000 \
+            -e ENABLE_PINNED_CLIENT=1 \
+            -e DEFAULT_PLAYER_NAME=Dolphin23 \
+            -e FOUL_PLAY_USERNAME=PinnedClientBot \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
+            pokemon-showdown-ai:smoke
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:10002/health | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-pinned-client | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Verify opt-in pinned client route
+        run: |
+          curl --fail --silent --dump-header /tmp/pinned-client-entry.headers \
+            http://127.0.0.1:10002/local-client/testclient-new.html \
+            --output /tmp/pinned-client-entry.html
+          grep -qi '^x-pokemon-showdown-client-source: pinned-local' /tmp/pinned-client-entry.headers
+          grep -q 'Config.defaultserver' /tmp/pinned-client-entry.html
+          grep -q "prefix: '/showdown'" /tmp/pinned-client-entry.html
+          grep -q "ps.send('/trn ' + cleaned + ',0,');" /tmp/pinned-client-entry.html
+          grep -q "language: 'japanese'" /tmp/pinned-client-entry.html
+          grep -q 'src="/local-client/js/lib/ps-polyfill.js"' /tmp/pinned-client-entry.html
+          curl --fail --silent --dump-header /tmp/pinned-client-asset.headers \
+            http://127.0.0.1:10002/local-client/js/client-main.js \
+            --output /tmp/pinned-client-main.js
+          grep -qi '^x-pokemon-showdown-client-source: pinned-local' /tmp/pinned-client-asset.headers
+          grep -qi '^cache-control: public, max-age=31536000, immutable' /tmp/pinned-client-asset.headers
+          test -s /tmp/pinned-client-main.js
+          test "$(curl --path-as-is --silent --output /tmp/pinned-client-traversal.txt --write-out '%{http_code}' http://127.0.0.1:10002/local-client/%2e%2e%2fpackage.json)" = 404
+          curl --fail --silent --dump-header /tmp/pinned-default-client.headers \
+            http://127.0.0.1:10002/client.html \
+            --output /tmp/pinned-default-client.html
+          grep -q 'Config.defaultserver' /tmp/pinned-default-client.html
+          ! grep -qi '^x-pokemon-showdown-client-source: pinned-local' /tmp/pinned-default-client.headers
       - name: Install Japanese screenshot fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-cache -f
-      - name: Capture iPad-sized visual baseline
+      - name: Capture iPad-sized visual baselines
         shell: bash
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
@@ -206,8 +251,16 @@ jobs:
             --virtual-time-budget=15000 \
             --screenshot=/tmp/phase1-client-ipad.png \
             http://127.0.0.1:10001/client.html
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --hide-scrollbars --no-proxy-server \
+            --user-data-dir=/tmp/chrome-pinned-client \
+            --window-size=1024,1366 \
+            --virtual-time-budget=15000 \
+            --screenshot=/tmp/phase1-pinned-client-ipad.png \
+            http://127.0.0.1:10002/local-client/testclient-new.html
           test -s /tmp/phase1-launcher-ipad.png
           test -s /tmp/phase1-client-ipad.png
+          test -s /tmp/phase1-pinned-client-ipad.png
       - name: Upload Phase 1 baseline artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -220,13 +273,24 @@ jobs:
             /tmp/client-build-manifest.json
             /tmp/authenticated-launcher.html
             /tmp/authenticated-client.html
+            /tmp/local-client-disabled.txt
             /tmp/launcher-baseline.html
             /tmp/client-baseline.html
+            /tmp/pinned-client-entry.headers
+            /tmp/pinned-client-entry.html
+            /tmp/pinned-client-asset.headers
+            /tmp/pinned-client-main.js
+            /tmp/pinned-client-traversal.txt
+            /tmp/pinned-default-client.headers
+            /tmp/pinned-default-client.html
             /tmp/phase1-launcher-ipad.png
             /tmp/phase1-client-ipad.png
-      - name: Cleanup visual baseline container
+            /tmp/phase1-pinned-client-ipad.png
+      - name: Cleanup visual baseline containers
         if: always()
-        run: docker rm --force showdown-baseline >/dev/null 2>&1 || true
+        run: |
+          docker rm --force showdown-baseline >/dev/null 2>&1 || true
+          docker rm --force showdown-pinned-client >/dev/null 2>&1 || true
       - name: Capture container diagnostics
         if: always()
         shell: bash
@@ -234,8 +298,10 @@ jobs:
           docker ps -a > /tmp/container-ps.txt 2>&1 || true
           docker inspect showdown-ai > /tmp/container-inspect.json 2>&1 || true
           docker logs --timestamps showdown-ai > /tmp/container.log 2>&1 || true
+          docker logs --timestamps showdown-pinned-client > /tmp/pinned-client-container.log 2>&1 || true
           cat /tmp/container-ps.txt
           tail -n 450 /tmp/container.log || true
+          tail -n 250 /tmp/pinned-client-container.log || true
       - name: Upload container diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -245,3 +311,4 @@ jobs:
             /tmp/container-ps.txt
             /tmp/container-inspect.json
             /tmp/container.log
+            /tmp/pinned-client-container.log
