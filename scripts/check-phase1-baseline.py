@@ -25,8 +25,10 @@ REQUIRED_FILES = [
     "docs/localization/phase-1-t1-10-protocol-invariants.md",
     "docs/localization/phase-1-t1-11-foul-play-input-invariants.md",
     "docs/localization/phase-1-t1-12-poke-engine-id-invariants.md",
+    "docs/localization/phase-1-t1-13-integration-regression.md",
     "config/pokemon-showdown-client.json",
     "config/bss-engine-boundary-bot.txt",
+    "scripts/audit-phase1-integration.py",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
     "scripts/check-pinned-client.py",
@@ -92,21 +94,49 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     pin = json.loads(read(ROOT / "config" / "pokemon-showdown-client.json"))
     if pin.get("commit") != CLIENT_COMMIT:
-        raise AssertionError("T1-12 must preserve the T1-09 client commit")
+        raise AssertionError("T1-13 must preserve the T1-09 client commit")
     if pin.get("runtime_delivery_changed") is not True:
         raise AssertionError("The pinned local client must remain active")
 
     require_markers(
         ROOT / "docs" / "localization" / "README.md",
         [
-            "Phase 1 T1-12",
+            "Phase 1 T1-13",
+            "Phase 1完了",
+            "ready_for_phase2",
+            "phase1-integration-regression-report",
+            "scripts/audit-phase1-integration.py",
             "FOUL_PLAY_RAW_RECEIVE_LOG",
             "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG",
             "PokeEngineState.from_string(state)",
             "monte_carlo_tree_search(poke_engine_state",
-            "T1-12: Rust AI境界のIDテスト",
-            "T1-13: Phase 1統合回帰",
             *TARGET_IDS,
+        ],
+    )
+    require_markers(
+        ROOT / "docs" / "localization" / "phase-1-t1-13-integration-regression.md",
+        [
+            "# Phase 1 T1-13: integration regression",
+            "Dockerをクリーンビルドして全テスト・ブラウザ確認・成果物監査",
+            "phase1-integration-regression.json",
+            "phase1-integration-regression-report",
+            '"phase1_complete": true',
+            '"ready_for_phase2": true',
+            "1024 × 1366",
+            "Phase 2の具体的タスクは別の計画で定義",
+        ],
+    )
+    require_markers(
+        ROOT / "scripts" / "audit-phase1-integration.py",
+        [
+            "STATUS_FILES",
+            "REQUIRED_ARTIFACTS",
+            "EXPECTED_SCREENSHOT_SIZE = (1024, 1366)",
+            '"task": "T1-13"',
+            '"phase1_complete": True',
+            '"ready_for_phase2": True',
+            "artifact_audit",
+            "sha256",
         ],
     )
     require_markers(
@@ -116,7 +146,6 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "PokeEngineState.from_string(state)",
             "monte_carlo_tree_search(poke_engine_state",
             "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG",
-            "bss-poke-engine-boundary-invariant-diagnostics",
             *TARGET_IDS,
         ],
     )
@@ -133,15 +162,6 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
     )
     require_markers(
-        ROOT / "scripts" / "test-foul-play-poke-engine-boundary-log.py",
-        [
-            "Phase 1 T1-12",
-            "serialized_state_round_trip",
-            "default_runtime_unchanged",
-            *TARGET_IDS,
-        ],
-    )
-    require_markers(
         ROOT / "scripts" / "smoke-bss-poke-engine-boundary-invariants.py",
         [
             "Phase 1 T1-12",
@@ -151,10 +171,6 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "EngineBoundaryBot",
             *TARGET_IDS,
         ],
-    )
-    require_markers(
-        ROOT / "config" / "bss-engine-boundary-bot.txt",
-        ["Pikachu @ Light Ball", "Ability: Static", "- Thunderbolt"],
     )
     require_markers(
         ROOT / "scripts" / "patch-foul-play-raw-receive-log.py",
@@ -167,6 +183,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     require_markers(
         ROOT / "Dockerfile",
         [
+            "scripts/audit-phase1-integration.py",
             "scripts/patch-foul-play-poke-engine-boundary-log.py",
             "scripts/test-foul-play-poke-engine-boundary-log.py",
             "scripts/smoke-bss-poke-engine-boundary-invariants.py",
@@ -177,16 +194,20 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     require_markers(
         ROOT / ".github" / "workflows" / "render-smoke.yml",
         [
-            "Start poke-engine boundary container",
+            "Build Render image with captured output",
+            "Verify embedded pinned client build",
+            "Verify duplicate protocol and rendered-text invariants",
             "Exercise Rust poke-engine ID boundary invariants",
-            "Require Rust poke-engine ID boundary invariants",
-            "bss-poke-engine-boundary-invariant-diagnostics",
-            "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG=/app/.runtime/poke-engine-boundary.jsonl",
             "Exercise foul-play raw input invariants",
             "Exercise raw WebSocket protocol invariants",
             "Exercise BSS battle with captured protocol",
             "Exercise faint and forced-switch recovery",
+            "Verify access gate and pinned default client",
             "Capture iPad-sized pinned-client baseline",
+            "Audit Phase 1 integration artifacts",
+            "Require Phase 1 ready for Phase 2",
+            "phase1-integration-regression-report",
+            "/tmp/phase1-integration-regression.json",
         ],
     )
     require_markers(
@@ -216,21 +237,22 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-12",
+        "task": "T1-13",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
         "pinned_client_commit": CLIENT_COMMIT,
         "foul_play_commit": FOUL_PLAY_COMMIT,
-        "poke_engine_boundary_invariants": {
-            "capture_is_opt_in": True,
-            "audit_point": "after State.from_string and before MCTS",
-            "serialized_state_round_trip_required": True,
-            "live_battle_required": True,
-            "dedicated_container": True,
-            "normalized_ids": TARGET_IDS,
-            "japanese_names_allowed": False,
+        "integration_regression_contract": {
+            "clean_docker_build_required": True,
+            "all_regression_tests_required": True,
+            "browser_verification_required": True,
+            "ipad_screenshots_required": [1024, 1366],
+            "artifact_hash_manifest_required": True,
+            "final_report": "/tmp/phase1-integration-regression.json",
+            "artifact_name": "phase1-integration-regression-report",
+            "ready_for_phase2_requires_all_conditions": True,
         },
         "required_regression_tests": [
             "scripts/test-foul-play-poke-engine-boundary-log.py",
@@ -243,16 +265,16 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/test-foul-play-battle-fallbacks.py",
             "scripts/smoke-bss-battle.py",
             "scripts/smoke-bss-faint-recovery.py",
+            "scripts/audit-phase1-integration.py",
         ],
-        "next_defined_tasks": [
-            "T1-13 Phase 1 integration regression",
-        ],
+        "phase1_final_task": True,
+        "phase2_task_defined": False,
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Verify and record the Phase 1 T1-12 localization baseline."
+        description="Verify and record the Phase 1 T1-13 integration baseline."
     )
     parser.add_argument("--base-ref", default=os.environ.get("GITHUB_BASE_REF") or "")
     parser.add_argument("--output", type=pathlib.Path)
