@@ -17,9 +17,11 @@ REQUIRED_FILES = [
     "scripts/check-built-client.py",
     "scripts/check-pinned-client.py",
     "scripts/launcher-server.js",
+    "scripts/pinned-client-preload.js",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
     "scripts/test-launcher-japanese-language.js",
+    "scripts/test-launcher-pinned-client.js",
     "scripts/test-foul-play-local-login.py",
     "scripts/test-foul-play-battle-fallbacks.py",
     "translations/japanese/main.ts",
@@ -36,6 +38,15 @@ LAUNCHER_MARKERS = [
     "prefix: '/showdown'",
     "ps.send('/trn ' + cleaned + ',0,');",
     "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
+]
+
+PINNED_CLIENT_MARKERS = [
+    "const ENABLED = process.env.ENABLE_PINNED_CLIENT === '1';",
+    "const LOCAL_CLIENT_PREFIX = '/local-client/';",
+    "prefix: '/showdown'",
+    "ps.send('/trn ' + cleaned + ',0,');",
+    "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
+    "x-pokemon-showdown-client-source",
 ]
 
 PROTECTED_PREFIXES = ("data/", "sim/")
@@ -78,6 +89,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         raise AssertionError(f"Missing baseline files: {missing_files}")
 
     assert_contains(ROOT / "scripts/launcher-server.js", LAUNCHER_MARKERS)
+    assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
     assert_contains(ROOT / ".gitmodules", ["url = https://github.com/pmariglia/foul-play.git"])
     assert_contains(
         ROOT / "Dockerfile",
@@ -86,6 +98,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "npm --prefix /client ci",
             "npm --prefix /client run build",
             "COPY --from=client-builder /client /opt/pokemon-showdown-client",
+            "NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js",
+            "node scripts/test-launcher-pinned-client.js",
             "python3 scripts/check-built-client.py",
             "node scripts/test-launcher-japanese-language.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -98,7 +112,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not False:
-        raise AssertionError("T1-03 must not change runtime client delivery")
+        raise AssertionError("T1-04 must not change the default runtime client delivery")
 
     diff_files = changed_files(base_ref)
     protected_changes = [
@@ -120,24 +134,31 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-03",
+        "task": "T1-04",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
         "current_client_delivery": {
-            "html_source": "https://play.pokemonshowdown.com/testclient-new.html",
-            "static_assets": "proxied from play.pokemonshowdown.com",
+            "default_html_source": "https://play.pokemonshowdown.com/testclient-new.html",
+            "default_static_assets": "proxied from play.pokemonshowdown.com",
+            "default_changed_by_t1_04": False,
             "battle_server_prefix": "/showdown",
             "browser_login_command": "/trn <name>,0,",
             "browser_language_command": '/updatesettings {"language":"japanese"}',
-            "changed_by_t1_03": False,
         },
         "pinned_client_build": {
             "image_path": "/opt/pokemon-showdown-client",
             "build_command": "npm ci && npm run build",
             "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
-            "served_at_runtime": False,
+            "served_by_default": False,
+        },
+        "opt_in_local_client": {
+            "environment_switch": "ENABLE_PINNED_CLIENT=1",
+            "entry_path": "/local-client/testclient-new.html",
+            "static_prefix": "/local-client/",
+            "access_gate_required": True,
+            "default_enabled": False,
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -153,6 +174,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
         "localization_safety_tests": [
             "scripts/test-launcher-japanese-language.js",
+            "scripts/test-launcher-pinned-client.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
             "scripts/check-built-client.py",
