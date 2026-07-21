@@ -314,7 +314,13 @@ Config.server = Config.defaultserver;
       ps.user.__personalServerAutoLoginSent = true;
       ps.user.changeName(savedName);
     }
-    if ((ps?.user?.named && ps.user.__personalServerLoginPatched) || attempts > 400) clearInterval(timer);
+    if (ps?.user?.named && ps.user.__personalServerLoginPatched && !ps.user.__personalServerJapaneseLanguageSent) {
+      ps.user.__personalServerJapaneseLanguageSent = true;
+      ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));
+    }
+    if ((ps?.user?.named && ps.user.__personalServerLoginPatched && ps.user.__personalServerJapaneseLanguageSent) || attempts > 400) {
+      clearInterval(timer);
+    }
   }, 50);
 })();
 </script>`;
