@@ -32,21 +32,29 @@ REQUIRED_FILES = [
 ]
 
 LAUNCHER_MARKERS = [
-    "const OFFICIAL_CLIENT_HOST = 'play.pokemonshowdown.com';",
-    "path: '/testclient-new.html'",
+    "const { handlePinnedClient } = require('./pinned-client-preload');",
     "location.href = '/client.html';",
-    "prefix: '/showdown'",
-    "ps.send('/trn ' + cleaned + ',0,');",
-    "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
+    "if (handlePinnedClient(req, res)) return;",
+    "proxyShowdownRequest(req, res);",
+    "send(res, 404, 'text/plain; charset=utf-8', 'Not found.');",
 ]
 
 PINNED_CLIENT_MARKERS = [
-    "const ENABLED = process.env.ENABLE_PINNED_CLIENT === '1';",
+    "const CLIENT_ENTRY = '/client.html';",
     "const LOCAL_CLIENT_PREFIX = '/local-client/';",
+    "const PUBLIC_PREFIXES = ['/data/', '/js/', '/src/', '/style/'];",
     "prefix: '/showdown'",
     "ps.send('/trn ' + cleaned + ',0,');",
     "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
     "x-pokemon-showdown-client-source",
+    "Net.defaultRoute = location.origin;",
+]
+
+RETIRED_RUNTIME_MARKERS = [
+    "const OFFICIAL_CLIENT_HOST = 'play.pokemonshowdown.com';",
+    "function servePatchedClient(",
+    "proxyRequest(req, res, 'official-client')",
+    "https.get(",
 ]
 
 PROTECTED_PREFIXES = ("data/", "sim/")
@@ -83,12 +91,21 @@ def assert_contains(path: pathlib.Path, markers: list[str]) -> None:
         raise AssertionError(f"{path.relative_to(ROOT)} is missing markers: {missing}")
 
 
+def assert_not_contains(path: pathlib.Path, markers: list[str]) -> None:
+    content = path.read_text(encoding="utf-8")
+    present = [marker for marker in markers if marker in content]
+    if present:
+        raise AssertionError(f"{path.relative_to(ROOT)} still contains retired markers: {present}")
+
+
 def build_report(base_ref: str | None) -> dict[str, Any]:
     missing_files = [path for path in REQUIRED_FILES if not (ROOT / path).is_file()]
     if missing_files:
         raise AssertionError(f"Missing baseline files: {missing_files}")
 
-    assert_contains(ROOT / "scripts/launcher-server.js", LAUNCHER_MARKERS)
+    launcher = ROOT / "scripts" / "launcher-server.js"
+    assert_contains(launcher, LAUNCHER_MARKERS)
+    assert_not_contains(launcher, RETIRED_RUNTIME_MARKERS)
     assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
     assert_contains(ROOT / ".gitmodules", ["url = https://github.com/pmariglia/foul-play.git"])
     assert_contains(
@@ -98,7 +115,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "npm --prefix /client ci",
             "npm --prefix /client run build",
             "COPY --from=client-builder /client /opt/pokemon-showdown-client",
-            "NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js",
+            "ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client",
             "node scripts/test-launcher-pinned-client.js",
             "python3 scripts/check-built-client.py",
             "node scripts/test-launcher-japanese-language.js",
@@ -107,12 +124,13 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             ".venv/bin/python scripts/test-foul-play-battle-fallbacks.py",
         ],
     )
+    assert_not_contains(ROOT / "Dockerfile", ["NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js"])
 
     client_pin = json.loads(
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
-    if client_pin.get("runtime_delivery_changed") is not False:
-        raise AssertionError("T1-04 must not change the default runtime client delivery")
+    if client_pin.get("runtime_delivery_changed") is not True:
+        raise AssertionError("T1-05 must record the pinned client runtime cutover")
 
     diff_files = changed_files(base_ref)
     protected_changes = [
@@ -134,15 +152,18 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-04",
+        "task": "T1-05",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
         "current_client_delivery": {
-            "default_html_source": "https://play.pokemonshowdown.com/testclient-new.html",
-            "default_static_assets": "proxied from play.pokemonshowdown.com",
-            "default_changed_by_t1_04": False,
+            "html_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/testclient-new.html",
+            "entry_path": "/client.html",
+            "static_sources": ["/data/", "/js/", "/src/", "/style/", "/config/config.js"],
+            "official_runtime_html_fetch": False,
+            "official_runtime_asset_proxy": False,
+            "unknown_paths_return_404": True,
             "battle_server_prefix": "/showdown",
             "browser_login_command": "/trn <name>,0,",
             "browser_language_command": '/updatesettings {"language":"japanese"}',
@@ -151,14 +172,12 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "image_path": "/opt/pokemon-showdown-client",
             "build_command": "npm ci && npm run build",
             "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
-            "served_by_default": False,
+            "served_by_default": True,
         },
-        "opt_in_local_client": {
-            "environment_switch": "ENABLE_PINNED_CLIENT=1",
+        "legacy_local_alias": {
             "entry_path": "/local-client/testclient-new.html",
             "static_prefix": "/local-client/",
-            "access_gate_required": True,
-            "default_enabled": False,
+            "kept_for_t1_04_compatibility": True,
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
