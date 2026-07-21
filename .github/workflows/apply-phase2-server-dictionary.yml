@@ -9,6 +9,9 @@ on:
       - scripts/audit-japanese-server-translations.js
       - scripts/smoke-japanese-server-dictionary.py
       - .github/workflows/apply-phase2-server-dictionary.yml
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: write
