@@ -10,12 +10,23 @@ from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
+DISPLAY_NAME_SOURCE_REPOSITORY = "PokeAPI/pokeapi"
+DISPLAY_NAME_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
+DISPLAY_NAME_LANGUAGE_ID = 11
+DISPLAY_NAME_MINIMUM_COUNTS = {
+    "species": 1000,
+    "moves": 800,
+    "abilities": 250,
+    "items": 1500,
+}
+
 REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
     "README.md",
     "docs/localization/README.md",
     "docs/localization/phase-1-t1-07-display-name-api.md",
+    "docs/localization/phase-1-t1-08-generated-name-maps.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
@@ -56,10 +67,13 @@ PINNED_CLIENT_MARKERS = [
 
 DOCUMENTATION_MARKERS = [
     "# Japanese localization operations",
-    "Phase 1 T1-06",
+    "Phase 1 T1-08",
     "## ロールバック",
     "## 絶対に変えない境界",
     "scripts/check-localization-docs.py",
+    "battle-display-names.meta.json",
+    DISPLAY_NAME_SOURCE_REPOSITORY,
+    DISPLAY_NAME_SOURCE_COMMIT,
 ]
 
 DISPLAY_NAME_API_MARKERS = [
@@ -72,6 +86,21 @@ DISPLAY_NAME_API_MARKERS = [
     "displayItemName",
     "canonical English Dex name",
     "T1-08",
+]
+
+GENERATED_NAME_MAP_MARKERS = [
+    "# Phase 1 T1-08: mechanically generated Japanese display-name maps",
+    "window.BattleJapaneseDisplayNames",
+    "species",
+    "moves",
+    "abilities",
+    "items",
+    "battle-display-names.meta.json",
+    DISPLAY_NAME_SOURCE_REPOSITORY,
+    DISPLAY_NAME_SOURCE_COMMIT,
+    "language ID `11`",
+    "mutates_ids: false",
+    "protocol_safe: true",
 ]
 
 RETIRED_RUNTIME_MARKERS = [
@@ -137,6 +166,10 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         DISPLAY_NAME_API_MARKERS,
     )
     assert_contains(
+        ROOT / "docs/localization/phase-1-t1-08-generated-name-maps.md",
+        GENERATED_NAME_MAP_MARKERS,
+    )
+    assert_contains(
         ROOT / "README.md",
         [
             "Personal AI deployment and Japanese localization",
@@ -167,14 +200,25 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-07 must preserve the completed local-client cutover")
+        raise AssertionError("T1-08 must preserve the completed local-client cutover")
     if client_pin.get("commit") == client_pin.get("upstream_base_commit"):
-        raise AssertionError("T1-07 must pin the fork revision containing the display-name API")
+        raise AssertionError("T1-08 must pin the fork revision containing generated display-name maps")
+
+    build_check = ROOT / "scripts" / "check-built-client.py"
+    assert_contains(
+        build_check,
+        [
+            "play.pokemonshowdown.com/js/battle-display-names.meta.json",
+            DISPLAY_NAME_SOURCE_REPOSITORY,
+            DISPLAY_NAME_SOURCE_COMMIT,
+            "DISPLAY_NAME_LANGUAGE_ID = 11",
+            *[f'"{name}": {count}' for name, count in DISPLAY_NAME_MINIMUM_COUNTS.items()],
+        ],
+    )
 
     diff_files = changed_files(base_ref)
     protected_changes = [
-        path for path in diff_files
-        if path.startswith(PROTECTED_PREFIXES)
+        path for path in diff_files if path.startswith(PROTECTED_PREFIXES)
     ]
     if protected_changes:
         raise AssertionError(
@@ -191,7 +235,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-07",
+        "task": "T1-08",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
@@ -208,11 +252,17 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
                 "displayItemName",
             ],
             "fallback": "canonical-english-name",
+            "source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
+            "source_commit": DISPLAY_NAME_SOURCE_COMMIT,
+            "language_id": DISPLAY_NAME_LANGUAGE_ID,
+            "minimum_counts": DISPLAY_NAME_MINIMUM_COUNTS,
+            "generated_metadata": "play.pokemonshowdown.com/js/battle-display-names.meta.json",
             "mutates_ids": False,
             "protocol_safe": True,
-            "generated_maps_added": False,
+            "generated_maps_added": True,
             "implementation_repository": client_pin["fork_repository"],
-            "task_document": "docs/localization/phase-1-t1-07-display-name-api.md",
+            "task_document": "docs/localization/phase-1-t1-08-generated-name-maps.md",
+            "previous_task_document": "docs/localization/phase-1-t1-07-display-name-api.md",
         },
         "operations_documentation": {
             "authoritative_guide": "docs/localization/README.md",
@@ -221,6 +271,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "covers": [
                 "architecture",
                 "client updates",
+                "generated display-name map updates",
                 "server translation updates",
                 "required tests",
                 "troubleshooting",
@@ -243,6 +294,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "image_path": "/opt/pokemon-showdown-client",
             "build_command": "npm ci && npm run build",
             "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
+            "generated_display_name_bundle": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.js",
+            "generated_display_name_metadata": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.meta.json",
             "served_by_default": True,
         },
         "legacy_local_alias": {
@@ -256,6 +309,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "pokemon_showdown_client_upstream": client_pin["upstream_repository"],
             "pokemon_showdown_client_commit": client_pin["commit"],
             "pokemon_showdown_client_upstream_base": client_pin["upstream_base_commit"],
+            "display_name_source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
+            "display_name_source_commit": DISPLAY_NAME_SOURCE_COMMIT,
         },
         "required_regression_tests": [
             "scripts/smoke-bss-battle.py",
@@ -268,7 +323,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/test-launcher-pinned-client.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
-            "scripts/check-built-client.py display-name API contract",
+            "scripts/check-built-client.py generated-map contract",
             "scripts/check-localization-docs.py",
         ],
         "japanese_server_translation_files": [
