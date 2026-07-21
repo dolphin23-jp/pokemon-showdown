@@ -60,12 +60,12 @@ jobs:
         run: |
           docker run --rm --entrypoint python3 pokemon-showdown-ai:smoke \
             /app/scripts/check-built-client.py \
-              --client-root /app/pokemon-showdown-client \
+              --client-root /opt/pokemon-showdown-client \
               --pin-file /app/config/pokemon-showdown-client.json \
             > /tmp/client-build-verification.json
           cat /tmp/client-build-verification.json
           docker run --rm --entrypoint cat pokemon-showdown-ai:smoke \
-            /app/pokemon-showdown-client/build-manifest.json \
+            /opt/pokemon-showdown-client/build-manifest.json \
             > /tmp/client-build-manifest.json
       - name: Start container
         run: |
