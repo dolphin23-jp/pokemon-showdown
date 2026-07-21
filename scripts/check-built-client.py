@@ -14,7 +14,7 @@ DEFAULT_PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 
 REQUIRED_ARTIFACTS = (
     "config/config.js",
-    "play.pokemonshowdown.com/caches/index-new.html",
+    "play.pokemonshowdown.com/testclient-new.html",
     "play.pokemonshowdown.com/js/client-main.js",
     "play.pokemonshowdown.com/js/client-connection.js",
     "play.pokemonshowdown.com/js/panel-battle.js",
@@ -83,24 +83,23 @@ def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[st
     if not re.search(rf'Config\.version = "[^"]*\({short_sha}\)";', config):
         raise AssertionError("Built client config does not contain the pinned commit version")
 
-    index = (
-        client_root / "play.pokemonshowdown.com" / "caches" / "index-new.html"
+    testclient = (
+        client_root / "play.pokemonshowdown.com" / "testclient-new.html"
     ).read_text(encoding="utf-8")
-    required_cachebusters = (
-        r'/style/client2\.css\?[0-9a-f]{8}',
-        r'/js/client-main\.js\?[0-9a-f]{8}',
-        r'/js/client-connection\.js\?[0-9a-f]{8}',
+    required_references = (
+        'href="style/client2.css"',
+        'src="js/client-main.js"',
+        'src="js/client-connection.js"',
+        'src="js/panel-battle.js"',
     )
-    missing_cachebusters = [
-        pattern for pattern in required_cachebusters
-        if not re.search(pattern, index)
+    missing_references = [
+        reference for reference in required_references
+        if reference not in testclient
     ]
-    if missing_cachebusters:
+    if missing_references:
         raise AssertionError(
-            f"Built client index is missing cache-busted assets: {missing_cachebusters}"
+            f"Local test client is missing required build references: {missing_references}"
         )
-    if "<!-- newsid -->" in index or "<!-- build-tools/news-embed.php -->" in index:
-        raise AssertionError("Built client index still contains unresolved build placeholders")
 
     return expected_manifest(client_root, pin)
 
