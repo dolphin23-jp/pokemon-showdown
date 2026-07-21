@@ -13,8 +13,11 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
+    "README.md",
+    "docs/localization/README.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
+    "scripts/check-localization-docs.py",
     "scripts/check-pinned-client.py",
     "scripts/launcher-server.js",
     "scripts/pinned-client-preload.js",
@@ -48,6 +51,14 @@ PINNED_CLIENT_MARKERS = [
     "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
     "x-pokemon-showdown-client-source",
     "Net.defaultRoute = location.origin;",
+]
+
+DOCUMENTATION_MARKERS = [
+    "# Japanese localization operations",
+    "Phase 1 T1-06",
+    "## ロールバック",
+    "## 絶対に変えない境界",
+    "scripts/check-localization-docs.py",
 ]
 
 RETIRED_RUNTIME_MARKERS = [
@@ -107,6 +118,14 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_contains(launcher, LAUNCHER_MARKERS)
     assert_not_contains(launcher, RETIRED_RUNTIME_MARKERS)
     assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
+    assert_contains(ROOT / "docs/localization/README.md", DOCUMENTATION_MARKERS)
+    assert_contains(
+        ROOT / "README.md",
+        [
+            "Personal AI deployment and Japanese localization",
+            "[docs/localization/README.md](./docs/localization/README.md)",
+        ],
+    )
     assert_contains(ROOT / ".gitmodules", ["url = https://github.com/pmariglia/foul-play.git"])
     assert_contains(
         ROOT / "Dockerfile",
@@ -118,6 +137,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client",
             "node scripts/test-launcher-pinned-client.js",
             "python3 scripts/check-built-client.py",
+            "python3 scripts/check-localization-docs.py",
             "node scripts/test-launcher-japanese-language.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
             ".venv/bin/python scripts/test-foul-play-local-login.py",
@@ -130,7 +150,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-05 must record the pinned client runtime cutover")
+        raise AssertionError("T1-06 documentation must describe the completed local-client cutover")
 
     diff_files = changed_files(base_ref)
     protected_changes = [
@@ -152,11 +172,25 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-05",
+        "task": "T1-06",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
+        "operations_documentation": {
+            "authoritative_guide": "docs/localization/README.md",
+            "repository_entrypoint": "README.md",
+            "machine_verifier": "scripts/check-localization-docs.py",
+            "covers": [
+                "architecture",
+                "client updates",
+                "server translation updates",
+                "required tests",
+                "troubleshooting",
+                "rollback",
+                "protected protocol and ID boundaries",
+            ],
+        },
         "current_client_delivery": {
             "html_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/testclient-new.html",
             "entry_path": "/client.html",
@@ -197,6 +231,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
             "scripts/check-built-client.py",
+            "scripts/check-localization-docs.py",
         ],
         "japanese_server_translation_files": [
             "translations/japanese/main.ts",
