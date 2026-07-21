@@ -85,7 +85,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "FROM node:22-bookworm AS client-builder",
             "npm --prefix /client ci",
             "npm --prefix /client run build",
-            "COPY --from=client-builder /client /app/pokemon-showdown-client",
+            "COPY --from=client-builder /client /opt/pokemon-showdown-client",
             "python3 scripts/check-built-client.py",
             "node scripts/test-launcher-japanese-language.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -134,9 +134,9 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "changed_by_t1_03": False,
         },
         "pinned_client_build": {
-            "image_path": "/app/pokemon-showdown-client",
+            "image_path": "/opt/pokemon-showdown-client",
             "build_command": "npm ci && npm run build",
-            "manifest": "/app/pokemon-showdown-client/build-manifest.json",
+            "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
             "served_at_runtime": False,
         },
         "pinned_dependencies": {
