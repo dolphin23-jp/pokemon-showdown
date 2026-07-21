@@ -26,7 +26,10 @@ RUN npm ci
 
 COPY . .
 
-RUN node --check scripts/launcher-server.js \
+RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher-japanese-language.js \
+    && node --check scripts/launcher-server.js \
+    && node --check scripts/test-launcher-japanese-language.js \
+    && node scripts/test-launcher-japanese-language.js \
     && python3 -m py_compile \
         scripts/check-showdown-user.py \
         scripts/prepare-foul-play-cache.py \

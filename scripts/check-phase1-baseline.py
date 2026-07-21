@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "scripts/launcher-server.js",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
+    "scripts/test-launcher-japanese-language.js",
     "scripts/test-foul-play-local-login.py",
     "scripts/test-foul-play-battle-fallbacks.py",
     "translations/japanese/main.ts",
@@ -31,6 +32,7 @@ LAUNCHER_MARKERS = [
     "location.href = '/client.html';",
     "prefix: '/showdown'",
     "ps.send('/trn ' + cleaned + ',0,');",
+    "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
 ]
 
 PROTECTED_PREFIXES = ("data/", "sim/")
@@ -77,6 +79,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_contains(
         ROOT / "Dockerfile",
         [
+            "node scripts/test-launcher-japanese-language.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
             ".venv/bin/python scripts/test-foul-play-local-login.py",
             ".venv/bin/python scripts/test-foul-play-battle-fallbacks.py",
@@ -103,7 +106,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-00",
+        "task": "T1-01",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
@@ -113,6 +116,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "static_assets": "proxied from play.pokemonshowdown.com",
             "battle_server_prefix": "/showdown",
             "browser_login_command": "/trn <name>,0,",
+            "browser_language_command": '/updatesettings {"language":"japanese"}',
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -122,6 +126,10 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/smoke-bss-faint-recovery.py",
             "scripts/test-foul-play-local-login.py",
             "scripts/test-foul-play-battle-fallbacks.py",
+        ],
+        "localization_safety_tests": [
+            "scripts/test-launcher-japanese-language.js",
+            "Japanese /language response in scripts/smoke-bss-battle.py",
         ],
         "japanese_server_translation_files": [
             "translations/japanese/main.ts",
@@ -134,7 +142,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify and record the Phase 1 pre-change baseline.")
+    parser = argparse.ArgumentParser(description="Verify and record the Phase 1 localization baseline.")
     parser.add_argument("--base-ref", default=os.environ.get("GITHUB_BASE_REF") or "")
     parser.add_argument("--output", type=pathlib.Path)
     args = parser.parse_args()
