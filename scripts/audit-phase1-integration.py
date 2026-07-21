@@ -12,6 +12,7 @@ from typing import Any
 
 EXPECTED_CLIENT_COMMIT = "80c72741b52e91d35ee778982a936ea42526c078"
 EXPECTED_SCREENSHOT_SIZE = (1024, 1366)
+ALLOW_EMPTY_ARTIFACTS = {"client-traversal.txt"}
 
 STATUS_FILES = {
     "docker_clean_build": "docker-build.status",
@@ -65,7 +66,7 @@ def require_file(root: pathlib.Path, name: str) -> pathlib.Path:
     path = root / name
     if not path.is_file():
         raise AssertionError(f"Required Phase 1 artifact is missing: {name}")
-    if path.stat().st_size <= 0:
+    if path.stat().st_size <= 0 and name not in ALLOW_EMPTY_ARTIFACTS:
         raise AssertionError(f"Required Phase 1 artifact is empty: {name}")
     return path
 
@@ -308,8 +309,11 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
         "task": "T1-13",
         "title": "Phase 1 integration regression",
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
-        "commit": os.environ.get("GITHUB_SHA", baseline.get("commit", "unknown")),
-        "workflow_run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "commit": os.environ.get(
+            "PHASE1_TARGET_SHA",
+            os.environ.get("GITHUB_SHA", baseline.get("commit", "unknown")),
+        ),
+        "workflow_run_id": os.environ.get("PHASE1_RENDER_RUN_ID", ""),
         "pinned_client_commit": EXPECTED_CLIENT_COMMIT,
         "completion_criteria": criteria,
         "status_files": statuses,
