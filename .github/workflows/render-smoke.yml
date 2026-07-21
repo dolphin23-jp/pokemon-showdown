@@ -8,6 +8,7 @@ on:
       - config/custom-formats.ts
       - config/pokemon-showdown-client.json
       - config/all-generations-fallback/**
+      - config/bss-engine-boundary-bot.txt
       - config/bss-smoke-opponent.txt
       - config/bss-faint-smoke-opponent.txt
       - scripts/**
@@ -74,6 +75,72 @@ jobs:
               --client-root /opt/pokemon-showdown-client \
             > /tmp/protocol-render-invariants.json
           cat /tmp/protocol-render-invariants.json
+
+      - name: Start poke-engine boundary container
+        run: |
+          docker run --detach --name showdown-engine-boundary \
+            -p 10002:10000 \
+            -e PORT=10000 \
+            -e DEFAULT_PLAYER_NAME=EngineBoundarySmoke \
+            -e FOUL_PLAY_USERNAME=EngineBoundaryBot \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/bss-engine-boundary-bot.txt \
+            -e FOUL_PLAY_SEARCH_TIME_MS=100 \
+            -e FOUL_PLAY_TEAM_PREVIEW_SEARCH_TIME_MS=150 \
+            -e FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG=/app/.runtime/poke-engine-boundary.jsonl \
+            pokemon-showdown-ai:smoke
+      - name: Wait for poke-engine boundary container
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:10002/health | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-engine-boundary | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Verify poke-engine boundary bot identity
+        run: |
+          docker exec showdown-engine-boundary \
+            .venv/bin/python scripts/check-showdown-user.py EngineBoundaryBot --port 8000 --timeout 30
+      - name: Exercise Rust poke-engine ID boundary invariants
+        shell: bash
+        run: |
+          set +e
+          docker exec showdown-engine-boundary \
+            .venv/bin/python scripts/smoke-bss-poke-engine-boundary-invariants.py \
+              --bot EngineBoundaryBot --port 8000 --timeout 120 \
+              --boundary-log /app/.runtime/poke-engine-boundary.jsonl \
+              --output /app/.runtime/poke-engine-boundary-report.json \
+            > /tmp/bss-poke-engine-boundary-invariants.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/bss-poke-engine-boundary-invariants.status
+          docker cp showdown-engine-boundary:/app/.runtime/poke-engine-boundary.jsonl \
+            /tmp/poke-engine-boundary.jsonl 2>/dev/null || true
+          docker cp showdown-engine-boundary:/app/.runtime/poke-engine-boundary-report.json \
+            /tmp/poke-engine-boundary-report.json 2>/dev/null || true
+          docker logs --timestamps showdown-engine-boundary \
+            > /tmp/poke-engine-boundary-container.log 2>&1 || true
+          cat /tmp/bss-poke-engine-boundary-invariants.log
+          exit 0
+      - name: Upload poke-engine boundary diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bss-poke-engine-boundary-invariant-diagnostics
+          path: |
+            /tmp/bss-poke-engine-boundary-invariants.log
+            /tmp/bss-poke-engine-boundary-invariants.status
+            /tmp/poke-engine-boundary.jsonl
+            /tmp/poke-engine-boundary-report.json
+            /tmp/poke-engine-boundary-container.log
+      - name: Cleanup poke-engine boundary container
+        if: always()
+        run: docker rm --force showdown-engine-boundary >/dev/null 2>&1 || true
+      - name: Require Rust poke-engine ID boundary invariants
+        run: test "$(cat /tmp/bss-poke-engine-boundary-invariants.status)" = 0
+
       - name: Start container
         run: |
           docker run --detach --name showdown-ai \
@@ -312,6 +379,10 @@ jobs:
             /tmp/client-build-verification.json
             /tmp/client-build-manifest.json
             /tmp/protocol-render-invariants.json
+            /tmp/bss-poke-engine-boundary-invariants.log
+            /tmp/bss-poke-engine-boundary-invariants.status
+            /tmp/poke-engine-boundary.jsonl
+            /tmp/poke-engine-boundary-report.json
             /tmp/bss-foul-play-input-invariants.log
             /tmp/bss-foul-play-input-invariants.status
             /tmp/foul-play-received.jsonl

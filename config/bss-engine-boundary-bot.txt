@@ -1,0 +1,59 @@
+Pikachu @ Light Ball
+Ability: Static
+Tera Type: Electric
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Thunderbolt
+- Volt Switch
+- Surf
+- Grass Knot
+
+Koraidon @ Choice Scarf
+Ability: Orichalcum Pulse
+Tera Type: Fire
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Collision Course
+- Flare Blitz
+- Dragon Claw
+- U-turn
+
+Miraidon @ Choice Specs
+Ability: Hadron Engine
+Tera Type: Electric
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Electro Drift
+- Draco Meteor
+- Volt Switch
+- Overheat
+
+Arceus @ Silk Scarf
+Ability: Multitype
+Tera Type: Normal
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Extreme Speed
+- Swords Dance
+- Earthquake
+- Recover
+
+Rayquaza @ Life Orb
+Ability: Air Lock
+Tera Type: Flying
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Dragon Ascent
+- Extreme Speed
+- Earthquake
+- Dragon Dance
+
+Calyrex-Shadow @ Focus Sash
+Ability: As One (Spectrier)
+Tera Type: Fairy
+EVs: 4 Def / 252 SpA / 252 Spe
+Timid Nature
+- Astral Barrage
+- Psyshock
+- Draining Kiss
+- Nasty Plot

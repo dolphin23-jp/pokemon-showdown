@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Phase 1 T1-11 時点では、次の状態です。
+Phase 1 T1-12 時点では、次の状態です。
 
 - ブラウザの既定入口は `/client.html`
 - クライアントは `dolphin23-jp/pokemon-showdown-client` の完全SHAからDocker内でビルドされる
@@ -19,8 +19,9 @@ Phase 1 T1-11 時点では、次の状態です。
 - `data-cmd`、`data-tooltip`、request JSON、正規化ID、battle protocolはcanonical Englishのまま
 - T1-10がサーバー側の`|request|`・`|switch|`・`|move|`・`/choose`・`/team`を検証する
 - T1-11がfoul-playの`websocket.recv()`直後の生フレームを実戦で検査する
-- foul-play受信データのspecies・moves・abilities・itemsには日本語が混入しない
-- Rust `poke-engine`へ渡るID境界はT1-12で別途検証する
+- T1-12が`PokeEngineState.from_string(state)`後・`monte_carlo_tree_search(...)`前のRust境界を検査する
+- foul-play受信データとRust `poke-engine`入力に日本語名を混入させない
+- Rust境界で`pikachu`、`thunderbolt`、`static`、`lightball`を維持する
 
 作業記録:
 
@@ -29,6 +30,7 @@ Phase 1 T1-11 時点では、次の状態です。
 - [T1-09 対戦選択UI](./phase-1-t1-09-battle-controls.md)
 - [T1-10 サーバープロトコル不変テスト](./phase-1-t1-10-protocol-invariants.md)
 - [T1-11 foul-play受信ログ不変テスト](./phase-1-t1-11-foul-play-input-invariants.md)
+- [T1-12 Rust AI境界のIDテスト](./phase-1-t1-12-poke-engine-id-invariants.md)
 
 ## 構成
 
@@ -49,17 +51,14 @@ foul-play
   -> PSWebsocketClient.receive_message()
      -> exact frame returned unchanged
      -> optional JSONL audit only when FOUL_PLAY_RAW_RECEIVE_LOG is set
-  -> canonical English request/protocol data
-  -> Rust poke-engine boundary
-
-T1-10
-  -> duplicated canonical input: raw protocol vs rendered text
-  -> live server protocol inspection
-
-T1-11
-  -> exact foul-play inbound frame capture
-  -> live battle-room scoped inspection
-  -> species / moves / abilities / items coverage
+  -> canonical English battle state
+  -> battle_to_poke_engine_state(...)
+  -> State.to_string()
+  -> child process
+  -> PokeEngineState.from_string(state)
+     -> optional JSONL audit only when FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG is set
+  -> monte_carlo_tree_search(poke_engine_state, ...)
+  -> Rust poke-engine
 ```
 
 主なファイル:
@@ -72,13 +71,15 @@ T1-11
 | ランチャー | `scripts/launcher-server.js` |
 | 固定クライアント配信 | `scripts/pinned-client-preload.js` |
 | クライアント固定情報 | `config/pokemon-showdown-client.json` |
-| 固定クライアント検証 | `scripts/check-pinned-client.py` |
-| ビルド済みクライアント検証 | `scripts/check-built-client.py` |
 | T1-10複製入力テスト | `scripts/test-japanese-protocol-invariants.js` |
 | T1-10実サーバーsmoke | `scripts/smoke-bss-protocol-invariants.py` |
-| foul-play受信記録パッチ | `scripts/patch-foul-play-raw-receive-log.py` |
-| foul-play受信記録単体テスト | `scripts/test-foul-play-raw-receive-log.py` |
+| T1-11受信記録パッチ | `scripts/patch-foul-play-raw-receive-log.py` |
+| T1-11受信記録単体テスト | `scripts/test-foul-play-raw-receive-log.py` |
 | T1-11実戦smoke | `scripts/smoke-bss-foul-play-input-invariants.py` |
+| T1-12境界記録パッチ | `scripts/patch-foul-play-poke-engine-boundary-log.py` |
+| T1-12境界記録単体テスト | `scripts/test-foul-play-poke-engine-boundary-log.py` |
+| T1-12実戦smoke | `scripts/smoke-bss-poke-engine-boundary-invariants.py` |
+| T1-12専用Botチーム | `config/bss-engine-boundary-bot.txt` |
 | Phase 1基準検証 | `scripts/check-phase1-baseline.py` |
 | 文書・契約検証 | `scripts/check-localization-docs.py` |
 
@@ -86,13 +87,13 @@ T1-11
 
 ### サーバー辞書
 
-`translations/japanese/` は、ユーザーごとの言語設定に基づくコマンド応答やサーバー表示文を担当します。
+`translations/japanese/`はユーザーごとの言語設定に基づくコマンド応答やサーバー表示文を担当します。
 
 順序:
 
 1. `/trn <name>,0,`
 2. named状態を確認
-3. `/updatesettings {"language":"japanese"}` を一度送信
+3. `/updatesettings {"language":"japanese"}`を一度送信
 
 サーバー辞書はbattle protocolの名前・IDを翻訳しません。
 
@@ -115,39 +116,11 @@ T1-11
 - commit: `227b573712414a86ba299d322fa398fbb2893edc`
 - Japanese language ID: `11`
 
-生成対象:
-
-- species
-- moves
-- abilities
-- items
-
-生成物:
-
-- `play.pokemonshowdown.com/js/battle-display-names.js`
-- `play.pokemonshowdown.com/js/battle-display-names.meta.json`
-
-最低件数:
-
-- species 1000
-- moves 800
-- abilities 250
-- items 1500
-
-生成値は表示専用です。日本語表示名から英語IDを逆生成しません。
+生成対象はspecies、moves、abilities、itemsです。生成値は表示専用であり、日本語表示名から英語IDを逆生成しません。
 
 ### 対戦選択UI
 
-対象:
-
-- `button.movebutton`
-- `button[data-tooltip^="switchpokemon|"]`
-- `button[data-tooltip^="allypokemon|"]`
-- `button[data-tooltip^="activepokemon|"]`
-
 `MutationObserver`は`childList`、`subtree`、`characterData`を監視します。変更するのは直下の表示テキストノードだけです。
-
-契約:
 
 ```text
 display_text_only: true
@@ -160,74 +133,27 @@ preserves_unknown_names: true
 
 ## T1-10 サーバープロトコル不変テスト
 
-`scripts/test-japanese-protocol-invariants.js` は同じcanonical English入力を、生プロトコル保存用と表示用へ複製します。
+`scripts/test-japanese-protocol-invariants.js`は同じcanonical English入力を、生プロトコル保存用と表示用へ複製します。
 
-期待結果:
-
-- `|request|`は変更なし
-- `|switch|`は変更なし
-- `|move|`は変更なし
-- `/choose move 1`は変更なし
-- `/switch 1`は変更なし
+- `|request|`、`|switch|`、`|move|`は変更なし
+- `/choose move 1`、`/switch 1`は変更なし
 - tooltipsは変更なし
 - `Thunderbolt`の表示だけが`10まんボルト`
 - `Pikachu`の表示だけが`ピカチュウ`
 
-`scripts/smoke-bss-protocol-invariants.py` は日本語設定有効下の実サーバーで同じ境界を確認します。
+`scripts/smoke-bss-protocol-invariants.py`は日本語設定有効下の実サーバーで同じ境界を確認します。
 
 ## T1-11 foul-play受信ログ不変テスト
 
-### opt-in raw記録
-
-`scripts/patch-foul-play-raw-receive-log.py` は、固定foul-playの`PSWebsocketClient.receive_message()`へテスト専用の記録処理を追加します。
+`scripts/patch-foul-play-raw-receive-log.py`は、固定foul-playの`PSWebsocketClient.receive_message()`へテスト専用の記録処理を追加します。
 
 ```text
 FOUL_PLAY_RAW_RECEIVE_LOG=/app/.runtime/foul-play-received.jsonl
 ```
 
-設定時のみ、`websocket.recv()`が返した文字列をJSONLへ保存します。保存後も同じ`message`をそのまま返します。
+設定時のみ、`websocket.recv()`が返した文字列をJSONLへ保存します。保存後も同じ`message`をそのまま返します。環境変数がない通常起動ではファイルを開かず、ログを書かず、メッセージやbattle処理を変更しません。
 
-環境変数がない通常起動では:
-
-- ファイルを開かない
-- ログを書かない
-- メッセージを加工しない
-- battle処理を変更しない
-
-### 単体テスト
-
-`scripts/test-foul-play-raw-receive-log.py` は次を確認します。
-
-- 複数行フレームを完全一致で返す
-- JSONLから復元した`message`が完全一致する
-- `received_at_ns`が整数
-- 環境変数なしでは記録件数が増えない
-
-### 実戦smoke
-
-`scripts/smoke-bss-foul-play-input-invariants.py` は`FoulPlayAI`へ実際にchallengeします。
-
-検査手順:
-
-1. challenger側で日本語設定を有効化
-2. 日本語の`/language`応答を確認
-3. rawログの開始byte offsetを記録
-4. BSSのteam previewと最初のmoveを実行
-5. offset以後の記録だけを読む
-6. 当該battle roomを含むフレームだけを抽出
-7. Bot側の`|request|`・`|switch|`・`|move|`を解析
-8. species・moves・abilities・itemsの全カテゴリが存在することを確認
-9. battle scoped frameに日本語文字が一つもないことを確認
-10. move nameとmove IDの正規化関係を確認
-
-検査フィールド:
-
-| Category | Bot受信フィールド |
-| --- | --- |
-| species | `ident`, `details`, `|switch|` details |
-| moves | active `move`, active `id`, side `moves`, `|move|` name |
-| abilities | `baseAbility` |
-| items | `item` |
+`scripts/smoke-bss-foul-play-input-invariants.py`は当該battle roomのBot側`|request|`・`|switch|`・`|move|`を実戦で取得し、species・moves・abilities・itemsの全カテゴリと日本語混入ゼロを確認します。
 
 専用artifact:
 
@@ -235,11 +161,80 @@ FOUL_PLAY_RAW_RECEIVE_LOG=/app/.runtime/foul-play-received.jsonl
 bss-foul-play-input-invariant-diagnostics
 ```
 
-含まれる診断:
+## T1-12 Rust AI境界のIDテスト
 
-- `bss-foul-play-input-invariants.log`
-- `bss-foul-play-input-invariants.status`
-- `foul-play-received.jsonl`
+### opt-in境界記録
+
+`scripts/patch-foul-play-poke-engine-boundary-log.py`は、固定foul-playの`get_result_from_mcts(...)`へ監査を追加します。
+
+```text
+FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG=/app/.runtime/poke-engine-boundary.jsonl
+```
+
+監査点は次です。
+
+```text
+serialized state
+  -> PokeEngineState.from_string(state)
+  -> [T1-12 audit]
+  -> monte_carlo_tree_search(poke_engine_state, ...)
+```
+
+記録対象:
+
+- `serialized_state`
+- Rust-backed `State.to_string()`の`rust_state`
+- `side_one`・`side_two`のPokemon IDs
+- ability IDs
+- base ability IDs
+- item IDs
+- move IDs
+
+`serialized_state == rust_state`を完全一致で要求します。
+
+### 決定論的単体テスト
+
+`scripts/test-foul-play-poke-engine-boundary-log.py`は固定状態で次を確認します。
+
+```text
+pikachu
+thunderbolt
+static
+lightball
+```
+
+環境変数なしでは境界ログを作成・追記しません。
+
+### 実戦smoke
+
+`config/bss-engine-boundary-bot.txt`の先頭個体は次です。
+
+```text
+Pikachu @ Light Ball
+Ability: Static
+- Thunderbolt
+```
+
+`scripts/smoke-bss-poke-engine-boundary-invariants.py`は`EngineBoundaryBot`へ実際にchallengeし、team preview MCTSで生成されたRust-backed Stateを検査します。
+
+完了条件:
+
+- `pikachu`をspecies IDとして取得
+- `thunderbolt`をmove IDとして取得
+- `static`をability IDとして取得
+- `lightball`をitem IDとして取得
+- 4値が同じPokemonのRust snapshotに存在
+- `serialized_state`と`rust_state`が完全一致
+- `Pikachu`、`Thunderbolt`、`Static`、`Light Ball`がRust入力にない
+- 日本語文字がRust入力にない
+
+専用artifact:
+
+```text
+bss-poke-engine-boundary-invariant-diagnostics
+```
+
+T1-12は専用コンテナで実行し、完了後に削除します。T1-11、T1-10、通常BSS、post-faint回帰は従来の別コンテナで実行します。
 
 ## 絶対に変えない境界
 
@@ -262,29 +257,18 @@ bss-foul-play-input-invariant-diagnostics
 - foul-playへ渡す名前・ID・状態
 - Rust `poke-engine`へ渡すID
 
-表示名API、サーバー辞書、raw auditは互いに独立させます。raw auditは翻訳元や実行時データ経路として使用しません。
+表示名API、サーバー辞書、raw audit、Rust boundary auditは互いに独立させます。監査ログは翻訳元、逆変換元、状態修正には使用しません。
 
 ## 固定リビジョン
 
-現在のクライアント:
-
 ```text
-80c72741b52e91d35ee778982a936ea42526c078
+client: 80c72741b52e91d35ee778982a936ea42526c078
+client upstream base: 085dfabd9bc53c730ac459edf5c28088677adfc2
+foul-play: 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6
+display source: 227b573712414a86ba299d322fa398fbb2893edc
 ```
 
-上流基点:
-
-```text
-085dfabd9bc53c730ac459edf5c28088677adfc2
-```
-
-固定foul-play:
-
-```text
-25c976f05cbf2880eaa579afd6db1dcb2c3b57c6
-```
-
-T1-11はクライアントSHAを変更しません。
+T1-12はクライアントSHAを変更しません。
 
 ## 必須テスト
 
@@ -295,6 +279,11 @@ node scripts/test-japanese-protocol-invariants.js \
 .venv/bin/python scripts/test-foul-play-local-login.py
 .venv/bin/python scripts/test-foul-play-battle-fallbacks.py
 .venv/bin/python scripts/test-foul-play-raw-receive-log.py
+.venv/bin/python scripts/test-foul-play-poke-engine-boundary-log.py
+
+.venv/bin/python scripts/smoke-bss-poke-engine-boundary-invariants.py \
+  --bot EngineBoundaryBot --port 8000 --timeout 120 \
+  --boundary-log /app/.runtime/poke-engine-boundary.jsonl
 
 .venv/bin/python scripts/smoke-bss-foul-play-input-invariants.py \
   --bot FoulPlayAI --port 8000 --timeout 90 \
@@ -320,88 +309,58 @@ python3 scripts/check-localization-docs.py
 python3 scripts/check-phase1-baseline.py
 ```
 
-Render smokeは次を連続して実行します。
-
-- Docker build
-- 固定クライアント検証
-- T1-10複製入力テスト
-- Bot identity
-- T1-11 foul-play受信ログ実戦smoke
-- T1-10実サーバープロトコルsmoke
-- 通常BSS対戦
-- 瀕死後強制交代
-- access gate
-- 固定クライアント配信
-- iPadサイズ画面取得
+Render smokeはDocker build、固定クライアント検証、T1-10複製入力、T1-12専用境界コンテナ、T1-11、T1-10実サーバー、通常BSS、post-faint、access gate、固定クライアント配信、iPad画面取得を連続して実行します。
 
 ## 障害対応
 
-### raw receive logが作成されない
+### T1-12境界ログが作成されない
 
-1. containerに`FOUL_PLAY_RAW_RECEIVE_LOG`が設定されているか確認
-2. `scripts/patch-foul-play-raw-receive-log.py`がDocker buildで適用されたか確認
-3. `scripts/test-foul-play-raw-receive-log.py`を実行
-4. foul-playがnamed login済みか確認
-5. 出力先の親ディレクトリ`.runtime`が存在するか確認
+1. 専用コンテナに`FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG`が設定されているか確認
+2. `scripts/patch-foul-play-poke-engine-boundary-log.py`がDocker buildで適用されたか確認
+3. `scripts/test-foul-play-poke-engine-boundary-log.py`を実行
+4. `EngineBoundaryBot`がnamed login済みか確認
+5. team preview MCTSが開始されたか確認
+6. `poke-engine-boundary-container.log`を確認
 
-### T1-11でカテゴリ不足になる
+### target IDが不足する
 
-1. raw artifactに当該battle roomが含まれるか確認
-2. `|request|`がteam previewまで到達しているか確認
-3. Botの固定teamにabilityとitemが設定されているか確認
-4. 最初の`|switch|`と`|move|`まで進んだか確認
-5. challenge終了前にログを読んでいないか確認
+1. `config/bss-engine-boundary-bot.txt`の先頭がPikachuか確認
+2. Light Ball、Static、Thunderboltの綴りを変更していないか確認
+3. `poke-engine-boundary.jsonl`の`side_one`と`side_two`を確認
+4. `serialized_state`と`rust_state`が一致するか確認
+5. fallbackでMCTSが完全に回避されていないか確認
 
 ### 日本語混入を検出する
 
-1. `foul-play-received.jsonl`の当該battle roomを確認
-2. `|request|`・`|switch|`・`|move|`のどこに混入したか特定
-3. 表示名APIがWebSocket payload作成へ使用されていないか確認
-4. server dictionaryがbattle protocolを置換していないか確認
-5. 修正後にT1-10とT1-11を両方再実行
-
-### Botが停止する
-
-1. `.runtime/foul-play.log`を確認
-2. `test-foul-play-local-login.py`を実行
-3. `test-foul-play-battle-fallbacks.py`を実行
-4. `test-foul-play-raw-receive-log.py`を実行
-5. 通常BSSとpost-faint smokeを実行
+1. T1-10、T1-11、T1-12のartifactを比較
+2. 表示名APIがprotocolまたはfoul-play状態へ使用されていないか確認
+3. server dictionaryがbattle protocolを置換していないか確認
+4. 日本語名から英語IDへの逆変換を追加していないか確認
+5. IDや状態を変更せず、表示側の誤接続を修正
 
 ## ロールバック
 
-T1-11は表示機能やクライアントSHAを変更しません。
+T1-12は表示機能、protocol、クライアントSHA、Rust入力を変更しません。
 
-raw audit実装自体に問題がある場合:
+境界監査に問題がある場合:
 
-1. T1-11のserver squash mergeをrevertするPRを作る
-2. T1-10時点のruntime動作を維持する
-3. protocolや表示機能を変えてテストを回避しない
-4. patch適用点、JSONL書き込み、battle room抽出、offset処理を先に修正する
-
-T1-09のUI連携を戻す場合のクライアントSHA:
-
-```text
-523a5fb38255916f6fb7bcd4b5b3ccaa5414f6eb
-```
-
-T1-05の切替anchor:
-
-```text
-72d861147333739363cdb3210ff014ba418ab178
-```
+1. T1-12のserver squash mergeをrevertするPRを作る
+2. T1-11時点のruntime動作を維持する
+3. ID、protocol、表示機能、foul-play状態を変えてテストを回避しない
+4. patch適用点、JSONL書き込み、State round-trip、専用コンテナを先に修正する
 
 ## 変更レビューのチェックリスト
 
 - [ ] `data/`と`sim/`に変更がない
-- [ ] クライアントSHAを意図せず変更していない
-- [ ] raw記録は`FOUL_PLAY_RAW_RECEIVE_LOG`設定時のみ有効
-- [ ] `receive_message()`の返り値は受信フレームと完全一致
-- [ ] Bot側`|request|`・`|switch|`・`|move|`を実戦で取得した
-- [ ] species・moves・abilities・itemsをすべて検査した
-- [ ] Bot側battle frameに日本語文字がない
-- [ ] T1-10サーバープロトコル検証が継続成功
+- [ ] クライアントSHAを変更していない
+- [ ] T1-11 raw記録はopt-inのまま
+- [ ] T1-12境界記録は`FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG`設定時のみ有効
+- [ ] 監査点は`from_string()`後・MCTS前
+- [ ] `serialized_state == rust_state`
+- [ ] `pikachu`、`thunderbolt`、`static`、`lightball`を同一個体で確認
+- [ ] Rust境界に表示名・日本語文字がない
 - [ ] `/choose`・`/team`・Import/Exportを変更していない
+- [ ] T1-10とT1-11が継続成功
 - [ ] foul-play通常対戦とpost-faint回復が成功
 - [ ] Node.js CI、文書CI、Render smokeが成功
 - [ ] access gateとiPad画面取得が成功
