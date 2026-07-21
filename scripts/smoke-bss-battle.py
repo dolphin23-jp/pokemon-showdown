@@ -69,6 +69,19 @@ async def wait_for_login(websocket, deadline: float) -> None:
     raise TimeoutError("Smoke player could not log in")
 
 
+async def verify_japanese_translations(websocket, deadline: float) -> None:
+    await websocket.send('|/updatesettings {"language":"japanese"}')
+    await websocket.send("|/version")
+
+    while time.monotonic() < deadline:
+        message = await asyncio.wait_for(
+            websocket.recv(), timeout=max(0.1, deadline - time.monotonic())
+        )
+        if "サーバーのバージョン" in message:
+            return
+    raise TimeoutError("Japanese server translations were not activated")
+
+
 async def run_smoke(bot_name: str, port: int, timeout: float) -> None:
     uri = f"ws://127.0.0.1:{port}/showdown/websocket"
     deadline = time.monotonic() + timeout
@@ -76,6 +89,7 @@ async def run_smoke(bot_name: str, port: int, timeout: float) -> None:
 
     async with websockets.connect(uri) as websocket:
         await wait_for_login(websocket, deadline)
+        await verify_japanese_translations(websocket, deadline)
         await websocket.send(f"|/utm {packed_team()}")
         await websocket.send(f"|/challenge {bot_name},{FORMAT}")
 
@@ -99,7 +113,7 @@ async def run_smoke(bot_name: str, port: int, timeout: float) -> None:
 
                 if battle_room and room == battle_room and line == "|turn|1":
                     await websocket.send(f"{battle_room}|/forfeit")
-                    print(f"BSS smoke battle reached turn 1 against {bot_name}.")
+                    print(f"BSS smoke battle reached turn 1 against {bot_name} with Japanese server translations enabled.")
                     return
 
                 if battle_room and room == battle_room and line.startswith("|error|"):
