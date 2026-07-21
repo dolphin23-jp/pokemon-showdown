@@ -1,10 +1,10 @@
 # Japanese localization operations
 
-この文書は、個人用 Pokémon Showdown + foul-play 環境における日本語化の運用正本です。現在の構成、翻訳責任範囲、検証、障害対応、ロールバックをまとめます。
+この文書は、個人用 Pokémon Showdown + foul-play 環境における日本語化の運用正本です。現在の構成、翻訳責任範囲、検証、障害対応、ロールバック、Phase 1完了条件をまとめます。
 
 ## 現在の状態
 
-Phase 1 T1-12 時点では、次の状態です。
+Phase 1 T1-13では、T1-00からT1-12までの機能を変更せず、最終統合回帰を実施します。
 
 - ブラウザの既定入口は `/client.html`
 - クライアントは `dolphin23-jp/pokemon-showdown-client` の完全SHAからDocker内でビルドされる
@@ -20,8 +20,8 @@ Phase 1 T1-12 時点では、次の状態です。
 - T1-10がサーバー側の`|request|`・`|switch|`・`|move|`・`/choose`・`/team`を検証する
 - T1-11がfoul-playの`websocket.recv()`直後の生フレームを実戦で検査する
 - T1-12が`PokeEngineState.from_string(state)`後・`monte_carlo_tree_search(...)`前のRust境界を検査する
-- foul-play受信データとRust `poke-engine`入力に日本語名を混入させない
-- Rust境界で`pikachu`、`thunderbolt`、`static`、`lightball`を維持する
+- T1-13がDocker clean build、全回帰、ブラウザ、iPad PNG、成果物hashを統合監査する
+- 最終レポートの`ready_for_phase2`は全条件成功時だけ`true`になる
 
 作業記録:
 
@@ -31,6 +31,7 @@ Phase 1 T1-12 時点では、次の状態です。
 - [T1-10 サーバープロトコル不変テスト](./phase-1-t1-10-protocol-invariants.md)
 - [T1-11 foul-play受信ログ不変テスト](./phase-1-t1-11-foul-play-input-invariants.md)
 - [T1-12 Rust AI境界のIDテスト](./phase-1-t1-12-poke-engine-id-invariants.md)
+- [T1-13 Phase 1統合回帰](./phase-1-t1-13-integration-regression.md)
 
 ## 構成
 
@@ -59,6 +60,14 @@ foul-play
      -> optional JSONL audit only when FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG is set
   -> monte_carlo_tree_search(poke_engine_state, ...)
   -> Rust poke-engine
+
+GitHub Actions
+  -> Docker clean build
+  -> T1-10 / T1-11 / T1-12 / BSS regressions
+  -> access gate and pinned-client delivery
+  -> 1024 x 1366 browser captures
+  -> scripts/audit-phase1-integration.py
+  -> phase1-integration-regression-report
 ```
 
 主なファイル:
@@ -82,14 +91,13 @@ foul-play
 | T1-12専用Botチーム | `config/bss-engine-boundary-bot.txt` |
 | Phase 1基準検証 | `scripts/check-phase1-baseline.py` |
 | 文書・契約検証 | `scripts/check-localization-docs.py` |
+| T1-13成果物監査 | `scripts/audit-phase1-integration.py` |
 
 ## 翻訳責任範囲
 
 ### サーバー辞書
 
 `translations/japanese/`はユーザーごとの言語設定に基づくコマンド応答やサーバー表示文を担当します。
-
-順序:
 
 1. `/trn <name>,0,`
 2. named状態を確認
@@ -163,15 +171,13 @@ bss-foul-play-input-invariant-diagnostics
 
 ## T1-12 Rust AI境界のIDテスト
 
-### opt-in境界記録
-
 `scripts/patch-foul-play-poke-engine-boundary-log.py`は、固定foul-playの`get_result_from_mcts(...)`へ監査を追加します。
 
 ```text
 FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG=/app/.runtime/poke-engine-boundary.jsonl
 ```
 
-監査点は次です。
+監査点:
 
 ```text
 serialized state
@@ -180,53 +186,19 @@ serialized state
   -> monte_carlo_tree_search(poke_engine_state, ...)
 ```
 
-記録対象:
-
-- `serialized_state`
-- Rust-backed `State.to_string()`の`rust_state`
-- `side_one`・`side_two`のPokemon IDs
-- ability IDs
-- base ability IDs
-- item IDs
-- move IDs
-
-`serialized_state == rust_state`を完全一致で要求します。
-
-### 決定論的単体テスト
-
-`scripts/test-foul-play-poke-engine-boundary-log.py`は固定状態で次を確認します。
+実戦smokeは`EngineBoundaryBot`へchallengeし、同一Pokemonで次を確認します。
 
 ```text
-pikachu
-thunderbolt
-static
-lightball
+PIKACHU     -> pikachu
+THUNDERBOLT -> thunderbolt
+STATIC      -> static
+LIGHTBALL   -> lightball
 ```
 
-環境変数なしでは境界ログを作成・追記しません。
-
-### 実戦smoke
-
-`config/bss-engine-boundary-bot.txt`の先頭個体は次です。
-
-```text
-Pikachu @ Light Ball
-Ability: Static
-- Thunderbolt
-```
-
-`scripts/smoke-bss-poke-engine-boundary-invariants.py`は`EngineBoundaryBot`へ実際にchallengeし、team preview MCTSで生成されたRust-backed Stateを検査します。
-
-完了条件:
-
-- `pikachu`をspecies IDとして取得
-- `thunderbolt`をmove IDとして取得
-- `static`をability IDとして取得
-- `lightball`をitem IDとして取得
-- 4値が同じPokemonのRust snapshotに存在
-- `serialized_state`と`rust_state`が完全一致
-- `Pikachu`、`Thunderbolt`、`Static`、`Light Ball`がRust入力にない
-- 日本語文字がRust入力にない
+- raw Rust enum tokenを変更しない
+- `serialized_state == rust_state`
+- 日本語文字がない
+- 表示文字列をRust入力へ渡さない
 
 専用artifact:
 
@@ -234,11 +206,83 @@ Ability: Static
 bss-poke-engine-boundary-invariant-diagnostics
 ```
 
-T1-12は専用コンテナで実行し、完了後に削除します。T1-11、T1-10、通常BSS、post-faint回帰は従来の別コンテナで実行します。
+## T1-13 Phase 1統合回帰
+
+過去計画の完了条件:
+
+```text
+Dockerをクリーンビルドして全テスト・ブラウザ確認・成果物監査
+全条件成功
+Phase 2へ進める最終報告を作成
+```
+
+`.github/workflows/render-smoke.yml`は次を一つのrunで連続実行します。
+
+1. T1-13 baselineと固定クライアントremote検証
+2. Docker clean build
+3. 埋め込みclient manifestとT1-10複製入力fixture
+4. T1-12専用Rust境界コンテナ
+5. T1-11 foul-play受信実戦
+6. T1-10サーバープロトコル実戦
+7. 通常BSS turn 1
+8. post-faint強制交代
+9. access gateと固定クライアント配信
+10. 外部Showdown clientを遮断したブラウザ確認
+11. 1024×1366のlauncher/client PNG
+12. `scripts/audit-phase1-integration.py`による成果物監査
+
+### 監査対象status
+
+すべて`0`を要求します。
+
+- `docker-build.status`
+- `bss-poke-engine-boundary-invariants.status`
+- `bss-foul-play-input-invariants.status`
+- `bss-protocol-invariants.status`
+- `bss-smoke.status`
+- `bss-faint-smoke.status`
+
+### 成果物監査
+
+監査スクリプトは次を確認します。
+
+- T1-13 baselineで`data/`と`sim/`の変更がない
+- client pinが`80c72741b52e91d35ee778982a936ea42526c078`
+- remote pinと埋め込みclient manifestが一致
+- T1-10/T1-11/T1-12の機械可読レポートが成功
+- BSSとpost-faintのstatusが成功
+- access gate、same-origin `/showdown`、日本語bootstrapが維持
+- PNG signature、IHDR、1024×1366
+- 必須成果物すべてのbyte sizeとSHA-256
+
+最終ファイル:
+
+```text
+/tmp/phase1-integration-regression.json
+```
+
+専用artifact:
+
+```text
+phase1-integration-regression-report
+```
+
+成功時の必須値:
+
+```json
+{
+  "phase": "Phase 1",
+  "task": "T1-13",
+  "phase1_complete": true,
+  "ready_for_phase2": true
+}
+```
+
+`ready_for_phase2`は全条件が成功した場合だけ`true`になります。
 
 ## 絶対に変えない境界
 
-以下は日本語化しません。
+以下は日本語化・監査のために変更しません。
 
 - `data/`
 - `sim/`
@@ -255,9 +299,7 @@ T1-12は専用コンテナで実行し、完了後に削除します。T1-11、T
 - Team Import/Export
 - challenge format ID
 - foul-playへ渡す名前・ID・状態
-- Rust `poke-engine`へ渡すID
-
-表示名API、サーバー辞書、raw audit、Rust boundary auditは互いに独立させます。監査ログは翻訳元、逆変換元、状態修正には使用しません。
+- Rust `poke-engine`へ渡すIDとState
 
 ## 固定リビジョン
 
@@ -268,7 +310,7 @@ foul-play: 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6
 display source: 227b573712414a86ba299d322fa398fbb2893edc
 ```
 
-T1-12はクライアントSHAを変更しません。
+T1-13はクライアントSHAを変更しません。
 
 ## 必須テスト
 
@@ -297,6 +339,10 @@ node scripts/test-japanese-protocol-invariants.js \
 
 .venv/bin/python scripts/smoke-bss-faint-recovery.py \
   --bot FoulPlayAI --port 8000 --timeout 150
+
+python3 scripts/audit-phase1-integration.py \
+  --artifact-root /tmp \
+  --output /tmp/phase1-integration-regression.json
 ```
 
 追加検証:
@@ -309,26 +355,17 @@ python3 scripts/check-localization-docs.py
 python3 scripts/check-phase1-baseline.py
 ```
 
-Render smokeはDocker build、固定クライアント検証、T1-10複製入力、T1-12専用境界コンテナ、T1-11、T1-10実サーバー、通常BSS、post-faint、access gate、固定クライアント配信、iPad画面取得を連続して実行します。
-
 ## 障害対応
 
-### T1-12境界ログが作成されない
+### 最終監査が失敗する
 
-1. 専用コンテナに`FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG`が設定されているか確認
-2. `scripts/patch-foul-play-poke-engine-boundary-log.py`がDocker buildで適用されたか確認
-3. `scripts/test-foul-play-poke-engine-boundary-log.py`を実行
-4. `EngineBoundaryBot`がnamed login済みか確認
-5. team preview MCTSが開始されたか確認
-6. `poke-engine-boundary-container.log`を確認
-
-### target IDが不足する
-
-1. `config/bss-engine-boundary-bot.txt`の先頭がPikachuか確認
-2. Light Ball、Static、Thunderboltの綴りを変更していないか確認
-3. `poke-engine-boundary.jsonl`の`side_one`と`side_two`を確認
-4. `serialized_state`と`rust_state`が一致するか確認
-5. fallbackでMCTSが完全に回避されていないか確認
+1. `phase1-integration-regression.json`を成功扱いに手修正しない
+2. 非0の`.status`を特定する
+3. 欠落または空の成果物を特定する
+4. JSON reportのtaskとverified値を確認する
+5. PNGのwidth/heightを確認する
+6. 元テストまたは成果物生成を修正する
+7. Docker clean buildから全回帰を再実行する
 
 ### 日本語混入を検出する
 
@@ -340,30 +377,29 @@ Render smokeはDocker build、固定クライアント検証、T1-10複製入力
 
 ## ロールバック
 
-T1-12は表示機能、protocol、クライアントSHA、Rust入力を変更しません。
+T1-13はruntime機能を変更しません。
 
-境界監査に問題がある場合:
+統合監査に問題がある場合:
 
-1. T1-12のserver squash mergeをrevertするPRを作る
-2. T1-11時点のruntime動作を維持する
-3. ID、protocol、表示機能、foul-play状態を変えてテストを回避しない
-4. patch適用点、JSONL書き込み、State round-trip、専用コンテナを先に修正する
+1. T1-13のserver squash mergeをrevertするPRを作る
+2. T1-12時点のruntime動作を維持する
+3. statusや最終reportを偽装してテストを回避しない
+4. audit対象、workflow順序、成果物生成を修正する
 
 ## 変更レビューのチェックリスト
 
 - [ ] `data/`と`sim/`に変更がない
 - [ ] クライアントSHAを変更していない
-- [ ] T1-11 raw記録はopt-inのまま
-- [ ] T1-12境界記録は`FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG`設定時のみ有効
-- [ ] 監査点は`from_string()`後・MCTS前
-- [ ] `serialized_state == rust_state`
-- [ ] `pikachu`、`thunderbolt`、`static`、`lightball`を同一個体で確認
-- [ ] Rust境界に表示名・日本語文字がない
-- [ ] `/choose`・`/team`・Import/Exportを変更していない
-- [ ] T1-10とT1-11が継続成功
+- [ ] T1-10、T1-11、T1-12が継続成功
 - [ ] foul-play通常対戦とpost-faint回復が成功
+- [ ] access gateと固定クライアント配信が成功
+- [ ] 外部Showdown clientなしでbrowser表示できる
+- [ ] launcher/client PNGが1024×1366
+- [ ] 全6 statusが0
+- [ ] 必須成果物のSHA-256 manifestが生成される
 - [ ] Node.js CI、文書CI、Render smokeが成功
-- [ ] access gateとiPad画面取得が成功
+- [ ] `phase1_complete: true`
+- [ ] `ready_for_phase2: true`
 
 ## Phase 1の到達点
 
@@ -381,3 +417,9 @@ T1-12は表示機能、protocol、クライアントSHA、Rust入力を変更し
 - T1-11: foul-play受信ログ不変テスト
 - T1-12: Rust AI境界のIDテスト
 - T1-13: Phase 1統合回帰
+
+## Phase 1完了
+
+Localization documentation、Node.js CI、Render smoke testがすべて成功し、`phase1-integration-regression-report`内の`ready_for_phase2`が`true`になった時点でPhase 1完了です。
+
+Phase 2の具体的タスクは別の計画で定義します。T1-13の完了だけを根拠に、未定義のPhase 2作業を推測して開始しません。
