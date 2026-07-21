@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
     "config/pokemon-showdown-client.json",
+    "scripts/check-built-client.py",
     "scripts/check-pinned-client.py",
     "scripts/launcher-server.js",
     "scripts/smoke-bss-battle.py",
@@ -81,6 +82,11 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_contains(
         ROOT / "Dockerfile",
         [
+            "FROM node:22-bookworm AS client-builder",
+            "npm --prefix /client ci",
+            "npm --prefix /client run build",
+            "COPY --from=client-builder /client /app/pokemon-showdown-client",
+            "python3 scripts/check-built-client.py",
             "node scripts/test-launcher-japanese-language.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
             ".venv/bin/python scripts/test-foul-play-local-login.py",
@@ -92,7 +98,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not False:
-        raise AssertionError("T1-02 must not change runtime client delivery")
+        raise AssertionError("T1-03 must not change runtime client delivery")
 
     diff_files = changed_files(base_ref)
     protected_changes = [
@@ -114,7 +120,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-02",
+        "task": "T1-03",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
@@ -125,7 +131,13 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "battle_server_prefix": "/showdown",
             "browser_login_command": "/trn <name>,0,",
             "browser_language_command": '/updatesettings {"language":"japanese"}',
-            "changed_by_t1_02": False,
+            "changed_by_t1_03": False,
+        },
+        "pinned_client_build": {
+            "image_path": "/app/pokemon-showdown-client",
+            "build_command": "npm ci && npm run build",
+            "manifest": "/app/pokemon-showdown-client/build-manifest.json",
+            "served_at_runtime": False,
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -143,6 +155,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/test-launcher-japanese-language.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
+            "scripts/check-built-client.py",
         ],
         "japanese_server_translation_files": [
             "translations/japanese/main.ts",
