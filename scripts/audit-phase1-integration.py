@@ -77,7 +77,7 @@ def read_json(path: pathlib.Path) -> dict[str, Any]:
     return value
 
 
-def last_json_object(path: pathlib.Path) -> dict[str, Any]:
+def task_report_from_log(path: pathlib.Path, expected_task: str) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8", errors="replace")
     decoder = json.JSONDecoder()
     matches: list[dict[str, Any]] = []
@@ -88,10 +88,12 @@ def last_json_object(path: pathlib.Path) -> dict[str, Any]:
             value, _end = decoder.raw_decode(text[index:])
         except json.JSONDecodeError:
             continue
-        if isinstance(value, dict):
+        if isinstance(value, dict) and value.get("task") == expected_task:
             matches.append(value)
     if not matches:
-        raise AssertionError(f"No JSON report was found in {path.name}")
+        raise AssertionError(
+            f"No {expected_task} JSON report was found in {path.name}"
+        )
     return matches[-1]
 
 
@@ -113,9 +115,19 @@ def png_size(path: pathlib.Path) -> tuple[int, int]:
     return struct.unpack(">II", header[16:24])
 
 
-def require_text(path: pathlib.Path, markers: tuple[str, ...]) -> None:
+def require_text(
+    path: pathlib.Path,
+    markers: tuple[str, ...],
+    *,
+    ignore_case: bool = False,
+) -> None:
     text = path.read_text(encoding="utf-8", errors="replace")
-    missing = [marker for marker in markers if marker not in text]
+    haystack = text.lower() if ignore_case else text
+    missing = [
+        marker
+        for marker in markers
+        if (marker.lower() if ignore_case else marker) not in haystack
+    ]
     if missing:
         raise AssertionError(f"{path.name} is missing markers: {missing}")
 
@@ -202,9 +214,9 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
     if engine.get("target_ids") != expected_ids:
         raise AssertionError("Rust boundary report changed the normalized target IDs")
 
-    foul_play = last_json_object(paths["bss-foul-play-input-invariants.log"])
-    if foul_play.get("task") != "Phase 1 T1-11":
-        raise AssertionError("foul-play input log is not the T1-11 report")
+    foul_play = task_report_from_log(
+        paths["bss-foul-play-input-invariants.log"], "Phase 1 T1-11"
+    )
     require_true(foul_play, "verified", "bss-foul-play-input-invariants.log")
     require_false(
         foul_play,
@@ -212,10 +224,15 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
         "bss-foul-play-input-invariants.log",
     )
 
-    server_protocol = last_json_object(paths["bss-protocol-invariants.log"])
-    if server_protocol.get("task") != "Phase 1 T1-10":
-        raise AssertionError("Server protocol log is not the T1-10 report")
+    server_protocol = task_report_from_log(
+        paths["bss-protocol-invariants.log"], "Phase 1 T1-10"
+    )
     require_true(server_protocol, "verified", "bss-protocol-invariants.log")
+    require_false(
+        server_protocol,
+        "raw_protocol_contains_japanese_display_names",
+        "bss-protocol-invariants.log",
+    )
 
     require_text(
         paths["authenticated-launcher.html"],
@@ -224,6 +241,7 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
     require_text(
         paths["authenticated-client.headers"],
         ("x-pokemon-showdown-client-source: pinned-local",),
+        ignore_case=True,
     )
     require_text(
         paths["authenticated-client.html"],
@@ -240,15 +258,18 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
             "x-pokemon-showdown-client-source: pinned-local",
             "cache-control: public, max-age=31536000, immutable",
         ),
+        ignore_case=True,
     )
     require_text(
         paths["client-config.headers"],
         ("x-pokemon-showdown-client-source: pinned-local",),
+        ignore_case=True,
     )
     require_text(paths["client-config.js"], ("Config.version",))
     require_text(
         paths["local-client-alias.headers"],
         ("x-pokemon-showdown-client-source: pinned-local",),
+        ignore_case=True,
     )
     require_text(paths["unknown-path.txt"], ("Not found.",))
 
@@ -267,13 +288,9 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
         }
 
     artifact_manifest = {
-        name: {
-            "bytes": path.stat().st_size,
-            "sha256": sha256(path),
-        }
+        name: {"bytes": path.stat().st_size, "sha256": sha256(path)}
         for name, path in sorted(paths.items())
     }
-
     criteria = {
         "clean_docker_build": statuses["docker_clean_build"] == 0,
         "all_regression_tests_passed": all(value == 0 for value in statuses.values()),
@@ -283,8 +300,7 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
         "artifact_manifest_complete": len(artifact_manifest) == len(REQUIRED_ARTIFACTS),
         "protected_boundaries_unchanged": baseline["protected_paths_changed"] == [],
     }
-    ready = all(criteria.values())
-    if not ready:
+    if not all(criteria.values()):
         raise AssertionError(f"Phase 1 integration criteria are incomplete: {criteria}")
 
     return {
