@@ -1,3 +1,33 @@
+FROM node:22-bookworm AS client-builder
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        git \
+        python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build-context
+
+COPY config/pokemon-showdown-client.json config/pokemon-showdown-client.json
+COPY scripts/check-built-client.py scripts/check-built-client.py
+
+RUN set -eux; \
+    CLIENT_REPOSITORY="$(node -e "process.stdout.write(require('/build-context/config/pokemon-showdown-client.json').fork_repository)")"; \
+    CLIENT_SHA="$(node -e "process.stdout.write(require('/build-context/config/pokemon-showdown-client.json').commit)")"; \
+    git init /client; \
+    git -C /client remote add origin "https://github.com/${CLIENT_REPOSITORY}.git"; \
+    git -C /client fetch --depth 1 origin "${CLIENT_SHA}:refs/remotes/origin/master"; \
+    git -C /client checkout --detach "${CLIENT_SHA}"; \
+    test "$(git -C /client rev-parse HEAD)" = "${CLIENT_SHA}"; \
+    npm --prefix /client ci; \
+    npm --prefix /client run build; \
+    python3 scripts/check-built-client.py \
+        --client-root /client \
+        --pin-file config/pokemon-showdown-client.json \
+        --write-manifest; \
+    rm -rf /client/node_modules /client/.git
+
 FROM node:22-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -25,12 +55,15 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+COPY --from=client-builder /client /app/pokemon-showdown-client
 
 RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher-japanese-language.js \
     && node --check scripts/launcher-server.js \
     && node --check scripts/test-launcher-japanese-language.js \
     && node scripts/test-launcher-japanese-language.js \
     && python3 -m py_compile \
+        scripts/check-built-client.py \
+        scripts/check-pinned-client.py \
         scripts/check-showdown-user.py \
         scripts/prepare-foul-play-cache.py \
         scripts/patch-foul-play-local-login.py \
@@ -40,6 +73,9 @@ RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher
         scripts/smoke-bss-faint-recovery.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
+    && python3 scripts/check-built-client.py \
+        --client-root /app/pokemon-showdown-client \
+        --pin-file /app/config/pokemon-showdown-client.json \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
