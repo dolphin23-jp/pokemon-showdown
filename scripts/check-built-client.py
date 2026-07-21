@@ -19,11 +19,22 @@ DISPLAY_NAME_FUNCTIONS = (
     "displayItemName",
 )
 
+DISPLAY_NAME_SOURCE_REPOSITORY = "PokeAPI/pokeapi"
+DISPLAY_NAME_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
+DISPLAY_NAME_LANGUAGE_ID = 11
+DISPLAY_NAME_MINIMUM_COUNTS = {
+    "species": 1000,
+    "moves": 800,
+    "abilities": 250,
+    "items": 1500,
+}
+
 REQUIRED_ARTIFACTS = (
     "config/config.js",
     "config/japanese-display-name-api.json",
     "play.pokemonshowdown.com/testclient-new.html",
     "play.pokemonshowdown.com/js/battle-display-names.js",
+    "play.pokemonshowdown.com/js/battle-display-names.meta.json",
     "play.pokemonshowdown.com/js/client-main.js",
     "play.pokemonshowdown.com/js/client-connection.js",
     "play.pokemonshowdown.com/js/panel-battle.js",
@@ -79,12 +90,28 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
     compiled_path = (
         client_root / "play.pokemonshowdown.com" / "js" / "battle-display-names.js"
     )
+    metadata_path = (
+        client_root
+        / "play.pokemonshowdown.com"
+        / "js"
+        / "battle-display-names.meta.json"
+    )
     contract = read_json(contract_path)
     expected_contract = {
         "api_global": "PSDisplayNames",
         "data_global": "BattleJapaneseDisplayNames",
         "functions": list(DISPLAY_NAME_FUNCTIONS),
         "fallback": "canonical-english-name",
+        "generated_data": {
+            "generator": "build-tools/generate-japanese-display-names.js",
+            "command": "npm run generate-japanese-display-names",
+            "source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
+            "source_commit": DISPLAY_NAME_SOURCE_COMMIT,
+            "language_id": DISPLAY_NAME_LANGUAGE_ID,
+            "compiled_output": "play.pokemonshowdown.com/js/battle-display-names.js",
+            "metadata_output": "play.pokemonshowdown.com/js/battle-display-names.meta.json",
+            "minimum_counts": DISPLAY_NAME_MINIMUM_COUNTS,
+        },
         "mutates_ids": False,
         "protocol_safe": True,
     }
@@ -93,9 +120,13 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
 
     compiled = compiled_path.read_text(encoding="utf-8")
     missing_markers = [
-        marker for marker in (
+        marker
+        for marker in (
             "PSDisplayNames",
             "BattleJapaneseDisplayNames",
+            "BEGIN GENERATED JAPANESE DISPLAY NAMES",
+            "END GENERATED JAPANESE DISPLAY NAMES",
+            DISPLAY_NAME_SOURCE_COMMIT,
             *DISPLAY_NAME_FUNCTIONS,
         )
         if marker not in compiled
@@ -107,26 +138,55 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
     if 'src="js/battle-display-names.js"' not in testclient:
         raise AssertionError("Pinned test client does not load the display-name API")
 
-    generated_map = (
-        client_root / "play.pokemonshowdown.com" / "data" / "japanese-display-names.js"
-    )
+    metadata = read_json(metadata_path)
+    if metadata.get("source_repository") != DISPLAY_NAME_SOURCE_REPOSITORY:
+        raise AssertionError("Generated display-name source repository is unexpected")
+    if metadata.get("source_commit") != DISPLAY_NAME_SOURCE_COMMIT:
+        raise AssertionError("Generated display-name source commit is unexpected")
+    if metadata.get("language_id") != DISPLAY_NAME_LANGUAGE_ID:
+        raise AssertionError("Generated display-name language is unexpected")
+    if metadata.get("output") != "play.pokemonshowdown.com/js/battle-display-names.js":
+        raise AssertionError("Generated display-name output path is unexpected")
+    if metadata.get("generated_data_only") is not True:
+        raise AssertionError("Generated display-name metadata must remain display-only")
+    if metadata.get("mutates_ids") is not False:
+        raise AssertionError("Generated display-name metadata must not mutate IDs")
+    if metadata.get("protocol_safe") is not True:
+        raise AssertionError("Generated display-name metadata must remain protocol-safe")
+
+    counts = metadata.get("counts")
+    if not isinstance(counts, dict):
+        raise AssertionError("Generated display-name metadata is missing counts")
+    for table, minimum in DISPLAY_NAME_MINIMUM_COUNTS.items():
+        count = counts.get(table)
+        if not isinstance(count, int) or count < minimum:
+            raise AssertionError(
+                f"Generated display-name table {table} has {count}; expected at least {minimum}"
+            )
+
     return {
         "contract": str(contract_path.relative_to(client_root)),
         "compiled_api": str(compiled_path.relative_to(client_root)),
+        "generated_metadata": str(metadata_path.relative_to(client_root)),
         "api_global": contract["api_global"],
         "data_global": contract["data_global"],
         "functions": contract["functions"],
         "fallback": contract["fallback"],
+        "source_repository": metadata["source_repository"],
+        "source_commit": metadata["source_commit"],
+        "language_id": metadata["language_id"],
+        "counts": counts,
         "mutates_ids": contract["mutates_ids"],
         "protocol_safe": contract["protocol_safe"],
-        "generated_map_present": generated_map.is_file(),
+        "generated_map_present": True,
     }
 
 
 def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[str, Any]:
     pin = read_json(pin_file)
     missing = [
-        relative for relative in ("package.json", *REQUIRED_ARTIFACTS)
+        relative
+        for relative in ("package.json", *REQUIRED_ARTIFACTS)
         if not (client_root / relative).is_file()
     ]
     if missing:
@@ -152,8 +212,7 @@ def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[st
         'src="js/panel-battle.js"',
     )
     missing_references = [
-        reference for reference in required_references
-        if reference not in testclient
+        reference for reference in required_references if reference not in testclient
     ]
     if missing_references:
         raise AssertionError(
