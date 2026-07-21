@@ -3,6 +3,7 @@
 !.github/workflows/
 .github/workflows/*
 !.github/workflows/render-smoke.yml
+!.github/workflows/phase1-integration-regression.yml
 .devcontainer
 .vscode
 .runtime
