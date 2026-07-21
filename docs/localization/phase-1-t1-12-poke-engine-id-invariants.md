@@ -2,9 +2,9 @@
 
 ## 目的
 
-T1-12は、foul-playがPythonの対戦状態をRust `poke-engine`へ変換する境界を検査します。日本語表示名はブラウザだけに留め、Rustへ渡るspecies、move、ability、itemをcanonical normalized IDのまま維持します。
+T1-12は、foul-playがPythonの対戦状態をRust `poke-engine`へ変換する境界を検査します。日本語表示名はブラウザだけに留め、Rustへ渡るspecies、move、ability、itemの意味がcanonical normalized IDのまま維持されることを確認します。
 
-完了条件は、実戦でRust-backed `State`を取得し、同一個体について次の値を確認することです。
+完了条件は、実戦でRust-backed `State`を取得し、同一個体について次のShowdown形式の正規化IDを確認することです。
 
 ```text
 species: pikachu
@@ -12,6 +12,17 @@ move: thunderbolt
 ability: static
 item: lightball
 ```
+
+`poke-engine 0.0.48`のRust enumは同じ値を次の大文字トークンとして直列化します。
+
+```text
+PIKACHU
+THUNDERBOLT
+STATIC
+LIGHTBALL
+```
+
+T1-12はRustトークンを変更しません。raw Rustトークンをそのまま記録した上で、英数字を小文字化したShowdown形式の比較用IDを別フィールドへ出力します。
 
 ## 監査点
 
@@ -39,18 +50,29 @@ FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG=/app/.runtime/poke-engine-boundary.jsonl
 - foul-playが子プロセスへ渡した`serialized_state`
 - Rust-backed `State.to_string()`の`rust_state`
 - Rust-backed Stateから読み出した`side_one`と`side_two`
-- 各Pokemonの`id`、`ability`、`base_ability`、`item`、move IDs
+- 各Pokemonのraw Rust enumトークン:
+  - `rust_id`
+  - `rust_ability`
+  - `rust_base_ability`
+  - `rust_item`
+  - `rust_moves`
+- 同じトークンから英数字小文字で導出した比較用ID:
+  - `id`
+  - `ability`
+  - `base_ability`
+  - `item`
+  - `moves`
 
-`serialized_state`と`rust_state`は完全一致を必須とします。
+`serialized_state`と`rust_state`は完全一致を必須とします。比較用IDは監査レポートだけに使用し、MCTSへ渡すStateへ書き戻しません。
 
 ## 決定論的単体テスト
 
-`scripts/test-foul-play-poke-engine-boundary-log.py`はPikachuを含む固定状態を生成し、次を確認します。
+`scripts/test-foul-play-poke-engine-boundary-log.py`はPikachuを含む固定状態を生成し、実際に`PokeEngineState.from_string()`で復元してから次を確認します。
 
-- `pikachu`
-- `thunderbolt`
-- `static`
-- `lightball`
+- raw Rust enum `PIKACHU` → normalized `pikachu`
+- raw Rust enum `THUNDERBOLT` → normalized `thunderbolt`
+- raw Rust enum `STATIC` → normalized `static`
+- raw Rust enum `LIGHTBALL` → normalized `lightball`
 - `State.from_string()`後の完全round-trip
 - 日本語文字がない
 - 監査が環境変数設定時だけ有効
@@ -75,8 +97,8 @@ Ability: Static
 3. 実戦challengeとteam previewを開始
 4. offset以後のRust境界レコードだけを読む
 5. `serialized_state == rust_state`を確認
-6. 同一Pokemonで`pikachu`、`thunderbolt`、`static`、`lightball`を確認
-7. `Pikachu`、`Thunderbolt`、`Static`、`Light Ball`が混入していないことを確認
+6. 同一Pokemonでraw Rustトークンを保持したまま`pikachu`、`thunderbolt`、`static`、`lightball`へ正規化できることを確認
+7. `Pikachu`、`Thunderbolt`、`Static`、`Light Ball`という表示文字列が混入していないことを確認
 8. 日本語文字が一つもないことを確認
 
 専用artifact:
@@ -118,7 +140,7 @@ T1-12は次を変更しません。
 - foul-playの通常search結果
 - Rust `poke-engine`の入力値
 
-監査ログは境界を観測するだけで、翻訳、逆変換、状態修正には使用しません。
+監査ログは境界を観測するだけで、翻訳、逆変換、状態修正には使用しません。比較用の小文字IDも監査JSONLにのみ存在し、Rust Stateや選択処理には戻しません。
 
 ## 固定情報
 
@@ -126,6 +148,7 @@ T1-12は次を変更しません。
 client: 80c72741b52e91d35ee778982a936ea42526c078
 client upstream base: 085dfabd9bc53c730ac459edf5c28088677adfc2
 foul-play: 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6
+poke-engine: 0.0.48
 ```
 
 T1-12はクライアントSHAを変更しません。
