@@ -97,7 +97,19 @@ async def verify_japanese_translations(websocket, deadline: float) -> None:
 def read_new_records(path: pathlib.Path, offset: int) -> list[dict[str, Any]]:
     with path.open("rb") as stream:
         stream.seek(offset)
-        payload = stream.read().decode("utf-8")
+        raw_payload = stream.read()
+    if not raw_payload:
+        return []
+
+    # The Bot appends and closes one JSONL record per received frame. A reader
+    # can still race the final write, so defer an incomplete trailing record
+    # until the next polling iteration instead of treating it as corruption.
+    if not raw_payload.endswith(b"\n"):
+        if b"\n" not in raw_payload:
+            return []
+        raw_payload = raw_payload.rsplit(b"\n", 1)[0] + b"\n"
+
+    payload = raw_payload.decode("utf-8")
     records: list[dict[str, Any]] = []
     for line_number, line in enumerate(payload.splitlines(), 1):
         if not line:
