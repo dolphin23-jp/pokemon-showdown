@@ -1,0 +1,98 @@
+name: Phase 1 integration regression
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - render.yaml
+      - config/custom-formats.ts
+      - config/pokemon-showdown-client.json
+      - config/all-generations-fallback/**
+      - config/bss-engine-boundary-bot.txt
+      - config/bss-smoke-opponent.txt
+      - config/bss-faint-smoke-opponent.txt
+      - docs/localization/**
+      - scripts/**
+      - .github/workflows/render-smoke.yml
+      - .github/workflows/phase1-integration-regression.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      PHASE1_TARGET_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Phase 1 prerequisite workflows
+        id: prerequisites
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/wait-phase1-workflows.py \
+            --repository "${GITHUB_REPOSITORY}" \
+            --sha "${PHASE1_TARGET_SHA}" \
+            --timeout 4200 \
+            --interval 15 \
+            --output /tmp/phase1-workflow-runs.json \
+            --github-output "${GITHUB_OUTPUT}"
+
+      - name: Download Render smoke artifacts
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.prerequisites.outputs.render_smoke_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/phase1-artifacts
+          merge-multiple: true
+
+      - name: List Phase 1 evidence
+        run: |
+          find /tmp/phase1-artifacts -maxdepth 2 -type f -printf '%P\t%s bytes\n' | sort
+
+      - name: Audit Phase 1 integration artifacts
+        env:
+          PHASE1_RENDER_RUN_ID: ${{ steps.prerequisites.outputs.render_smoke_run_id }}
+        run: |
+          python3 scripts/audit-phase1-integration.py \
+            --artifact-root /tmp/phase1-artifacts \
+            --output /tmp/phase1-integration-regression.json
+
+      - name: Require Phase 1 ready for Phase 2
+        run: |
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          report = json.loads(
+              pathlib.Path('/tmp/phase1-integration-regression.json').read_text(
+                  encoding='utf-8'
+              )
+          )
+          if report.get('phase') != 'Phase 1':
+              raise SystemExit('Unexpected phase in final integration report')
+          if report.get('task') != 'T1-13':
+              raise SystemExit('Unexpected task in final integration report')
+          if report.get('phase1_complete') is not True:
+              raise SystemExit('Phase 1 was not marked complete')
+          if report.get('ready_for_phase2') is not True:
+              raise SystemExit('Phase 1 is not ready for Phase 2')
+          if not all(report.get('completion_criteria', {}).values()):
+              raise SystemExit('One or more Phase 1 completion criteria are false')
+          print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload Phase 1 integration report
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-integration-regression-report
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/phase1-integration-regression.json
+            /tmp/phase1-workflow-runs.json
