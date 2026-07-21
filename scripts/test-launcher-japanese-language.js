@@ -5,18 +5,18 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const launcherPath = path.resolve(__dirname, 'launcher-server.js');
-const launcherSource = fs.readFileSync(launcherPath, 'utf8');
-const injectionStart = launcherSource.indexOf('function clientConfigInjection()');
-const iifeStart = launcherSource.indexOf('(() => {', injectionStart);
-const iifeEnd = launcherSource.indexOf('})();', iifeStart);
+const clientHelperPath = path.resolve(__dirname, 'pinned-client-preload.js');
+const clientHelperSource = fs.readFileSync(clientHelperPath, 'utf8');
+const injectionStart = clientHelperSource.indexOf('function clientConfigInjection()');
+const iifeStart = clientHelperSource.indexOf('(() => {', injectionStart);
+const iifeEnd = clientHelperSource.indexOf('})();', iifeStart);
 
 assert.notEqual(injectionStart, -1, 'clientConfigInjection must exist');
 assert.notEqual(iifeStart, -1, 'client login IIFE must exist');
 assert.notEqual(iifeEnd, -1, 'client login IIFE must be complete');
 
 const defaultNamePlaceholder = '$' + '{JSON.stringify(DEFAULT_PLAYER_NAME)}';
-const injectedLoginScript = launcherSource
+const injectedLoginScript = clientHelperSource
 	.slice(iifeStart, iifeEnd + '})();'.length)
 	.replace(defaultNamePlaceholder, JSON.stringify('FallbackUser'));
 
