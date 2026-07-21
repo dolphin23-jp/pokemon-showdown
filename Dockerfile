@@ -61,10 +61,12 @@ ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client
 RUN npx eslint --max-warnings 0 \
         scripts/launcher-server.js \
         scripts/pinned-client-preload.js \
+        scripts/test-japanese-protocol-invariants.js \
         scripts/test-launcher-japanese-language.js \
         scripts/test-launcher-pinned-client.js \
     && node --check scripts/launcher-server.js \
     && node --check scripts/pinned-client-preload.js \
+    && node --check scripts/test-japanese-protocol-invariants.js \
     && node --check scripts/test-launcher-japanese-language.js \
     && node --check scripts/test-launcher-pinned-client.js \
     && node scripts/test-launcher-japanese-language.js \
@@ -80,6 +82,7 @@ RUN npx eslint --max-warnings 0 \
         scripts/patch-foul-play-post-faint.py \
         scripts/smoke-bss-battle.py \
         scripts/smoke-bss-faint-recovery.py \
+        scripts/smoke-bss-protocol-invariants.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
     && python3 scripts/check-localization-docs.py \
@@ -125,7 +128,9 @@ RUN bash scripts/sync-all-generations-teams.sh --refresh \
 # Keep the client outside /app so later server CLI invocations do not traverse
 # client-only sources or symlinks while checking whether a server rebuild is due.
 COPY --from=client-builder /client /opt/pokemon-showdown-client
-RUN python3 scripts/check-built-client.py \
+RUN node scripts/test-japanese-protocol-invariants.js \
+        --client-root /opt/pokemon-showdown-client \
+    && python3 scripts/check-built-client.py \
         --client-root /opt/pokemon-showdown-client \
         --pin-file /app/config/pokemon-showdown-client.json
 

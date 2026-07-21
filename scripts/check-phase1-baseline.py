@@ -19,6 +19,7 @@ DISPLAY_NAME_MINIMUM_COUNTS = {
     "abilities": 250,
     "items": 1500,
 }
+T1_09_CLIENT = "80c72741b52e91d35ee778982a936ea42526c078"
 
 BATTLE_CONTROL_SELECTORS = [
     "button.movebutton",
@@ -27,14 +28,24 @@ BATTLE_CONTROL_SELECTORS = [
     'button[data-tooltip^="activepokemon|"]',
 ]
 
+CRITICAL_PROTOCOL = [
+    "|request|",
+    "|switch|",
+    "|move|",
+    "/choose",
+    "/team",
+]
+
 REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
+    ".github/workflows/render-smoke.yml",
     "README.md",
     "docs/localization/README.md",
     "docs/localization/phase-1-t1-07-display-name-api.md",
     "docs/localization/phase-1-t1-08-generated-name-maps.md",
     "docs/localization/phase-1-t1-09-battle-controls.md",
+    "docs/localization/phase-1-t1-10-protocol-invariants.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
@@ -43,6 +54,8 @@ REQUIRED_FILES = [
     "scripts/pinned-client-preload.js",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
+    "scripts/smoke-bss-protocol-invariants.py",
+    "scripts/test-japanese-protocol-invariants.js",
     "scripts/test-launcher-japanese-language.js",
     "scripts/test-launcher-pinned-client.js",
     "scripts/test-foul-play-local-login.py",
@@ -75,14 +88,18 @@ PINNED_CLIENT_MARKERS = [
 
 DOCUMENTATION_MARKERS = [
     "# Japanese localization operations",
-    "Phase 1 T1-09",
+    "Phase 1 T1-10",
+    "## T1-10 サーバープロトコル不変テスト",
     "## ロールバック",
     "## 絶対に変えない境界",
     "scripts/check-localization-docs.py",
+    "scripts/test-japanese-protocol-invariants.js",
+    "scripts/smoke-bss-protocol-invariants.py",
     "battle-display-names.meta.json",
     "MutationObserver",
     "data-cmd",
     "data-tooltip",
+    *CRITICAL_PROTOCOL,
     DISPLAY_NAME_SOURCE_REPOSITORY,
     DISPLAY_NAME_SOURCE_COMMIT,
 ]
@@ -127,6 +144,18 @@ T1_09_MARKERS = [
     "mutates_ids: false",
     "protocol_safe: true",
     *BATTLE_CONTROL_SELECTORS,
+]
+
+T1_10_MARKERS = [
+    "# Phase 1 T1-10: server protocol invariance tests",
+    "duplicate the same canonical battle input",
+    "raw WebSocket protocol",
+    "scripts/test-japanese-protocol-invariants.js",
+    "scripts/smoke-bss-protocol-invariants.py",
+    "10まんボルト",
+    "ピカチュウ",
+    "bss-protocol-invariant-diagnostics",
+    *CRITICAL_PROTOCOL,
 ]
 
 RETIRED_RUNTIME_MARKERS = [
@@ -190,6 +219,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_contains(ROOT / "docs/localization/phase-1-t1-07-display-name-api.md", T1_07_MARKERS)
     assert_contains(ROOT / "docs/localization/phase-1-t1-08-generated-name-maps.md", T1_08_MARKERS)
     assert_contains(ROOT / "docs/localization/phase-1-t1-09-battle-controls.md", T1_09_MARKERS)
+    assert_contains(ROOT / "docs/localization/phase-1-t1-10-protocol-invariants.md", T1_10_MARKERS)
     assert_contains(
         ROOT / "README.md",
         [
@@ -198,8 +228,10 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
     )
     assert_contains(ROOT / ".gitmodules", ["url = https://github.com/pmariglia/foul-play.git"])
+
+    dockerfile = ROOT / "Dockerfile"
     assert_contains(
-        ROOT / "Dockerfile",
+        dockerfile,
         [
             "FROM node:22-bookworm AS client-builder",
             "npm --prefix /client ci",
@@ -210,20 +242,25 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "python3 scripts/check-built-client.py",
             "python3 scripts/check-localization-docs.py",
             "node scripts/test-launcher-japanese-language.js",
+            "scripts/test-japanese-protocol-invariants.js",
+            "scripts/smoke-bss-protocol-invariants.py",
+            "node scripts/test-japanese-protocol-invariants.js",
             "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
             ".venv/bin/python scripts/test-foul-play-local-login.py",
             ".venv/bin/python scripts/test-foul-play-battle-fallbacks.py",
         ],
     )
-    assert_not_contains(ROOT / "Dockerfile", ["NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js"])
+    assert_not_contains(dockerfile, ["NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js"])
 
     client_pin = json.loads(
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-09 must preserve the completed local-client cutover")
+        raise AssertionError("T1-10 must preserve the completed local-client cutover")
+    if client_pin.get("commit") != T1_09_CLIENT:
+        raise AssertionError("T1-10 must not change the T1-09 pinned client revision")
     if client_pin.get("commit") == client_pin.get("upstream_base_commit"):
-        raise AssertionError("T1-09 must pin the fork revision containing battle-control localization")
+        raise AssertionError("The pinned client revision must remain after the upstream base")
 
     build_check = ROOT / "scripts" / "check-built-client.py"
     assert_contains(
@@ -246,6 +283,56 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
     )
 
+    protocol_fixture = ROOT / "scripts" / "test-japanese-protocol-invariants.js"
+    assert_contains(
+        protocol_fixture,
+        [
+            "Phase 1 T1-10",
+            "raw WebSocket protocol changed during display rendering",
+            "|request| JSON changed during display rendering",
+            "|switch|p1a: Pikachu|Pikachu, L50|100/100",
+            "|move|p1a: Pikachu|Thunderbolt|p2a: Charizard",
+            "/choose move 1",
+            "10まんボルト",
+            "ピカチュウ",
+            "raw_protocol_unchanged",
+            "request_json_unchanged",
+            "choose_command_unchanged",
+        ],
+    )
+    protocol_smoke = ROOT / "scripts" / "smoke-bss-protocol-invariants.py"
+    assert_contains(
+        protocol_smoke,
+        [
+            "Phase 1 T1-10",
+            "verify_japanese_translations",
+            "raw |request| protocol",
+            "raw |switch| protocol",
+            "raw |move| protocol",
+            "outbound /choose command",
+            "outbound /team command",
+            "choose_command_unchanged",
+            "raw_protocol_contains_japanese_display_names",
+            "|/choose move ",
+            "|/team 123456",
+        ],
+    )
+
+    workflow = ROOT / ".github" / "workflows" / "render-smoke.yml"
+    assert_contains(
+        workflow,
+        [
+            "Verify duplicate protocol and rendered-text invariants",
+            "Exercise raw WebSocket protocol invariants",
+            "Require raw protocol invariants",
+            "bss-protocol-invariant-diagnostics",
+            "/tmp/protocol-render-invariants.json",
+            "/tmp/bss-protocol-invariants.log",
+            "scripts/test-japanese-protocol-invariants.js",
+            "scripts/smoke-bss-protocol-invariants.py",
+        ],
+    )
+
     diff_files = changed_files(base_ref)
     protected_changes = [
         path for path in diff_files if path.startswith(PROTECTED_PREFIXES)
@@ -265,11 +352,23 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-09",
+        "task": "T1-10",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
+        "protocol_invariants": {
+            "fixture_test": "scripts/test-japanese-protocol-invariants.js",
+            "live_websocket_test": "scripts/smoke-bss-protocol-invariants.py",
+            "critical_protocol": CRITICAL_PROTOCOL,
+            "duplicates_input_before_rendering": True,
+            "rendered_text_may_be_japanese": True,
+            "raw_protocol_must_remain_english": True,
+            "request_json_must_remain_unchanged": True,
+            "choose_command_must_remain_unchanged": True,
+            "team_command_must_remain_unchanged": True,
+            "japanese_server_setting_confirmed_before_live_check": True,
+        },
         "display_name_api": {
             "client_commit": client_pin["commit"],
             "upstream_base_commit": client_pin["upstream_base_commit"],
@@ -300,10 +399,11 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "mutates_ids": False,
             "protocol_safe": True,
             "implementation_repository": client_pin["fork_repository"],
-            "task_document": "docs/localization/phase-1-t1-09-battle-controls.md",
+            "current_task_document": "docs/localization/phase-1-t1-10-protocol-invariants.md",
             "previous_task_documents": [
                 "docs/localization/phase-1-t1-07-display-name-api.md",
                 "docs/localization/phase-1-t1-08-generated-name-maps.md",
+                "docs/localization/phase-1-t1-09-battle-controls.md",
             ],
         },
         "operations_documentation": {
@@ -315,6 +415,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
                 "client updates",
                 "generated display-name map updates",
                 "battle-control display localization",
+                "duplicated-input protocol invariants",
+                "live WebSocket protocol invariants",
                 "server translation updates",
                 "required tests",
                 "troubleshooting",
@@ -340,12 +442,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "display_name_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/src/battle-display-names.ts",
             "generated_display_name_bundle": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.js",
             "generated_display_name_metadata": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.meta.json",
+            "protocol_fixture_runs_after_copy": True,
             "served_by_default": True,
-        },
-        "legacy_local_alias": {
-            "entry_path": "/local-client/testclient-new.html",
-            "static_prefix": "/local-client/",
-            "kept_for_t1_04_compatibility": True,
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
@@ -357,6 +455,8 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "display_name_source_commit": DISPLAY_NAME_SOURCE_COMMIT,
         },
         "required_regression_tests": [
+            "scripts/test-japanese-protocol-invariants.js",
+            "scripts/smoke-bss-protocol-invariants.py",
             "scripts/smoke-bss-battle.py",
             "scripts/smoke-bss-faint-recovery.py",
             "scripts/test-foul-play-local-login.py",
@@ -365,17 +465,12 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         "localization_safety_tests": [
             "scripts/test-launcher-japanese-language.js",
             "scripts/test-launcher-pinned-client.js",
-            "Japanese /language response in scripts/smoke-bss-battle.py",
+            "Japanese /language response before protocol invariant battle",
             "scripts/check-pinned-client.py --verify-remote",
             "scripts/check-built-client.py T1-09 battle-control contract",
+            "scripts/test-japanese-protocol-invariants.js duplicated input comparison",
+            "scripts/smoke-bss-protocol-invariants.py live raw protocol check",
             "scripts/check-localization-docs.py",
-        ],
-        "japanese_server_translation_files": [
-            "translations/japanese/main.ts",
-            "translations/japanese/core-commands.ts",
-            "translations/japanese/helptickets.ts",
-            "translations/japanese/minor-activities.ts",
-            "translations/japanese/repeats.ts",
         ],
     }
 
