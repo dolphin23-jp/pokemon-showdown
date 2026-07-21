@@ -3,9 +3,9 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
-const https = require('https');
 const net = require('net');
 const path = require('path');
+const { handlePinnedClient } = require('./pinned-client-preload');
 
 const LISTEN_PORT = Number.parseInt(process.env.LAUNCHER_PORT || process.env.PORT || '3000', 10);
 const SHOWDOWN_PORT = Number.parseInt(process.env.SHOWDOWN_PORT || '8000', 10);
@@ -16,7 +16,6 @@ const TEAM_LIBRARY_DIR = process.env.TEAM_LIBRARY_DIR || '';
 const TEAM_METADATA = process.env.TEAM_METADATA || '';
 const DEFAULT_PLAYER_NAME = process.env.DEFAULT_PLAYER_NAME || 'Dolphin23';
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN || '';
-const OFFICIAL_CLIENT_HOST = 'play.pokemonshowdown.com';
 const ACCESS_COOKIE = 'showdown_ai_access';
 const ACCESS_DIGEST = ACCESS_TOKEN ? crypto.createHash('sha256').update(ACCESS_TOKEN).digest('hex') : '';
 
@@ -275,108 +274,21 @@ function teamsHtml() {
 </html>`;
 }
 
-function clientConfigInjection() {
-  return `<script>
-Config.defaultserver = {
-  id: 'personalai',
-  protocol: location.protocol.replace(':', ''),
-  host: location.hostname,
-  port: Number(location.port || (location.protocol === 'https:' ? 443 : 80)),
-  httpport: Number(location.port || (location.protocol === 'https:' ? 443 : 80)),
-  altport: Number(location.port || (location.protocol === 'https:' ? 443 : 80)),
-  prefix: '/showdown',
-  registered: false
-};
-Config.server = Config.defaultserver;
-
-(() => {
-  const defaultPlayerName = ${JSON.stringify(DEFAULT_PLAYER_NAME)};
-  let attempts = 0;
-  const timer = setInterval(() => {
-    attempts++;
-    const ps = globalThis.PS;
-    if (ps?.user && !ps.user.__personalServerLoginPatched) {
-      ps.user.__personalServerLoginPatched = true;
-      ps.user.changeName = function (name) {
-        const cleaned = String(name || '').replace(/[|,;]+/g, '').trim().slice(0, 18);
-        if (!/[A-Za-z]/.test(cleaned)) {
-          this.updateLogin?.({ name: cleaned, error: 'Usernames must contain at least one letter.' });
-          return;
-        }
-        localStorage.setItem('showdown-player-name', cleaned);
-        this.loggingIn = null;
-        ps.send('/trn ' + cleaned + ',0,');
-        this.update?.({ success: true });
-      };
-    }
-    const savedName = localStorage.getItem('showdown-player-name') || defaultPlayerName;
-    if (ps?.user && savedName && !ps.user.named && ps.user.challstr && !ps.user.__personalServerAutoLoginSent) {
-      ps.user.__personalServerAutoLoginSent = true;
-      ps.user.changeName(savedName);
-    }
-    if (ps?.user?.named && ps.user.__personalServerLoginPatched && !ps.user.__personalServerJapaneseLanguageSent) {
-      ps.user.__personalServerJapaneseLanguageSent = true;
-      ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));
-    }
-    if ((ps?.user?.named && ps.user.__personalServerLoginPatched && ps.user.__personalServerJapaneseLanguageSent) || attempts > 400) {
-      clearInterval(timer);
-    }
-  }, 50);
-})();
-</script>`;
-}
-
-function servePatchedClient(res) {
-  const request = https.get({
-    hostname: OFFICIAL_CLIENT_HOST,
-    path: '/testclient-new.html',
-    headers: {
-      accept: 'text/html',
-      'user-agent': 'Pokemon-Showdown-Personal-AI-Proxy',
-    },
-  }, upstream => {
-    const chunks = [];
-    upstream.on('data', chunk => chunks.push(chunk));
-    upstream.on('end', () => {
-      if (upstream.statusCode !== 200) {
-        send(res, 502, 'text/plain; charset=utf-8', `Official client returned HTTP ${upstream.statusCode || 'unknown'}.`);
-        return;
-      }
-      const html = Buffer.concat(chunks).toString('utf8');
-      const marker = '<script nomodule src="/js/lib/ps-polyfill.js"></script>';
-      if (!html.includes(marker)) {
-        send(res, 502, 'text/plain; charset=utf-8', 'Could not patch the current Pokemon Showdown test client.');
-        return;
-      }
-      send(res, 200, 'text/html; charset=utf-8', html.replace(marker, `${clientConfigInjection()}\n\t${marker}`));
-    });
-  });
-  request.on('error', error => {
-    send(res, 502, 'text/plain; charset=utf-8', `Could not load the official Pokemon Showdown client: ${error.message}`);
-  });
-  request.setTimeout(30000, () => request.destroy(new Error('request timed out')));
-}
-
-function proxyRequest(req, res, target) {
-  const isShowdown = target === 'showdown';
-  const transport = isShowdown ? http : https;
+function proxyShowdownRequest(req, res) {
   const headers = { ...req.headers };
   delete headers.cookie;
   delete headers.authorization;
   delete headers['proxy-authorization'];
-  headers.host = isShowdown ? `127.0.0.1:${SHOWDOWN_PORT}` : OFFICIAL_CLIENT_HOST;
+  headers.host = `127.0.0.1:${SHOWDOWN_PORT}`;
 
-  const upstream = transport.request({
-    hostname: isShowdown ? '127.0.0.1' : OFFICIAL_CLIENT_HOST,
-    port: isShowdown ? SHOWDOWN_PORT : 443,
+  const upstream = http.request({
+    hostname: '127.0.0.1',
+    port: SHOWDOWN_PORT,
     method: req.method,
     path: req.url,
     headers,
   }, upstreamResponse => {
     const responseHeaders = { ...upstreamResponse.headers };
-    if (responseHeaders.location && !isShowdown) {
-      responseHeaders.location = responseHeaders.location.replace(`https://${OFFICIAL_CLIENT_HOST}`, '');
-    }
     delete responseHeaders['set-cookie'];
     res.writeHead(upstreamResponse.statusCode || 502, responseHeaders);
     upstreamResponse.pipe(res);
@@ -384,7 +296,7 @@ function proxyRequest(req, res, target) {
 
   upstream.on('error', error => {
     if (!res.headersSent) {
-      send(res, 502, 'text/plain; charset=utf-8', `Proxy error: ${error.message}`);
+      send(res, 502, 'text/plain; charset=utf-8', `Showdown proxy error: ${error.message}`);
     } else {
       res.destroy(error);
     }
@@ -445,20 +357,12 @@ const server = http.createServer((req, res) => {
     send(res, 200, 'text/html; charset=utf-8', teamsHtml());
     return;
   }
-  if (pathname === '/client.html') {
-    servePatchedClient(res);
-    return;
-  }
-  if (pathname === '/favicon.ico') {
-    res.writeHead(302, { location: '/favicon-256.png' });
-    res.end();
-    return;
-  }
+  if (handlePinnedClient(req, res)) return;
   if (pathname.startsWith('/showdown')) {
-    proxyRequest(req, res, 'showdown');
+    proxyShowdownRequest(req, res);
     return;
   }
-  proxyRequest(req, res, 'official-client');
+  send(res, 404, 'text/plain; charset=utf-8', 'Not found.');
 });
 
 server.on('upgrade', (req, clientSocket, head) => {
@@ -500,5 +404,5 @@ server.on('clientError', (_error, socket) => {
 });
 
 server.listen(LISTEN_PORT, '0.0.0.0', () => {
-  console.log(`Launcher and Showdown client proxy listening on port ${LISTEN_PORT}.`);
+  console.log(`Launcher and pinned Showdown client listening on port ${LISTEN_PORT}.`);
 });

@@ -1,19 +1,21 @@
 'use strict';
 
-const crypto = require('crypto');
 const fs = require('fs');
-const http = require('http');
 const path = require('path');
 
+const CLIENT_ENTRY = '/client.html';
 const LOCAL_CLIENT_PREFIX = '/local-client/';
 const LOCAL_CLIENT_ENTRY = `${LOCAL_CLIENT_PREFIX}testclient-new.html`;
-const ENABLED = process.env.ENABLE_PINNED_CLIENT === '1';
 const CLIENT_ROOT = path.resolve(process.env.PINNED_CLIENT_ROOT || '/opt/pokemon-showdown-client');
 const CLIENT_PUBLIC_ROOT = path.join(CLIENT_ROOT, 'play.pokemonshowdown.com');
 const DEFAULT_PLAYER_NAME = process.env.DEFAULT_PLAYER_NAME || 'Dolphin23';
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || '';
-const ACCESS_COOKIE = 'showdown_ai_access';
-const ACCESS_DIGEST = ACCESS_TOKEN ? crypto.createHash('sha256').update(ACCESS_TOKEN).digest('hex') : '';
+
+const PUBLIC_PREFIXES = ['/data/', '/js/', '/src/', '/style/'];
+const PUBLIC_FILES = new Set(['/favicon.ico', '/favicon-256.png']);
+const ROOT_FILES = new Map([
+	['/config/config.js', path.join(CLIENT_ROOT, 'config', 'config.js')],
+	['/config/testclient-key.js', path.join(CLIENT_ROOT, 'config', 'testclient-key.js')],
+]);
 
 const MIME_TYPES = new Map([
 	['.css', 'text/css; charset=utf-8'],
@@ -32,31 +34,6 @@ const MIME_TYPES = new Map([
 	['.woff', 'font/woff'],
 	['.woff2', 'font/woff2'],
 ]);
-
-function parseCookies(req) {
-	const cookies = {};
-	for (const pair of String(req.headers.cookie || '').split(';')) {
-		const index = pair.indexOf('=');
-		if (index < 0) continue;
-		try {
-			cookies[pair.slice(0, index).trim()] = decodeURIComponent(pair.slice(index + 1).trim());
-		} catch {
-			return {};
-		}
-	}
-	return cookies;
-}
-
-function constantTimeEqual(left, right) {
-	const a = Buffer.from(String(left));
-	const b = Buffer.from(String(right));
-	return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
-function hasAccess(req) {
-	if (!ACCESS_TOKEN) return true;
-	return constantTimeEqual(parseCookies(req)[ACCESS_COOKIE] || '', ACCESS_DIGEST);
-}
 
 function clientConfigInjection() {
 	return `<script>
@@ -110,14 +87,13 @@ Config.server = Config.defaultserver;
 }
 
 function writeBuffer(req, res, statusCode, contentType, payload, cacheControl) {
-	const headers = {
+	res.writeHead(statusCode, {
 		'cache-control': cacheControl,
 		'content-length': payload.length,
 		'content-type': contentType,
 		'x-content-type-options': 'nosniff',
 		'x-pokemon-showdown-client-source': 'pinned-local',
-	};
-	res.writeHead(statusCode, headers);
+	});
 	if (req.method === 'HEAD') {
 		res.end();
 	} else {
@@ -137,94 +113,103 @@ function localPathname(req) {
 	}
 }
 
-function resolveStaticFile(pathname) {
-	let relative;
+function safePath(root, relative) {
+	let decoded;
 	try {
-		relative = decodeURIComponent(pathname.slice(LOCAL_CLIENT_PREFIX.length));
+		decoded = decodeURIComponent(relative);
 	} catch {
 		return null;
 	}
-	if (!relative || relative.includes('\0') || relative.includes('\\')) return null;
-	const segments = relative.split('/');
+	if (!decoded || decoded.includes('\0') || decoded.includes('\\')) return null;
+	const segments = decoded.split('/');
 	if (segments.some(segment => !segment || segment === '.' || segment === '..')) return null;
-	const candidate = path.resolve(CLIENT_PUBLIC_ROOT, ...segments);
-	if (!candidate.startsWith(`${CLIENT_PUBLIC_ROOT}${path.sep}`)) return null;
+	const candidate = path.resolve(root, ...segments);
+	if (!candidate.startsWith(`${root}${path.sep}`)) return null;
 	return candidate;
+}
+
+function resolveStaticFile(pathname) {
+	if (pathname.startsWith(LOCAL_CLIENT_PREFIX)) {
+		return safePath(CLIENT_PUBLIC_ROOT, pathname.slice(LOCAL_CLIENT_PREFIX.length));
+	}
+	if (ROOT_FILES.has(pathname)) return ROOT_FILES.get(pathname);
+	if (PUBLIC_FILES.has(pathname)) return safePath(CLIENT_PUBLIC_ROOT, pathname.slice(1));
+	const prefix = PUBLIC_PREFIXES.find(candidate => pathname.startsWith(candidate));
+	if (!prefix) return null;
+	return safePath(CLIENT_PUBLIC_ROOT, pathname.slice(1));
+}
+
+function patchEntry(html) {
+	const marker = '<script nomodule src="/js/lib/ps-polyfill.js"></script>';
+	if (!html.includes(marker)) throw new Error('Pinned client entry does not contain the injection marker.');
+	return html
+		.replace('https://play.pokemonshowdown.com/favicon-256.png', '/favicon-256.png')
+		.replace('https://play.pokemonshowdown.com/config/config.js', '/config/config.js')
+		.replace(
+			"src.replace(/.*\\/(data|js)\\//g, 'https://play.pokemonshowdown.com/$1/');",
+			"src.replace(/.*\\/(data|js)\\//g, '/$1/');"
+		)
+		.replace("Net.defaultRoute = 'https://play.pokemonshowdown.com';", 'Net.defaultRoute = location.origin;')
+		.replace('https://play.pokemonshowdown.com/data/pokedex-mini.js', '/data/pokedex-mini.js')
+		.replace('https://play.pokemonshowdown.com/data/pokedex-mini-bw.js', '/data/pokedex-mini-bw.js')
+		.replace(marker, `${clientConfigInjection()}\n\t${marker}`);
 }
 
 function serveEntry(req, res) {
 	const source = path.join(CLIENT_PUBLIC_ROOT, 'testclient-new.html');
 	let html;
 	try {
-		html = fs.readFileSync(source, 'utf8');
+		html = patchEntry(fs.readFileSync(source, 'utf8'));
 	} catch (error) {
 		writeText(req, res, 503, `Pinned client entry is unavailable: ${error.message}`);
 		return;
 	}
-	const marker = '<script nomodule src="/js/lib/ps-polyfill.js"></script>';
-	if (!html.includes(marker)) {
-		writeText(req, res, 500, 'Pinned client entry could not be patched.');
-		return;
-	}
-	const localMarker = '<script nomodule src="/local-client/js/lib/ps-polyfill.js"></script>';
-	const patched = html.replace(marker, `${clientConfigInjection()}\n\t${localMarker}`);
-	writeBuffer(req, res, 200, 'text/html; charset=utf-8', Buffer.from(patched), 'no-store');
+	writeBuffer(req, res, 200, 'text/html; charset=utf-8', Buffer.from(html), 'no-store');
 }
 
 function serveStatic(req, res, pathname) {
 	const filename = resolveStaticFile(pathname);
-	if (!filename) {
-		writeText(req, res, 404, 'Pinned client file not found.');
-		return;
-	}
+	if (!filename) return false;
 	let stat;
 	try {
 		stat = fs.statSync(filename);
 	} catch {
 		writeText(req, res, 404, 'Pinned client file not found.');
-		return;
+		return true;
 	}
 	if (!stat.isFile()) {
 		writeText(req, res, 404, 'Pinned client file not found.');
-		return;
+		return true;
 	}
 	const contentType = MIME_TYPES.get(path.extname(filename).toLowerCase()) || 'application/octet-stream';
 	writeBuffer(req, res, 200, contentType, fs.readFileSync(filename), 'public, max-age=31536000, immutable');
+	return true;
 }
 
 function handlePinnedClient(req, res) {
 	const pathname = localPathname(req);
-	const targetsLocalClient = pathname === '/local-client' || pathname.startsWith(LOCAL_CLIENT_PREFIX);
-	if (!targetsLocalClient || !hasAccess(req)) return false;
-	if (!ENABLED) {
-		writeText(req, res, 404, 'Pinned client route is disabled.');
-		return true;
-	}
+	const isEntry = pathname === CLIENT_ENTRY || pathname === '/local-client' ||
+		pathname === LOCAL_CLIENT_PREFIX || pathname === LOCAL_CLIENT_ENTRY;
+	const isStatic = resolveStaticFile(pathname) !== null;
+	if (!isEntry && !isStatic) return false;
 	if (req.method !== 'GET' && req.method !== 'HEAD') {
 		res.writeHead(405, { allow: 'GET, HEAD', 'cache-control': 'no-store' });
 		res.end();
 		return true;
 	}
-	if (pathname === '/local-client' || pathname === LOCAL_CLIENT_PREFIX || pathname === LOCAL_CLIENT_ENTRY) {
+	if (isEntry) {
 		serveEntry(req, res);
 		return true;
 	}
-	serveStatic(req, res, pathname);
-	return true;
-}
-
-if (path.basename(process.argv[1] || '') === 'launcher-server.js') {
-	const createServer = http.createServer.bind(http);
-	http.createServer = listener => createServer((req, res) => {
-		if (handlePinnedClient(req, res)) return;
-		listener(req, res);
-	});
+	return serveStatic(req, res, pathname);
 }
 
 module.exports = {
+	CLIENT_ENTRY,
 	LOCAL_CLIENT_ENTRY,
 	LOCAL_CLIENT_PREFIX,
 	clientConfigInjection,
 	handlePinnedClient,
+	patchEntry,
 	resolveStaticFile,
 };

@@ -56,8 +56,7 @@ RUN npm ci
 
 COPY . .
 
-ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client \
-    NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js
+ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client
 
 RUN npx eslint --max-warnings 0 \
         scripts/launcher-server.js \

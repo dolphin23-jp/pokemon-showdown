@@ -36,8 +36,8 @@ def load_pin() -> dict[str, Any]:
         raise AssertionError(f"Unexpected client upstream: {payload['upstream_repository']}")
     if not SHA_PATTERN.fullmatch(str(payload["commit"])):
         raise AssertionError("Pinned client commit must be a full lowercase 40-character SHA")
-    if payload["runtime_delivery_changed"] is not False:
-        raise AssertionError("T1-02 must not change runtime client delivery")
+    if not isinstance(payload["runtime_delivery_changed"], bool):
+        raise AssertionError("runtime_delivery_changed must be a JSON boolean")
     return payload
 
 
