@@ -28,16 +28,15 @@ The generated build manifest is:
 
 - `/app/pokemon-showdown-client/build-manifest.json`
 
-It records the fork, upstream, complete commit, client version, build command, file sizes, and SHA-256 hashes for representative generated HTML, JavaScript, CSS, and configuration files.
+It records the fork, upstream, complete commit, client version, build command, file sizes, and SHA-256 hashes for representative local test-client HTML, generated JavaScript, CSS, and configuration files.
 
 ## Verification
 
 The build verifier requires:
 
 - the embedded client version to contain the pinned commit prefix
-- generated `caches/index-new.html`
-- cache-busted references to the generated client CSS and JavaScript
-- resolved build placeholders
+- the local `testclient-new.html` entry point
+- references from that entry point to the compiled client CSS and JavaScript
 - expected generated files such as `client-main.js`, `client-connection.js`, and `panel-battle.js`
 - an exact match between the embedded artifacts and the build manifest
 
