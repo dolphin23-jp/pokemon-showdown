@@ -83,6 +83,7 @@ jobs:
             -e DEFAULT_PLAYER_NAME=Dolphin23 \
             -e FOUL_PLAY_USERNAME=FoulPlayAI \
             -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
+            -e FOUL_PLAY_RAW_RECEIVE_LOG=/app/.runtime/foul-play-received.jsonl \
             pokemon-showdown-ai:smoke
       - name: Wait for health endpoint
         run: |
@@ -100,6 +101,34 @@ jobs:
         run: |
           docker exec showdown-ai \
             .venv/bin/python scripts/check-showdown-user.py FoulPlayAI --port 8000 --timeout 30
+      - name: Exercise foul-play raw input invariants
+        shell: bash
+        run: |
+          set +e
+          docker exec showdown-ai \
+            .venv/bin/python scripts/smoke-bss-foul-play-input-invariants.py \
+              --bot FoulPlayAI --port 8000 --timeout 90 \
+              --raw-log /app/.runtime/foul-play-received.jsonl \
+            > /tmp/bss-foul-play-input-invariants.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/bss-foul-play-input-invariants.status
+          docker cp showdown-ai:/app/.runtime/foul-play-received.jsonl \
+            /tmp/foul-play-received.jsonl 2>/dev/null || true
+          cat /tmp/bss-foul-play-input-invariants.log
+          exit 0
+      - name: Upload foul-play input invariant diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bss-foul-play-input-invariant-diagnostics
+          path: |
+            /tmp/bss-foul-play-input-invariants.log
+            /tmp/bss-foul-play-input-invariants.status
+            /tmp/foul-play-received.jsonl
+      - name: Require foul-play input invariants
+        run: test "$(cat /tmp/bss-foul-play-input-invariants.status)" = 0
+      - name: Wait for bot after foul-play input battle
+        run: sleep 3
       - name: Exercise raw WebSocket protocol invariants
         shell: bash
         run: |
@@ -283,6 +312,9 @@ jobs:
             /tmp/client-build-verification.json
             /tmp/client-build-manifest.json
             /tmp/protocol-render-invariants.json
+            /tmp/bss-foul-play-input-invariants.log
+            /tmp/bss-foul-play-input-invariants.status
+            /tmp/foul-play-received.jsonl
             /tmp/bss-protocol-invariants.log
             /tmp/bss-protocol-invariants.status
             /tmp/authenticated-launcher.html

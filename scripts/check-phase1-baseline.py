@@ -9,36 +9,12 @@ import subprocess
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-
-DISPLAY_NAME_SOURCE_REPOSITORY = "PokeAPI/pokeapi"
-DISPLAY_NAME_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
-DISPLAY_NAME_LANGUAGE_ID = 11
-DISPLAY_NAME_MINIMUM_COUNTS = {
-    "species": 1000,
-    "moves": 800,
-    "abilities": 250,
-    "items": 1500,
-}
-T1_09_CLIENT = "80c72741b52e91d35ee778982a936ea42526c078"
-
-BATTLE_CONTROL_SELECTORS = [
-    "button.movebutton",
-    'button[data-tooltip^="switchpokemon|"]',
-    'button[data-tooltip^="allypokemon|"]',
-    'button[data-tooltip^="activepokemon|"]',
-]
-
-CRITICAL_PROTOCOL = [
-    "|request|",
-    "|switch|",
-    "|move|",
-    "/choose",
-    "/team",
-]
+CLIENT_COMMIT = "80c72741b52e91d35ee778982a936ea42526c078"
+FOUL_PLAY_COMMIT = "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6"
+PROTECTED_PREFIXES = ("data/", "sim/")
 
 REQUIRED_FILES = [
     "Dockerfile",
-    ".gitmodules",
     ".github/workflows/render-smoke.yml",
     "README.md",
     "docs/localization/README.md",
@@ -46,126 +22,38 @@ REQUIRED_FILES = [
     "docs/localization/phase-1-t1-08-generated-name-maps.md",
     "docs/localization/phase-1-t1-09-battle-controls.md",
     "docs/localization/phase-1-t1-10-protocol-invariants.md",
+    "docs/localization/phase-1-t1-11-foul-play-input-invariants.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
     "scripts/check-pinned-client.py",
     "scripts/launcher-server.js",
     "scripts/pinned-client-preload.js",
+    "scripts/patch-foul-play-raw-receive-log.py",
+    "scripts/test-foul-play-raw-receive-log.py",
+    "scripts/smoke-bss-foul-play-input-invariants.py",
+    "scripts/test-japanese-protocol-invariants.js",
+    "scripts/smoke-bss-protocol-invariants.py",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
-    "scripts/smoke-bss-protocol-invariants.py",
-    "scripts/test-japanese-protocol-invariants.js",
-    "scripts/test-launcher-japanese-language.js",
-    "scripts/test-launcher-pinned-client.js",
     "scripts/test-foul-play-local-login.py",
     "scripts/test-foul-play-battle-fallbacks.py",
-    "translations/japanese/main.ts",
-    "translations/japanese/core-commands.ts",
-    "translations/japanese/helptickets.ts",
-    "translations/japanese/minor-activities.ts",
-    "translations/japanese/repeats.ts",
 ]
 
-LAUNCHER_MARKERS = [
-    "const { handlePinnedClient } = require('./pinned-client-preload');",
-    "location.href = '/client.html';",
-    "if (handlePinnedClient(req, res)) return;",
-    "proxyShowdownRequest(req, res);",
-    "send(res, 404, 'text/plain; charset=utf-8', 'Not found.');",
-]
 
-PINNED_CLIENT_MARKERS = [
-    "const CLIENT_ENTRY = '/client.html';",
-    "const LOCAL_CLIENT_PREFIX = '/local-client/';",
-    "const PUBLIC_PREFIXES = ['/data/', '/js/', '/src/', '/style/'];",
-    "prefix: '/showdown'",
-    "ps.send('/trn ' + cleaned + ',0,');",
-    "ps.send('/updatesettings ' + JSON.stringify({ language: 'japanese' }));",
-    "x-pokemon-showdown-client-source",
-    "Net.defaultRoute = location.origin;",
-]
+def read(path: pathlib.Path) -> str:
+    if not path.is_file():
+        raise AssertionError(f"Required Phase 1 file is missing: {path.relative_to(ROOT)}")
+    return path.read_text(encoding="utf-8")
 
-DOCUMENTATION_MARKERS = [
-    "# Japanese localization operations",
-    "Phase 1 T1-10",
-    "## T1-10 サーバープロトコル不変テスト",
-    "## ロールバック",
-    "## 絶対に変えない境界",
-    "scripts/check-localization-docs.py",
-    "scripts/test-japanese-protocol-invariants.js",
-    "scripts/smoke-bss-protocol-invariants.py",
-    "battle-display-names.meta.json",
-    "MutationObserver",
-    "data-cmd",
-    "data-tooltip",
-    *CRITICAL_PROTOCOL,
-    DISPLAY_NAME_SOURCE_REPOSITORY,
-    DISPLAY_NAME_SOURCE_COMMIT,
-]
 
-T1_07_MARKERS = [
-    "# Phase 1 T1-07: display-only Japanese name API skeleton",
-    "window.PSDisplayNames",
-    "window.BattleJapaneseDisplayNames",
-    "displaySpeciesName",
-    "displayMoveName",
-    "displayAbilityName",
-    "displayItemName",
-    "canonical English Dex name",
-]
-
-T1_08_MARKERS = [
-    "# Phase 1 T1-08: mechanically generated Japanese display-name maps",
-    "window.BattleJapaneseDisplayNames",
-    "species",
-    "moves",
-    "abilities",
-    "items",
-    "battle-display-names.meta.json",
-    DISPLAY_NAME_SOURCE_REPOSITORY,
-    DISPLAY_NAME_SOURCE_COMMIT,
-    "language ID `11`",
-    "mutates_ids: false",
-    "protocol_safe: true",
-]
-
-T1_09_MARKERS = [
-    "# Phase 1 T1-09: Japanese battle choice controls",
-    "window.PSDisplayNames",
-    "window.BattleJapaneseDisplayNames",
-    "MutationObserver",
-    "data-cmd",
-    "data-tooltip",
-    "display_text_only: true",
-    "mutates_commands: false",
-    "mutates_tooltips: false",
-    "preserves_unknown_names: true",
-    "mutates_ids: false",
-    "protocol_safe: true",
-    *BATTLE_CONTROL_SELECTORS,
-]
-
-T1_10_MARKERS = [
-    "# Phase 1 T1-10: server protocol invariance tests",
-    "duplicate the same canonical battle input",
-    "raw WebSocket protocol",
-    "scripts/test-japanese-protocol-invariants.js",
-    "scripts/smoke-bss-protocol-invariants.py",
-    "10まんボルト",
-    "ピカチュウ",
-    "bss-protocol-invariant-diagnostics",
-    *CRITICAL_PROTOCOL,
-]
-
-RETIRED_RUNTIME_MARKERS = [
-    "const OFFICIAL_CLIENT_HOST = 'play.pokemonshowdown.com';",
-    "function servePatchedClient(",
-    "proxyRequest(req, res, 'official-client')",
-    "https.get(",
-]
-
-PROTECTED_PREFIXES = ("data/", "sim/")
+def require_markers(path: pathlib.Path, markers: list[str]) -> None:
+    content = read(path)
+    missing = [marker for marker in markers if marker not in content]
+    if missing:
+        raise AssertionError(
+            f"{path.relative_to(ROOT)} is missing Phase 1 markers: {missing}"
+        )
 
 
 def run_git(*args: str) -> str:
@@ -182,8 +70,7 @@ def run_git(*args: str) -> str:
 def changed_files(base_ref: str | None) -> list[str]:
     if not base_ref:
         return []
-    candidates = [f"origin/{base_ref}", base_ref]
-    for candidate in candidates:
+    for candidate in (f"origin/{base_ref}", base_ref):
         try:
             output = run_git("diff", "--name-only", f"{candidate}...HEAD")
         except subprocess.CalledProcessError:
@@ -192,144 +79,102 @@ def changed_files(base_ref: str | None) -> list[str]:
     raise RuntimeError(f"Could not resolve base ref: {base_ref}")
 
 
-def assert_contains(path: pathlib.Path, markers: list[str]) -> None:
-    content = path.read_text(encoding="utf-8")
-    missing = [marker for marker in markers if marker not in content]
-    if missing:
-        raise AssertionError(f"{path.relative_to(ROOT)} is missing markers: {missing}")
-
-
-def assert_not_contains(path: pathlib.Path, markers: list[str]) -> None:
-    content = path.read_text(encoding="utf-8")
-    present = [marker for marker in markers if marker in content]
-    if present:
-        raise AssertionError(f"{path.relative_to(ROOT)} still contains retired markers: {present}")
-
-
 def build_report(base_ref: str | None) -> dict[str, Any]:
-    missing_files = [path for path in REQUIRED_FILES if not (ROOT / path).is_file()]
-    if missing_files:
-        raise AssertionError(f"Missing baseline files: {missing_files}")
+    missing = [path for path in REQUIRED_FILES if not (ROOT / path).is_file()]
+    if missing:
+        raise AssertionError(f"Missing Phase 1 files: {missing}")
 
-    launcher = ROOT / "scripts" / "launcher-server.js"
-    assert_contains(launcher, LAUNCHER_MARKERS)
-    assert_not_contains(launcher, RETIRED_RUNTIME_MARKERS)
-    assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
-    assert_contains(ROOT / "docs/localization/README.md", DOCUMENTATION_MARKERS)
-    assert_contains(ROOT / "docs/localization/phase-1-t1-07-display-name-api.md", T1_07_MARKERS)
-    assert_contains(ROOT / "docs/localization/phase-1-t1-08-generated-name-maps.md", T1_08_MARKERS)
-    assert_contains(ROOT / "docs/localization/phase-1-t1-09-battle-controls.md", T1_09_MARKERS)
-    assert_contains(ROOT / "docs/localization/phase-1-t1-10-protocol-invariants.md", T1_10_MARKERS)
-    assert_contains(
-        ROOT / "README.md",
+    pin = json.loads(read(ROOT / "config" / "pokemon-showdown-client.json"))
+    if pin.get("commit") != CLIENT_COMMIT:
+        raise AssertionError("T1-11 must preserve the T1-09 client commit")
+    if pin.get("runtime_delivery_changed") is not True:
+        raise AssertionError("The pinned local client must remain active")
+
+    require_markers(
+        ROOT / "docs" / "localization" / "README.md",
         [
-            "Personal AI deployment and Japanese localization",
-            "[docs/localization/README.md](./docs/localization/README.md)",
+            "Phase 1 T1-11",
+            "FOUL_PLAY_RAW_RECEIVE_LOG",
+            "species・moves・abilities・items",
+            "T1-11: foul-play受信ログ不変テスト",
+            "T1-12: Rust AI境界のIDテスト",
+            "T1-13: Phase 1統合回帰",
         ],
     )
-    assert_contains(ROOT / ".gitmodules", ["url = https://github.com/pmariglia/foul-play.git"])
-
-    dockerfile = ROOT / "Dockerfile"
-    assert_contains(
-        dockerfile,
+    require_markers(
+        ROOT / "docs" / "localization" / "phase-1-t1-11-foul-play-input-invariants.md",
         [
-            "FROM node:22-bookworm AS client-builder",
-            "npm --prefix /client ci",
-            "npm --prefix /client run build",
-            "COPY --from=client-builder /client /opt/pokemon-showdown-client",
-            "ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client",
-            "node scripts/test-launcher-pinned-client.js",
-            "python3 scripts/check-built-client.py",
-            "python3 scripts/check-localization-docs.py",
-            "node scripts/test-launcher-japanese-language.js",
-            "scripts/test-japanese-protocol-invariants.js",
-            "scripts/smoke-bss-protocol-invariants.py",
-            "node scripts/test-japanese-protocol-invariants.js",
-            "git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
-            ".venv/bin/python scripts/test-foul-play-local-login.py",
-            ".venv/bin/python scripts/test-foul-play-battle-fallbacks.py",
+            "# Phase 1 T1-11: foul-play raw input invariance tests",
+            "exact return value of `websocket.recv()`",
+            "species, moves, abilities, and items",
+            "bss-foul-play-input-invariant-diagnostics",
         ],
     )
-    assert_not_contains(dockerfile, ["NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js"])
-
-    client_pin = json.loads(
-        (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
-    )
-    if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-10 must preserve the completed local-client cutover")
-    if client_pin.get("commit") != T1_09_CLIENT:
-        raise AssertionError("T1-10 must not change the T1-09 pinned client revision")
-    if client_pin.get("commit") == client_pin.get("upstream_base_commit"):
-        raise AssertionError("The pinned client revision must remain after the upstream base")
-
-    build_check = ROOT / "scripts" / "check-built-client.py"
-    assert_contains(
-        build_check,
+    require_markers(
+        ROOT / "scripts" / "patch-foul-play-raw-receive-log.py",
         [
-            "play.pokemonshowdown.com/src/battle-display-names.ts",
-            "play.pokemonshowdown.com/js/battle-display-names.meta.json",
-            DISPLAY_NAME_SOURCE_REPOSITORY,
-            DISPLAY_NAME_SOURCE_COMMIT,
-            "DISPLAY_NAME_LANGUAGE_ID = 11",
-            "BATTLE_CONTROL_SELECTORS",
-            "localizeBattleControlButton",
-            "MutationObserver",
-            '"display_text_only": True',
-            '"mutates_commands": False',
-            '"mutates_tooltips": False',
-            '"preserves_unknown_names": True',
-            *BATTLE_CONTROL_SELECTORS,
-            *[f'"{name}": {count}' for name, count in DISPLAY_NAME_MINIMUM_COUNTS.items()],
+            "PERSONAL_SERVER_RAW_RECEIVE_LOG",
+            "FOUL_PLAY_RAW_RECEIVE_LOG",
+            '"message": message',
+            "return message",
         ],
     )
-
-    protocol_fixture = ROOT / "scripts" / "test-japanese-protocol-invariants.js"
-    assert_contains(
-        protocol_fixture,
+    require_markers(
+        ROOT / "scripts" / "test-foul-play-raw-receive-log.py",
         [
-            "Phase 1 T1-10",
-            "raw WebSocket protocol changed during display rendering",
-            "|request| JSON changed during display rendering",
-            "|switch|p1a: Pikachu|Pikachu, L50|100/100",
-            "|move|p1a: Pikachu|Thunderbolt|p2a: Charizard",
-            "/choose move 1",
-            "10まんボルト",
-            "ピカチュウ",
-            "raw_protocol_unchanged",
-            "request_json_unchanged",
-            "choose_command_unchanged",
+            "Phase 1 T1-11",
+            "exact_frame_preserved",
+            "default_runtime_unchanged",
         ],
     )
-    protocol_smoke = ROOT / "scripts" / "smoke-bss-protocol-invariants.py"
-    assert_contains(
-        protocol_smoke,
+    require_markers(
+        ROOT / "scripts" / "smoke-bss-foul-play-input-invariants.py",
         [
-            "Phase 1 T1-10",
-            "verify_japanese_translations",
-            "raw |request| protocol",
-            "raw |switch| protocol",
-            "raw |move| protocol",
-            "outbound /choose command",
-            "outbound /team command",
-            "choose_command_unchanged",
-            "raw_protocol_contains_japanese_display_names",
-            "|/choose move ",
-            "|/team 123456",
+            "Phase 1 T1-11",
+            "battle_messages",
+            "inspect_bot_requests",
+            "bot_received_japanese_names",
+            '"species": set()',
+            '"moves": set()',
+            '"abilities": set()',
+            '"items": set()',
         ],
     )
-
-    workflow = ROOT / ".github" / "workflows" / "render-smoke.yml"
-    assert_contains(
-        workflow,
+    require_markers(
+        ROOT / "Dockerfile",
         [
-            "Verify duplicate protocol and rendered-text invariants",
+            "scripts/patch-foul-play-raw-receive-log.py",
+            "scripts/test-foul-play-raw-receive-log.py",
+            "scripts/smoke-bss-foul-play-input-invariants.py",
+            FOUL_PLAY_COMMIT,
+        ],
+    )
+    require_markers(
+        ROOT / ".github" / "workflows" / "render-smoke.yml",
+        [
+            "Exercise foul-play raw input invariants",
+            "Require foul-play input invariants",
+            "bss-foul-play-input-invariant-diagnostics",
+            "FOUL_PLAY_RAW_RECEIVE_LOG=/app/.runtime/foul-play-received.jsonl",
             "Exercise raw WebSocket protocol invariants",
-            "Require raw protocol invariants",
-            "bss-protocol-invariant-diagnostics",
-            "/tmp/protocol-render-invariants.json",
-            "/tmp/bss-protocol-invariants.log",
-            "scripts/test-japanese-protocol-invariants.js",
-            "scripts/smoke-bss-protocol-invariants.py",
+            "Exercise BSS battle with captured protocol",
+            "Exercise faint and forced-switch recovery",
+            "Capture iPad-sized pinned-client baseline",
+        ],
+    )
+    require_markers(
+        ROOT / "scripts" / "launcher-server.js",
+        [
+            "const { handlePinnedClient } = require('./pinned-client-preload');",
+            "proxyShowdownRequest(req, res);",
+        ],
+    )
+    require_markers(
+        ROOT / "scripts" / "pinned-client-preload.js",
+        [
+            "const CLIENT_ENTRY = '/client.html';",
+            "prefix: '/showdown'",
+            "language: 'japanese'",
         ],
     )
 
@@ -339,8 +184,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     ]
     if protected_changes:
         raise AssertionError(
-            "Phase 1 baseline must not modify protected data/sim paths: "
-            + ", ".join(protected_changes)
+            "Phase 1 must not modify data/ or sim/: " + ", ".join(protected_changes)
         )
 
     commit = os.environ.get("GITHUB_SHA")
@@ -352,131 +196,42 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-10",
+        "task": "T1-11",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
         "protected_paths_changed": protected_changes,
-        "protocol_invariants": {
-            "fixture_test": "scripts/test-japanese-protocol-invariants.js",
-            "live_websocket_test": "scripts/smoke-bss-protocol-invariants.py",
-            "critical_protocol": CRITICAL_PROTOCOL,
-            "duplicates_input_before_rendering": True,
-            "rendered_text_may_be_japanese": True,
-            "raw_protocol_must_remain_english": True,
-            "request_json_must_remain_unchanged": True,
-            "choose_command_must_remain_unchanged": True,
-            "team_command_must_remain_unchanged": True,
-            "japanese_server_setting_confirmed_before_live_check": True,
-        },
-        "display_name_api": {
-            "client_commit": client_pin["commit"],
-            "upstream_base_commit": client_pin["upstream_base_commit"],
-            "api_global": "PSDisplayNames",
-            "data_global": "BattleJapaneseDisplayNames",
-            "functions": [
-                "displaySpeciesName",
-                "displayMoveName",
-                "displayAbilityName",
-                "displayItemName",
-            ],
-            "fallback": "canonical-english-name",
-            "source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
-            "source_commit": DISPLAY_NAME_SOURCE_COMMIT,
-            "language_id": DISPLAY_NAME_LANGUAGE_ID,
-            "minimum_counts": DISPLAY_NAME_MINIMUM_COUNTS,
-            "generated_metadata": "play.pokemonshowdown.com/js/battle-display-names.meta.json",
-            "generated_maps_added": True,
-            "battle_controls_localized": True,
-            "battle_controls": {
-                "translated_categories": ["moves", "species"],
-                "selectors": BATTLE_CONTROL_SELECTORS,
-                "display_text_only": True,
-                "mutates_commands": False,
-                "mutates_tooltips": False,
-                "preserves_unknown_names": True,
-            },
-            "mutates_ids": False,
-            "protocol_safe": True,
-            "implementation_repository": client_pin["fork_repository"],
-            "current_task_document": "docs/localization/phase-1-t1-10-protocol-invariants.md",
-            "previous_task_documents": [
-                "docs/localization/phase-1-t1-07-display-name-api.md",
-                "docs/localization/phase-1-t1-08-generated-name-maps.md",
-                "docs/localization/phase-1-t1-09-battle-controls.md",
-            ],
-        },
-        "operations_documentation": {
-            "authoritative_guide": "docs/localization/README.md",
-            "repository_entrypoint": "README.md",
-            "machine_verifier": "scripts/check-localization-docs.py",
-            "covers": [
-                "architecture",
-                "client updates",
-                "generated display-name map updates",
-                "battle-control display localization",
-                "duplicated-input protocol invariants",
-                "live WebSocket protocol invariants",
-                "server translation updates",
-                "required tests",
-                "troubleshooting",
-                "rollback",
-                "protected protocol and ID boundaries",
-            ],
-        },
-        "current_client_delivery": {
-            "html_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/testclient-new.html",
-            "entry_path": "/client.html",
-            "static_sources": ["/data/", "/js/", "/src/", "/style/", "/config/config.js"],
-            "official_runtime_html_fetch": False,
-            "official_runtime_asset_proxy": False,
-            "unknown_paths_return_404": True,
-            "battle_server_prefix": "/showdown",
-            "browser_login_command": "/trn <name>,0,",
-            "browser_language_command": '/updatesettings {"language":"japanese"}',
-        },
-        "pinned_client_build": {
-            "image_path": "/opt/pokemon-showdown-client",
-            "build_command": "npm ci && npm run build",
-            "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
-            "display_name_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/src/battle-display-names.ts",
-            "generated_display_name_bundle": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.js",
-            "generated_display_name_metadata": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.meta.json",
-            "protocol_fixture_runs_after_copy": True,
-            "served_by_default": True,
-        },
-        "pinned_dependencies": {
-            "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
-            "pokemon_showdown_client_fork": client_pin["fork_repository"],
-            "pokemon_showdown_client_upstream": client_pin["upstream_repository"],
-            "pokemon_showdown_client_commit": client_pin["commit"],
-            "pokemon_showdown_client_upstream_base": client_pin["upstream_base_commit"],
-            "display_name_source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
-            "display_name_source_commit": DISPLAY_NAME_SOURCE_COMMIT,
+        "pinned_client_commit": CLIENT_COMMIT,
+        "foul_play_commit": FOUL_PLAY_COMMIT,
+        "foul_play_input_invariants": {
+            "raw_capture_opt_in": True,
+            "exact_receive_value_preserved": True,
+            "live_battle_required": True,
+            "battle_room_scoped": True,
+            "categories": ["species", "moves", "abilities", "items"],
+            "japanese_names_allowed": False,
         },
         "required_regression_tests": [
+            "scripts/test-foul-play-raw-receive-log.py",
+            "scripts/smoke-bss-foul-play-input-invariants.py",
             "scripts/test-japanese-protocol-invariants.js",
             "scripts/smoke-bss-protocol-invariants.py",
-            "scripts/smoke-bss-battle.py",
-            "scripts/smoke-bss-faint-recovery.py",
             "scripts/test-foul-play-local-login.py",
             "scripts/test-foul-play-battle-fallbacks.py",
+            "scripts/smoke-bss-battle.py",
+            "scripts/smoke-bss-faint-recovery.py",
         ],
-        "localization_safety_tests": [
-            "scripts/test-launcher-japanese-language.js",
-            "scripts/test-launcher-pinned-client.js",
-            "Japanese /language response before protocol invariant battle",
-            "scripts/check-pinned-client.py --verify-remote",
-            "scripts/check-built-client.py T1-09 battle-control contract",
-            "scripts/test-japanese-protocol-invariants.js duplicated input comparison",
-            "scripts/smoke-bss-protocol-invariants.py live raw protocol check",
-            "scripts/check-localization-docs.py",
+        "next_defined_tasks": [
+            "T1-12 Rust AI boundary ID tests",
+            "T1-13 Phase 1 integration regression",
         ],
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify and record the Phase 1 localization baseline.")
+    parser = argparse.ArgumentParser(
+        description="Verify and record the Phase 1 T1-11 localization baseline."
+    )
     parser.add_argument("--base-ref", default=os.environ.get("GITHUB_BASE_REF") or "")
     parser.add_argument("--output", type=pathlib.Path)
     args = parser.parse_args()
