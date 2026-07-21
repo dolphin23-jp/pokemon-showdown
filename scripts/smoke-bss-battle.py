@@ -71,15 +71,15 @@ async def wait_for_login(websocket, deadline: float) -> None:
 
 async def verify_japanese_translations(websocket, deadline: float) -> None:
     await websocket.send('|/updatesettings {"language":"japanese"}')
-    await websocket.send("|/version")
+    await websocket.send("|/language")
 
     while time.monotonic() < deadline:
         message = await asyncio.wait_for(
             websocket.recv(), timeout=max(0.1, deadline - time.monotonic())
         )
-        if "サーバーのバージョン" in message:
+        if "現在、Pokémon Showdownを" in message:
             return
-    raise TimeoutError("Japanese server translations were not activated")
+    raise TimeoutError("Japanese server language setting was not confirmed")
 
 
 async def run_smoke(bot_name: str, port: int, timeout: float) -> None:
