@@ -15,6 +15,7 @@ PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 EXPECTED_FORK = "dolphin23-jp/pokemon-showdown-client"
 EXPECTED_UPSTREAM = "smogon/pokemon-showdown-client"
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 def load_pin() -> dict[str, Any]:
@@ -23,7 +24,9 @@ def load_pin() -> dict[str, Any]:
         "fork_repository",
         "upstream_repository",
         "commit",
-        "upstream_commit_date",
+        "commit_date",
+        "upstream_base_commit",
+        "upstream_base_commit_date",
         "runtime_delivery_changed",
     }
     missing = sorted(required - payload.keys())
@@ -34,8 +37,12 @@ def load_pin() -> dict[str, Any]:
         raise AssertionError(f"Unexpected client fork: {payload['fork_repository']}")
     if payload["upstream_repository"] != EXPECTED_UPSTREAM:
         raise AssertionError(f"Unexpected client upstream: {payload['upstream_repository']}")
-    if not SHA_PATTERN.fullmatch(str(payload["commit"])):
-        raise AssertionError("Pinned client commit must be a full lowercase 40-character SHA")
+    for field in ("commit", "upstream_base_commit"):
+        if not SHA_PATTERN.fullmatch(str(payload[field])):
+            raise AssertionError(f"{field} must be a full lowercase 40-character SHA")
+    for field in ("commit_date", "upstream_base_commit_date"):
+        if not DATE_PATTERN.fullmatch(str(payload[field])):
+            raise AssertionError(f"{field} must be a UTC ISO-8601 timestamp")
     if not isinstance(payload["runtime_delivery_changed"], bool):
         raise AssertionError("runtime_delivery_changed must be a JSON boolean")
     return payload
@@ -59,6 +66,10 @@ def github_json(path: str) -> dict[str, Any]:
         raise RuntimeError(f"GitHub API {error.code} for {path}: {detail}") from error
 
 
+def commit_date(commit: dict[str, Any]) -> str | None:
+    return ((commit.get("commit") or {}).get("committer") or {}).get("date")
+
+
 def verify_remote(pin: dict[str, Any]) -> dict[str, Any]:
     fork = github_json(f"/repos/{pin['fork_repository']}")
     if fork.get("fork") is not True:
@@ -69,22 +80,50 @@ def verify_remote(pin: dict[str, Any]) -> dict[str, Any]:
             f"Fork parent mismatch: expected {pin['upstream_repository']}, found {parent}"
         )
 
-    commit = github_json(
+    pinned_commit = github_json(
         f"/repos/{pin['fork_repository']}/commits/{pin['commit']}"
     )
-    if commit.get("sha") != pin["commit"]:
+    if pinned_commit.get("sha") != pin["commit"]:
         raise AssertionError("Pinned client commit was not resolved exactly in the fork")
+    if commit_date(pinned_commit) != pin["commit_date"]:
+        raise AssertionError(
+            f"Pinned client date mismatch: expected {pin['commit_date']}, "
+            f"found {commit_date(pinned_commit)}"
+        )
 
-    upstream_commit = github_json(
-        f"/repos/{pin['upstream_repository']}/commits/{pin['commit']}"
+    upstream_base = github_json(
+        f"/repos/{pin['upstream_repository']}/commits/{pin['upstream_base_commit']}"
     )
-    if upstream_commit.get("sha") != pin["commit"]:
-        raise AssertionError("Pinned client commit was not resolved exactly upstream")
+    if upstream_base.get("sha") != pin["upstream_base_commit"]:
+        raise AssertionError("Upstream base commit was not resolved exactly upstream")
+    if commit_date(upstream_base) != pin["upstream_base_commit_date"]:
+        raise AssertionError(
+            f"Upstream base date mismatch: expected {pin['upstream_base_commit_date']}, "
+            f"found {commit_date(upstream_base)}"
+        )
+
+    comparison = github_json(
+        f"/repos/{pin['fork_repository']}/compare/"
+        f"{pin['upstream_base_commit']}...{pin['commit']}"
+    )
+    merge_base = (comparison.get("merge_base_commit") or {}).get("sha")
+    if merge_base != pin["upstream_base_commit"]:
+        raise AssertionError(
+            f"Pinned client is not based on the recorded upstream commit: {merge_base}"
+        )
+    if comparison.get("status") not in {"ahead", "identical"}:
+        raise AssertionError(
+            f"Pinned client comparison has unexpected status: {comparison.get('status')}"
+        )
 
     return {
         "fork": fork.get("full_name"),
         "parent": parent,
-        "commit": commit.get("sha"),
+        "commit": pinned_commit.get("sha"),
+        "commit_date": commit_date(pinned_commit),
+        "upstream_base_commit": upstream_base.get("sha"),
+        "upstream_base_commit_date": commit_date(upstream_base),
+        "ahead_by": comparison.get("ahead_by"),
         "default_branch": fork.get("default_branch"),
     }
 
@@ -101,6 +140,9 @@ def main() -> None:
         "fork_repository": pin["fork_repository"],
         "upstream_repository": pin["upstream_repository"],
         "commit": pin["commit"],
+        "commit_date": pin["commit_date"],
+        "upstream_base_commit": pin["upstream_base_commit"],
+        "upstream_base_commit_date": pin["upstream_base_commit_date"],
         "runtime_delivery_changed": pin["runtime_delivery_changed"],
         "remote_verified": False,
     }
