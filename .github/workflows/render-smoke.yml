@@ -6,6 +6,7 @@ on:
       - Dockerfile
       - render.yaml
       - config/custom-formats.ts
+      - config/pokemon-showdown-client.json
       - config/all-generations-fallback/**
       - config/bss-smoke-opponent.txt
       - config/bss-faint-smoke-opponent.txt
@@ -30,6 +31,12 @@ jobs:
             --base-ref "${{ github.base_ref }}" \
             --output /tmp/phase1-baseline.json
           cat /tmp/phase1-baseline.json
+      - name: Verify pinned client fork and commit
+        run: |
+          python3 scripts/check-pinned-client.py \
+            --verify-remote \
+            --output /tmp/client-pin.json
+          cat /tmp/client-pin.json
       - name: Build Render image with captured output
         shell: bash
         run: |
@@ -197,6 +204,7 @@ jobs:
           name: phase1-t1-00-baseline
           path: |
             /tmp/phase1-baseline.json
+            /tmp/client-pin.json
             /tmp/authenticated-launcher.html
             /tmp/authenticated-client.html
             /tmp/launcher-baseline.html
