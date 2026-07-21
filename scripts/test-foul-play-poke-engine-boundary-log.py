@@ -33,6 +33,8 @@ def main() -> None:
         '"serialized_state": serialized_state',
         '"rust_state": poke_engine_state.to_string()',
         '"snapshot": _poke_engine_state_snapshot(poke_engine_state)',
+        '"rust_id": str(pokemon.id)',
+        '"id": _normalized_poke_engine_id(pokemon.id)',
         "monte_carlo_tree_search(poke_engine_state",
     ]
     missing = [marker for marker in required_markers if marker not in source]
@@ -40,6 +42,8 @@ def main() -> None:
         raise AssertionError(f"Poke-engine boundary instrumentation markers are missing: {missing}")
 
     sys.path.insert(0, str(FOUL_PLAY_ROOT))
+    from poke_engine import State as PokeEngineState
+
     from fp.battle.state import Battle, Pokemon
     from fp.config import FoulPlayConfig
     from fp.modes.standard_battle import StandardBattleMode
@@ -70,8 +74,9 @@ def main() -> None:
         ["earthquake"],
     )
 
-    engine_state = battle_to_poke_engine_state(battle)
-    serialized_state = engine_state.to_string()
+    python_state = battle_to_poke_engine_state(battle)
+    serialized_state = python_state.to_string()
+    rust_state = PokeEngineState.from_string(serialized_state)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         log_path = pathlib.Path(temp_dir) / "poke-engine-boundary.jsonl"
@@ -82,7 +87,7 @@ def main() -> None:
         ):
             search_main._write_poke_engine_boundary_log(
                 serialized_state,
-                engine_state,
+                rust_state,
                 7,
             )
 
@@ -112,12 +117,18 @@ def main() -> None:
             "ability": "static",
             "base_ability": "static",
             "item": "lightball",
+            "rust_id": "PIKACHU",
+            "rust_ability": "STATIC",
+            "rust_base_ability": "STATIC",
+            "rust_item": "LIGHTBALL",
         }
         for key, value in expected.items():
             if pikachu[key] != value:
                 raise AssertionError(f"Rust boundary changed {key}: {pikachu[key]!r}")
         if "thunderbolt" not in pikachu["moves"]:
-            raise AssertionError("Rust boundary changed thunderbolt")
+            raise AssertionError("Rust boundary changed normalized thunderbolt")
+        if "THUNDERBOLT" not in pikachu["rust_moves"]:
+            raise AssertionError("Rust boundary changed raw THUNDERBOLT enum token")
 
         serialized_record = json.dumps(record, ensure_ascii=False)
         if JAPANESE_TEXT.search(serialized_record):
@@ -126,7 +137,7 @@ def main() -> None:
         with mock.patch.dict(os.environ, {}, clear=True):
             search_main._write_poke_engine_boundary_log(
                 serialized_state,
-                engine_state,
+                rust_state,
                 8,
             )
         if len(log_path.read_text(encoding="utf-8").splitlines()) != 1:
@@ -140,6 +151,12 @@ def main() -> None:
                 "task": "Phase 1 T1-12",
                 "boundary": "foul-play -> Rust poke-engine",
                 "serialized_state_round_trip": True,
+                "rust_enum_tokens": {
+                    "species": "PIKACHU",
+                    "move": "THUNDERBOLT",
+                    "ability": "STATIC",
+                    "item": "LIGHTBALL",
+                },
                 "normalized_ids": {
                     "species": "pikachu",
                     "move": "thunderbolt",
