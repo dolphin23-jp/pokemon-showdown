@@ -81,13 +81,16 @@ RUN npx eslint --max-warnings 0 \
         scripts/patch-foul-play-battle-fallbacks.py \
         scripts/patch-foul-play-post-faint.py \
         scripts/patch-foul-play-raw-receive-log.py \
+        scripts/patch-foul-play-poke-engine-boundary-log.py \
         scripts/smoke-bss-battle.py \
         scripts/smoke-bss-faint-recovery.py \
         scripts/smoke-bss-protocol-invariants.py \
         scripts/smoke-bss-foul-play-input-invariants.py \
+        scripts/smoke-bss-poke-engine-boundary-invariants.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
         scripts/test-foul-play-raw-receive-log.py \
+        scripts/test-foul-play-poke-engine-boundary-log.py \
     && python3 scripts/check-localization-docs.py \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
@@ -96,15 +99,16 @@ RUN npx eslint --max-warnings 0 \
 
 # Render does not guarantee that Git submodules are initialized for a Docker
 # build, so fetch foul-play explicitly and pin the revision already used by this
-# repository. Apply private-server login, battle-safety, and opt-in input-audit
-# patches afterwards.
+# repository. Apply private-server login, battle-safety, input-audit, and
+# poke-engine-boundary audit patches afterwards.
 RUN rm -rf foul-play \
     && git clone --filter=blob:none https://github.com/pmariglia/foul-play.git foul-play \
     && git -C foul-play checkout 25c976f05cbf2880eaa579afd6db1dcb2c3b57c6 \
     && python3 scripts/patch-foul-play-local-login.py \
     && python3 scripts/patch-foul-play-battle-fallbacks.py \
     && python3 scripts/patch-foul-play-post-faint.py \
-    && python3 scripts/patch-foul-play-raw-receive-log.py
+    && python3 scripts/patch-foul-play-raw-receive-log.py \
+    && python3 scripts/patch-foul-play-poke-engine-boundary-log.py
 
 RUN node build \
     && python3 -m venv .venv \
@@ -112,13 +116,16 @@ RUN node build \
     && .venv/bin/python -m pip install --no-cache-dir -r foul-play/requirements.txt \
     && .venv/bin/python scripts/test-foul-play-local-login.py \
     && .venv/bin/python scripts/test-foul-play-battle-fallbacks.py \
-    && .venv/bin/python scripts/test-foul-play-raw-receive-log.py
+    && .venv/bin/python scripts/test-foul-play-raw-receive-log.py \
+    && .venv/bin/python scripts/test-foul-play-poke-engine-boundary-log.py
 
-# Validate the embedded bot team and both opponents used by the end-to-end BSS
+# Validate the embedded bot teams and opponents used by the end-to-end BSS
 # smoke tests.
 RUN bash scripts/ensure-codespaces-config.sh \
     && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
         < config/all-generations-fallback/01-legendary-offense.txt \
+    && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
+        < config/bss-engine-boundary-bot.txt \
     && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
         < config/bss-smoke-opponent.txt \
     && node pokemon-showdown validate-team gen9nationaldexallgenerationsbss --skip-build \
