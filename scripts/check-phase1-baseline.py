@@ -20,6 +20,13 @@ DISPLAY_NAME_MINIMUM_COUNTS = {
     "items": 1500,
 }
 
+BATTLE_CONTROL_SELECTORS = [
+    "button.movebutton",
+    'button[data-tooltip^="switchpokemon|"]',
+    'button[data-tooltip^="allypokemon|"]',
+    'button[data-tooltip^="activepokemon|"]',
+]
+
 REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
@@ -27,6 +34,7 @@ REQUIRED_FILES = [
     "docs/localization/README.md",
     "docs/localization/phase-1-t1-07-display-name-api.md",
     "docs/localization/phase-1-t1-08-generated-name-maps.md",
+    "docs/localization/phase-1-t1-09-battle-controls.md",
     "config/pokemon-showdown-client.json",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
@@ -67,16 +75,19 @@ PINNED_CLIENT_MARKERS = [
 
 DOCUMENTATION_MARKERS = [
     "# Japanese localization operations",
-    "Phase 1 T1-08",
+    "Phase 1 T1-09",
     "## ロールバック",
     "## 絶対に変えない境界",
     "scripts/check-localization-docs.py",
     "battle-display-names.meta.json",
+    "MutationObserver",
+    "data-cmd",
+    "data-tooltip",
     DISPLAY_NAME_SOURCE_REPOSITORY,
     DISPLAY_NAME_SOURCE_COMMIT,
 ]
 
-DISPLAY_NAME_API_MARKERS = [
+T1_07_MARKERS = [
     "# Phase 1 T1-07: display-only Japanese name API skeleton",
     "window.PSDisplayNames",
     "window.BattleJapaneseDisplayNames",
@@ -85,10 +96,9 @@ DISPLAY_NAME_API_MARKERS = [
     "displayAbilityName",
     "displayItemName",
     "canonical English Dex name",
-    "T1-08",
 ]
 
-GENERATED_NAME_MAP_MARKERS = [
+T1_08_MARKERS = [
     "# Phase 1 T1-08: mechanically generated Japanese display-name maps",
     "window.BattleJapaneseDisplayNames",
     "species",
@@ -101,6 +111,22 @@ GENERATED_NAME_MAP_MARKERS = [
     "language ID `11`",
     "mutates_ids: false",
     "protocol_safe: true",
+]
+
+T1_09_MARKERS = [
+    "# Phase 1 T1-09: Japanese battle choice controls",
+    "window.PSDisplayNames",
+    "window.BattleJapaneseDisplayNames",
+    "MutationObserver",
+    "data-cmd",
+    "data-tooltip",
+    "display_text_only: true",
+    "mutates_commands: false",
+    "mutates_tooltips: false",
+    "preserves_unknown_names: true",
+    "mutates_ids: false",
+    "protocol_safe: true",
+    *BATTLE_CONTROL_SELECTORS,
 ]
 
 RETIRED_RUNTIME_MARKERS = [
@@ -161,14 +187,9 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     assert_not_contains(launcher, RETIRED_RUNTIME_MARKERS)
     assert_contains(ROOT / "scripts/pinned-client-preload.js", PINNED_CLIENT_MARKERS)
     assert_contains(ROOT / "docs/localization/README.md", DOCUMENTATION_MARKERS)
-    assert_contains(
-        ROOT / "docs/localization/phase-1-t1-07-display-name-api.md",
-        DISPLAY_NAME_API_MARKERS,
-    )
-    assert_contains(
-        ROOT / "docs/localization/phase-1-t1-08-generated-name-maps.md",
-        GENERATED_NAME_MAP_MARKERS,
-    )
+    assert_contains(ROOT / "docs/localization/phase-1-t1-07-display-name-api.md", T1_07_MARKERS)
+    assert_contains(ROOT / "docs/localization/phase-1-t1-08-generated-name-maps.md", T1_08_MARKERS)
+    assert_contains(ROOT / "docs/localization/phase-1-t1-09-battle-controls.md", T1_09_MARKERS)
     assert_contains(
         ROOT / "README.md",
         [
@@ -200,18 +221,27 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
     )
     if client_pin.get("runtime_delivery_changed") is not True:
-        raise AssertionError("T1-08 must preserve the completed local-client cutover")
+        raise AssertionError("T1-09 must preserve the completed local-client cutover")
     if client_pin.get("commit") == client_pin.get("upstream_base_commit"):
-        raise AssertionError("T1-08 must pin the fork revision containing generated display-name maps")
+        raise AssertionError("T1-09 must pin the fork revision containing battle-control localization")
 
     build_check = ROOT / "scripts" / "check-built-client.py"
     assert_contains(
         build_check,
         [
+            "play.pokemonshowdown.com/src/battle-display-names.ts",
             "play.pokemonshowdown.com/js/battle-display-names.meta.json",
             DISPLAY_NAME_SOURCE_REPOSITORY,
             DISPLAY_NAME_SOURCE_COMMIT,
             "DISPLAY_NAME_LANGUAGE_ID = 11",
+            "BATTLE_CONTROL_SELECTORS",
+            "localizeBattleControlButton",
+            "MutationObserver",
+            '"display_text_only": True',
+            '"mutates_commands": False',
+            '"mutates_tooltips": False',
+            '"preserves_unknown_names": True',
+            *BATTLE_CONTROL_SELECTORS,
             *[f'"{name}": {count}' for name, count in DISPLAY_NAME_MINIMUM_COUNTS.items()],
         ],
     )
@@ -235,7 +265,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-08",
+        "task": "T1-09",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
@@ -257,12 +287,24 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "language_id": DISPLAY_NAME_LANGUAGE_ID,
             "minimum_counts": DISPLAY_NAME_MINIMUM_COUNTS,
             "generated_metadata": "play.pokemonshowdown.com/js/battle-display-names.meta.json",
+            "generated_maps_added": True,
+            "battle_controls_localized": True,
+            "battle_controls": {
+                "translated_categories": ["moves", "species"],
+                "selectors": BATTLE_CONTROL_SELECTORS,
+                "display_text_only": True,
+                "mutates_commands": False,
+                "mutates_tooltips": False,
+                "preserves_unknown_names": True,
+            },
             "mutates_ids": False,
             "protocol_safe": True,
-            "generated_maps_added": True,
             "implementation_repository": client_pin["fork_repository"],
-            "task_document": "docs/localization/phase-1-t1-08-generated-name-maps.md",
-            "previous_task_document": "docs/localization/phase-1-t1-07-display-name-api.md",
+            "task_document": "docs/localization/phase-1-t1-09-battle-controls.md",
+            "previous_task_documents": [
+                "docs/localization/phase-1-t1-07-display-name-api.md",
+                "docs/localization/phase-1-t1-08-generated-name-maps.md",
+            ],
         },
         "operations_documentation": {
             "authoritative_guide": "docs/localization/README.md",
@@ -272,6 +314,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
                 "architecture",
                 "client updates",
                 "generated display-name map updates",
+                "battle-control display localization",
                 "server translation updates",
                 "required tests",
                 "troubleshooting",
@@ -294,6 +337,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "image_path": "/opt/pokemon-showdown-client",
             "build_command": "npm ci && npm run build",
             "manifest": "/opt/pokemon-showdown-client/build-manifest.json",
+            "display_name_source": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/src/battle-display-names.ts",
             "generated_display_name_bundle": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.js",
             "generated_display_name_metadata": "/opt/pokemon-showdown-client/play.pokemonshowdown.com/js/battle-display-names.meta.json",
             "served_by_default": True,
@@ -323,7 +367,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "scripts/test-launcher-pinned-client.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
             "scripts/check-pinned-client.py --verify-remote",
-            "scripts/check-built-client.py generated-map contract",
+            "scripts/check-built-client.py T1-09 battle-control contract",
             "scripts/check-localization-docs.py",
         ],
         "japanese_server_translation_files": [
