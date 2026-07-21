@@ -15,7 +15,7 @@ import websockets
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FORMAT = "gen9nationaldexallgenerationsbss"
-PLAYER = "EngineBoundarySmoke"
+PLAYER = "EngineSmoke"
 JAPANESE_TEXT = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]")
 TARGET_IDS = {
     "species": "pikachu",
