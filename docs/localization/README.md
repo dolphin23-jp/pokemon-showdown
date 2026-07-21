@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Phase 1 T1-07 時点では、次の状態です。
+Phase 1 T1-08 時点では、次の状態です。
 
 - ブラウザの既定入口は `/client.html`
 - クライアントは `dolphin23-jp/pokemon-showdown-client` の完全SHAからDockerビルドされる
@@ -14,12 +14,11 @@ Phase 1 T1-07 時点では、次の状態です。
 - ブラウザは同一オリジンの `/showdown` を通じてローカルサーバーへ接続する
 - ブラウザユーザーはnamedログイン後に一度だけ `/updatesettings {"language":"japanese"}` を送る
 - クライアントは表示専用の `window.PSDisplayNames` を公開する
-- 日本語名データの受け口は `window.BattleJapaneseDisplayNames`
-- T1-07ではAPI骨格のみで、日本語名マップはまだ生成しない
+- 日本語名データは `window.BattleJapaneseDisplayNames` の4表に機械生成される
 - 未登録名はcanonical EnglishのDex名へフォールバックする
-- foul-playは英語の正規化IDとプロトコルを使い、ブラウザ表示APIを通らない
+- foul-playと`poke-engine`は英語の正規化IDとbattle protocolを使い、表示APIを通らない
 
-T1-07の詳細は[表示名API作業記録](./phase-1-t1-07-display-name-api.md)を参照してください。Phase 1 T1-06でこの正本文書を導入し、以後のタスクで現在状態を更新します。
+T1-07のAPI骨格は[表示名API作業記録](./phase-1-t1-07-display-name-api.md)、T1-08の生成マップは[生成マップ作業記録](./phase-1-t1-08-generated-name-maps.md)を参照してください。Phase 1 T1-06でこの正本文書を導入し、以後のタスクで現在状態を更新します。
 
 ## 構成
 
@@ -28,8 +27,9 @@ Browser
   -> launcher : $PORT / $LAUNCHER_PORT
        -> /client.html and explicit client assets
           /opt/pokemon-showdown-client
-          -> window.PSDisplayNames
-             -> window.BattleJapaneseDisplayNames (T1-08以降)
+          -> battle-display-names.js
+             -> window.BattleJapaneseDisplayNames
+             -> window.PSDisplayNames
        -> /showdown
           Pokemon Showdown server : $SHOWDOWN_PORT (default 8000)
 
@@ -49,7 +49,7 @@ foul-play
 | 固定クライアントHTML・静的資産配信 | `scripts/pinned-client-preload.js` |
 | クライアント固定情報 | `config/pokemon-showdown-client.json` |
 | 固定フォーク・SHA・上流基点検証 | `scripts/check-pinned-client.py` |
-| 完成物と表示名API契約の検証 | `scripts/check-built-client.py` |
+| 完成物・表示API・生成マップ検証 | `scripts/check-built-client.py` |
 | 日本語サーバー辞書 | `translations/japanese/` |
 | Phase 1構成検証 | `scripts/check-phase1-baseline.py` |
 | 文書整合性検証 | `scripts/check-localization-docs.py` |
@@ -81,7 +81,22 @@ foul-play
 
 各関数は既存のDexで入力を解決し、正規化IDをキーとして `window.BattleJapaneseDisplayNames` を参照します。対応する日本語名がなければcanonical EnglishのDex名を返します。
 
-このAPIは表示文字列を返すだけです。Dexオブジェクト、入力、ID、保存データ、通信データは変更しません。T1-08で機械生成マップを追加するまで、通常は英語名が返ります。
+このAPIは表示文字列を返すだけです。Dexオブジェクト、入力、ID、保存データ、通信データは変更しません。
+
+### 日本語表示名マップ
+
+T1-08では、クライアントビルド時に `build-tools/generate-japanese-display-names.js` が日本語名を機械生成します。
+
+- 出典: `PokeAPI/pokeapi`
+- 固定出典SHA: `227b573712414a86ba299d322fa398fbb2893edc`
+- 言語: PokeAPI language ID `11`
+- 生成対象: species、moves、abilities、items
+- 埋め込み先: `play.pokemonshowdown.com/js/battle-display-names.js`
+- メタデータ: `play.pokemonshowdown.com/js/battle-display-names.meta.json`
+
+生成器は英語identifierを小文字英数字IDへ正規化し、そのIDを日本語表示名のキーにします。生成件数がspecies 1000、moves 800、abilities 250、items 1500を下回る場合、衝突がある場合、固定出典を取得できない場合はビルドを失敗させます。
+
+生成物は手作業で編集しません。出典を更新する場合は完全SHAを更新し、件数差分、代表名、ID境界、クライアントCI、サーバーDocker完成物を一体で確認します。
 
 ## 絶対に変えない境界
 
@@ -143,7 +158,7 @@ foul-play
 3. `scripts/smoke-bss-battle.py` の実サーバー `/language` 確認を通す
 4. 必須4テストを実行する
 
-### 固定クライアントの更新
+### 固定クライアントまたは生成マップの更新
 
 クライアント更新はブランチ名ではなく完全な40文字SHAで固定します。
 
@@ -173,8 +188,9 @@ docker run --rm --entrypoint python3 pokemon-showdown-ai:localization-check \
   --pin-file /app/config/pokemon-showdown-client.json
 ```
 
-9. `/client.html`、代表的なJS・CSS・config、404境界、iPadサイズ画面を確認する
-10. 必須4テストを通してからマージする
+9. `battle-display-names.meta.json` の出典SHA、言語ID、4表の件数を確認する
+10. `/client.html`、代表的なJS・CSS・config、404境界、iPadサイズ画面を確認する
+11. 必須4テストを通してからマージする
 
 `/opt/pokemon-showdown-client` 内の生成物をサーバーリポジトリへ手作業でコピーしません。Dockerのclient-builder stageを唯一の生成経路とします。
 
@@ -218,7 +234,7 @@ curl --fail https://<service-host>/health
 X-Pokemon-Showdown-Client-Source: pinned-local
 ```
 
-表示名APIは `/js/battle-display-names.js` から同じヘッダー付きで配信されます。未知パスが公式サイトの内容を返す場合はT1-05の境界が壊れています。
+表示名APIと生成マップは `/js/battle-display-names.js` から同じヘッダー付きで配信されます。未知パスが公式サイトの内容を返す場合はT1-05の境界が壊れています。
 
 ### ログ
 
@@ -238,12 +254,13 @@ X-Pokemon-Showdown-Client-Source: pinned-local
 4. HTMLが公式ホストのscript・image・stylesheetを参照していないか確認する
 5. SHA更新直後なら固定SHAと生成物の組み合わせを疑う
 
-### 表示名APIが見つからない
+### 日本語名が英語へフォールバックする
 
 1. `/js/battle-display-names.js` が200を返すか確認する
-2. `window.PSDisplayNames` が存在するか確認する
-3. `config/japanese-display-name-api.json` とビルドマニフェストを確認する
-4. T1-07では日本語マップが未生成であり、英語フォールバックが正常であることを区別する
+2. `window.PSDisplayNames` と `window.BattleJapaneseDisplayNames` が存在するか確認する
+3. `battle-display-names.meta.json` の4表件数を確認する
+4. 対象がPokeAPIのspecies表にないフォーム固有名か確認する
+5. `scripts/check-built-client.py` が固定出典SHAと件数を検証できるか確認する
 
 ### Botがログインしない
 
@@ -263,7 +280,7 @@ X-Pokemon-Showdown-Client-Source: pinned-local
 
 ロールバックはforce pushではなくPRで行います。
 
-### クライアント更新だけを戻す
+### 生成マップを含むクライアント更新だけを戻す
 
 1. 直前に成功していた完全SHAを特定する
 2. `commit` と `commit_date` を戻す
@@ -272,19 +289,23 @@ X-Pokemon-Showdown-Client-Source: pinned-local
 5. 固定フォーク検証、Dockerビルド、完成物検証、必須4テストを実行する
 6. ロールバックPRをマージし、Renderデプロイを確認する
 
-Phase 1で最初に採用した既知の上流SHAは次です。
-
-```text
-085dfabd9bc53c730ac459edf5c28088677adfc2
-```
-
-T1-07の表示名APIを含む最初のフォークSHAは次です。
+T1-07の表示名APIのみを含む既知正常クライアントSHAは次です。
 
 ```text
 1a5d96a4c05f0f4da766de877f3219b68c51f158
 ```
 
-障害内容に応じ、直近の既知正常版を優先します。
+T1-08の生成マップを含むクライアントSHAは次です。
+
+```text
+523a5fb38255916f6fb7bcd4b5b3ccaa5414f6eb
+```
+
+Phase 1で最初に採用した上流基点SHAは次です。
+
+```text
+085dfabd9bc53c730ac459edf5c28088677adfc2
+```
 
 ### T1-05の既定切り替え自体を戻す
 
@@ -302,8 +323,9 @@ SHAを戻しても復旧しない重大障害に限ります。
 - [ ] `/choose`、`/team`、Import/Exportを変更していない
 - [ ] foul-playと`poke-engine`の入力は英語IDのまま
 - [ ] 表示変換は `window.PSDisplayNames` に限定されている
-- [ ] クライアントは完全SHAで固定されている
-- [ ] フォークSHAの上流基点を説明できる
+- [ ] 生成マップは `window.BattleJapaneseDisplayNames` に限定されている
+- [ ] クライアントと出典は完全SHAで固定されている
+- [ ] 生成メタデータの4表件数が下限以上である
 - [ ] `/client.html` と表示名API資産が`pinned-local`を返す
 - [ ] 未知パスが404になる
 - [ ] 必須4テストが成功している
@@ -320,5 +342,4 @@ SHAを戻しても復旧しない重大障害に限ります。
 - T1-05: `/client.html` を固定ローカル配信へ切り替え、公式実行時プロキシを撤去
 - T1-06: 構成、更新、検証、障害対応、ロールバックを正本文書へ統合
 - T1-07: 表示専用の日本語名API骨格を固定クライアントへ追加
-
-次のT1-08では日本語表示名マップを機械生成します。ここに記載したID・protocol境界は維持します。
+- T1-08: species、moves、abilities、itemsの日本語表示名マップを固定出典から機械生成
