@@ -17,6 +17,7 @@ TARGET_IDS = ["pikachu", "thunderbolt", "static", "lightball"]
 REQUIRED_FILES = [
     "Dockerfile",
     ".github/workflows/render-smoke.yml",
+    ".github/workflows/phase1-integration-regression.yml",
     "README.md",
     "docs/localization/README.md",
     "docs/localization/phase-1-t1-07-display-name-api.md",
@@ -29,6 +30,7 @@ REQUIRED_FILES = [
     "config/pokemon-showdown-client.json",
     "config/bss-engine-boundary-bot.txt",
     "scripts/audit-phase1-integration.py",
+    "scripts/wait-phase1-workflows.py",
     "scripts/check-built-client.py",
     "scripts/check-localization-docs.py",
     "scripts/check-pinned-client.py",
@@ -106,6 +108,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "ready_for_phase2",
             "phase1-integration-regression-report",
             "scripts/audit-phase1-integration.py",
+            "scripts/wait-phase1-workflows.py",
             "FOUL_PLAY_RAW_RECEIVE_LOG",
             "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG",
             "PokeEngineState.from_string(state)",
@@ -137,6 +140,16 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             '"ready_for_phase2": True',
             "artifact_audit",
             "sha256",
+        ],
+    )
+    require_markers(
+        ROOT / "scripts" / "wait-phase1-workflows.py",
+        [
+            "Localization documentation",
+            "Node.js CI",
+            "Render smoke test",
+            "render_smoke_run_id",
+            "all_required_workflows_successful",
         ],
     )
     require_markers(
@@ -174,7 +187,12 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     )
     require_markers(
         ROOT / "scripts" / "patch-foul-play-raw-receive-log.py",
-        ["PERSONAL_SERVER_RAW_RECEIVE_LOG", "FOUL_PLAY_RAW_RECEIVE_LOG", '"message": message', "return message"],
+        [
+            "PERSONAL_SERVER_RAW_RECEIVE_LOG",
+            "FOUL_PLAY_RAW_RECEIVE_LOG",
+            '"message": message',
+            "return message",
+        ],
     )
     require_markers(
         ROOT / "scripts" / "smoke-bss-foul-play-input-invariants.py",
@@ -184,6 +202,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ROOT / "Dockerfile",
         [
             "scripts/audit-phase1-integration.py",
+            "scripts/wait-phase1-workflows.py",
             "scripts/patch-foul-play-poke-engine-boundary-log.py",
             "scripts/test-foul-play-poke-engine-boundary-log.py",
             "scripts/smoke-bss-poke-engine-boundary-invariants.py",
@@ -204,6 +223,14 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "Exercise faint and forced-switch recovery",
             "Verify access gate and pinned default client",
             "Capture iPad-sized pinned-client baseline",
+        ],
+    )
+    require_markers(
+        ROOT / ".github" / "workflows" / "phase1-integration-regression.yml",
+        [
+            "name: Phase 1 integration regression",
+            "Wait for Phase 1 prerequisite workflows",
+            "Download Render smoke artifacts",
             "Audit Phase 1 integration artifacts",
             "Require Phase 1 ready for Phase 2",
             "phase1-integration-regression-report",
@@ -212,7 +239,10 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
     )
     require_markers(
         ROOT / "scripts" / "launcher-server.js",
-        ["const { handlePinnedClient } = require('./pinned-client-preload');", "proxyShowdownRequest(req, res);"],
+        [
+            "const { handlePinnedClient } = require('./pinned-client-preload');",
+            "proxyShowdownRequest(req, res);",
+        ],
     )
     require_markers(
         ROOT / "scripts" / "pinned-client-preload.js",
@@ -250,6 +280,11 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "browser_verification_required": True,
             "ipad_screenshots_required": [1024, 1366],
             "artifact_hash_manifest_required": True,
+            "prerequisite_workflows": [
+                "Localization documentation",
+                "Node.js CI",
+                "Render smoke test",
+            ],
             "final_report": "/tmp/phase1-integration-regression.json",
             "artifact_name": "phase1-integration-regression-report",
             "ready_for_phase2_requires_all_conditions": True,
