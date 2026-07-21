@@ -29,10 +29,18 @@ DISPLAY_NAME_MINIMUM_COUNTS = {
     "items": 1500,
 }
 
+BATTLE_CONTROL_SELECTORS = (
+    "button.movebutton",
+    'button[data-tooltip^="switchpokemon|"]',
+    'button[data-tooltip^="allypokemon|"]',
+    'button[data-tooltip^="activepokemon|"]',
+)
+
 REQUIRED_ARTIFACTS = (
     "config/config.js",
     "config/japanese-display-name-api.json",
     "play.pokemonshowdown.com/testclient-new.html",
+    "play.pokemonshowdown.com/src/battle-display-names.ts",
     "play.pokemonshowdown.com/js/battle-display-names.js",
     "play.pokemonshowdown.com/js/battle-display-names.meta.json",
     "play.pokemonshowdown.com/js/client-main.js",
@@ -87,6 +95,9 @@ def expected_manifest(client_root: pathlib.Path, pin: dict[str, Any]) -> dict[st
 
 def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dict[str, Any]:
     contract_path = client_root / "config" / "japanese-display-name-api.json"
+    source_path = (
+        client_root / "play.pokemonshowdown.com" / "src" / "battle-display-names.ts"
+    )
     compiled_path = (
         client_root / "play.pokemonshowdown.com" / "js" / "battle-display-names.js"
     )
@@ -112,11 +123,51 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
             "metadata_output": "play.pokemonshowdown.com/js/battle-display-names.meta.json",
             "minimum_counts": DISPLAY_NAME_MINIMUM_COUNTS,
         },
+        "battle_controls": {
+            "task": "T1-09",
+            "translated_categories": ["moves", "species"],
+            "selectors": list(BATTLE_CONTROL_SELECTORS),
+            "display_text_only": True,
+            "mutates_commands": False,
+            "mutates_tooltips": False,
+            "preserves_unknown_names": True,
+        },
         "mutates_ids": False,
         "protocol_safe": True,
     }
     if contract != expected_contract:
         raise AssertionError("Japanese display-name API contract is missing or unexpected")
+
+    source = source_path.read_text(encoding="utf-8")
+    source_markers = (
+        "localizeBattleControlButton",
+        "localizeBattleControls",
+        "MutationObserver",
+        "characterData: true",
+        "textNode.nodeValue = rawName.replace(name, translatedName)",
+        *BATTLE_CONTROL_SELECTORS,
+    )
+    missing_source_markers = [marker for marker in source_markers if marker not in source]
+    if missing_source_markers:
+        raise AssertionError(
+            f"Battle-control localization source is missing markers: {missing_source_markers}"
+        )
+    forbidden_source_markers = (
+        "setAttribute('data-cmd'",
+        'setAttribute("data-cmd"',
+        "setAttribute('data-tooltip'",
+        'setAttribute("data-tooltip"',
+        ".dataset.cmd =",
+        ".dataset.tooltip =",
+    )
+    present_forbidden_markers = [
+        marker for marker in forbidden_source_markers if marker in source
+    ]
+    if present_forbidden_markers:
+        raise AssertionError(
+            "Battle-control localization must not mutate command or tooltip attributes: "
+            + ", ".join(present_forbidden_markers)
+        )
 
     compiled = compiled_path.read_text(encoding="utf-8")
     missing_markers = [
@@ -127,7 +178,10 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
             "BEGIN GENERATED JAPANESE DISPLAY NAMES",
             "END GENERATED JAPANESE DISPLAY NAMES",
             DISPLAY_NAME_SOURCE_COMMIT,
+            "localizeBattleControlButton",
+            "MutationObserver",
             *DISPLAY_NAME_FUNCTIONS,
+            *BATTLE_CONTROL_SELECTORS,
         )
         if marker not in compiled
     ]
@@ -166,6 +220,7 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
 
     return {
         "contract": str(contract_path.relative_to(client_root)),
+        "source": str(source_path.relative_to(client_root)),
         "compiled_api": str(compiled_path.relative_to(client_root)),
         "generated_metadata": str(metadata_path.relative_to(client_root)),
         "api_global": contract["api_global"],
@@ -176,6 +231,7 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
         "source_commit": metadata["source_commit"],
         "language_id": metadata["language_id"],
         "counts": counts,
+        "battle_controls": contract["battle_controls"],
         "mutates_ids": contract["mutates_ids"],
         "protocol_safe": contract["protocol_safe"],
         "generated_map_present": True,

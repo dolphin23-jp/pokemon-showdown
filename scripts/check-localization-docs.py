@@ -10,8 +10,9 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 GUIDE = ROOT / "docs" / "localization" / "README.md"
-PREVIOUS_TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-07-display-name-api.md"
-TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-08-generated-name-maps.md"
+T1_07_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-07-display-name-api.md"
+T1_08_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-08-generated-name-maps.md"
+TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-09-battle-controls.md"
 PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 LAUNCHER = ROOT / "scripts" / "launcher-server.js"
 CLIENT_HELPER = ROOT / "scripts" / "pinned-client-preload.js"
@@ -19,6 +20,7 @@ BUILD_CHECK = ROOT / "scripts" / "check-built-client.py"
 DOCKERFILE = ROOT / "Dockerfile"
 RENDER = ROOT / "render.yaml"
 T1_05_MERGE = "72d861147333739363cdb3210ff014ba418ab178"
+T1_08_CLIENT = "523a5fb38255916f6fb7bcd4b5b3ccaa5414f6eb"
 DISPLAY_NAME_SOURCE_REPOSITORY = "PokeAPI/pokeapi"
 DISPLAY_NAME_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
 DISPLAY_NAME_LANGUAGE_ID = 11
@@ -35,6 +37,13 @@ DISPLAY_NAME_FUNCTIONS = [
     "displayMoveName",
     "displayAbilityName",
     "displayItemName",
+]
+
+BATTLE_CONTROL_SELECTORS = [
+    "button.movebutton",
+    'button[data-tooltip^="switchpokemon|"]',
+    'button[data-tooltip^="allypokemon|"]',
+    'button[data-tooltip^="activepokemon|"]',
 ]
 
 PROTECTED_BOUNDARIES = [
@@ -104,7 +113,7 @@ def build_report() -> dict[str, Any]:
         if not re.fullmatch(r"[0-9a-f]{40}", value):
             raise AssertionError(f"The pinned client {name} must be a full lowercase SHA")
     if commit == upstream_base:
-        raise AssertionError("T1-08 must pin a fork revision after the upstream base")
+        raise AssertionError("T1-09 must pin a fork revision after the upstream base")
 
     require_markers(
         README,
@@ -118,7 +127,7 @@ def build_report() -> dict[str, Any]:
         GUIDE,
         [
             "# Japanese localization operations",
-            "Phase 1 T1-08",
+            "Phase 1 T1-09",
             "/opt/pokemon-showdown-client",
             "/client.html",
             "/showdown",
@@ -132,6 +141,14 @@ def build_report() -> dict[str, Any]:
             DISPLAY_NAME_SOURCE_REPOSITORY,
             DISPLAY_NAME_SOURCE_COMMIT,
             "language ID `11`",
+            "MutationObserver",
+            "data-cmd",
+            "data-tooltip",
+            "display_text_only: true",
+            "mutates_commands: false",
+            "mutates_tooltips: false",
+            "preserves_unknown_names: true",
+            T1_08_CLIENT,
             "X-Pokemon-Showdown-Client-Source: pinned-local",
             "docker build --no-cache --tag pokemon-showdown-ai:localization-check .",
             "python3 scripts/check-pinned-client.py --verify-remote",
@@ -140,13 +157,14 @@ def build_report() -> dict[str, Any]:
             commit,
             *MANDATORY_TESTS,
             *DISPLAY_NAME_FUNCTIONS,
+            *BATTLE_CONTROL_SELECTORS,
             *PROTECTED_BOUNDARIES,
             *RENDER_ENV_KEYS,
             *[f"{name} {count}" for name, count in MINIMUM_COUNTS.items()],
         ],
     )
     require_markers(
-        PREVIOUS_TASK_GUIDE,
+        T1_07_GUIDE,
         [
             "# Phase 1 T1-07: display-only Japanese name API skeleton",
             "window.PSDisplayNames",
@@ -157,11 +175,9 @@ def build_report() -> dict[str, Any]:
         ],
     )
     require_markers(
-        TASK_GUIDE,
+        T1_08_GUIDE,
         [
             "# Phase 1 T1-08: mechanically generated Japanese display-name maps",
-            commit,
-            upstream_base,
             DISPLAY_NAME_SOURCE_REPOSITORY,
             DISPLAY_NAME_SOURCE_COMMIT,
             "language ID `11`",
@@ -170,8 +186,31 @@ def build_report() -> dict[str, Any]:
             "canonical English Dex name",
             "mutates_ids: false",
             "protocol_safe: true",
+        ],
+    )
+    require_markers(
+        TASK_GUIDE,
+        [
+            "# Phase 1 T1-09: Japanese battle choice controls",
+            commit,
+            upstream_base,
+            DISPLAY_NAME_SOURCE_REPOSITORY,
+            DISPLAY_NAME_SOURCE_COMMIT,
+            "language ID `11`",
+            "window.PSDisplayNames",
+            "window.BattleJapaneseDisplayNames",
+            "MutationObserver",
+            "data-cmd",
+            "data-tooltip",
+            "display_text_only: true",
+            "mutates_commands: false",
+            "mutates_tooltips: false",
+            "preserves_unknown_names: true",
+            "mutates_ids: false",
+            "protocol_safe: true",
             *MANDATORY_TESTS,
             *DISPLAY_NAME_FUNCTIONS,
+            *BATTLE_CONTROL_SELECTORS,
             *PROTECTED_BOUNDARIES,
         ],
     )
@@ -202,16 +241,24 @@ def build_report() -> dict[str, Any]:
     build_check = read(BUILD_CHECK)
     for marker in [
         '"config/japanese-display-name-api.json"',
+        '"play.pokemonshowdown.com/src/battle-display-names.ts"',
         '"play.pokemonshowdown.com/js/battle-display-names.js"',
         '"play.pokemonshowdown.com/js/battle-display-names.meta.json"',
         '"PSDisplayNames"',
         '"BattleJapaneseDisplayNames"',
         '"canonical-english-name"',
+        '"display_text_only": True',
+        '"mutates_commands": False',
+        '"mutates_tooltips": False',
+        '"preserves_unknown_names": True',
         '"mutates_ids": False',
         '"protocol_safe": True',
+        "localizeBattleControlButton",
+        "MutationObserver",
         DISPLAY_NAME_SOURCE_REPOSITORY,
         DISPLAY_NAME_SOURCE_COMMIT,
         *[f'"{function}"' for function in DISPLAY_NAME_FUNCTIONS],
+        *BATTLE_CONTROL_SELECTORS,
         *[f'"{name}": {count}' for name, count in MINIMUM_COUNTS.items()],
     ]:
         if marker not in build_check:
@@ -237,15 +284,19 @@ def build_report() -> dict[str, Any]:
     links = {
         str(README.relative_to(ROOT)): verify_local_links(README),
         str(GUIDE.relative_to(ROOT)): verify_local_links(GUIDE),
-        str(PREVIOUS_TASK_GUIDE.relative_to(ROOT)): verify_local_links(PREVIOUS_TASK_GUIDE),
+        str(T1_07_GUIDE.relative_to(ROOT)): verify_local_links(T1_07_GUIDE),
+        str(T1_08_GUIDE.relative_to(ROOT)): verify_local_links(T1_08_GUIDE),
         str(TASK_GUIDE.relative_to(ROOT)): verify_local_links(TASK_GUIDE),
     }
 
     return {
-        "task": "Phase 1 T1-08",
+        "task": "Phase 1 T1-09",
         "guide": str(GUIDE.relative_to(ROOT)),
         "task_guide": str(TASK_GUIDE.relative_to(ROOT)),
-        "previous_task_guide": str(PREVIOUS_TASK_GUIDE.relative_to(ROOT)),
+        "previous_task_guides": [
+            str(T1_07_GUIDE.relative_to(ROOT)),
+            str(T1_08_GUIDE.relative_to(ROOT)),
+        ],
         "readme": str(README.relative_to(ROOT)),
         "pinned_client_commit": commit,
         "upstream_base_commit": upstream_base,
@@ -259,12 +310,21 @@ def build_report() -> dict[str, Any]:
             "source_commit": DISPLAY_NAME_SOURCE_COMMIT,
             "language_id": DISPLAY_NAME_LANGUAGE_ID,
             "minimum_counts": MINIMUM_COUNTS,
+            "battle_controls": {
+                "selectors": BATTLE_CONTROL_SELECTORS,
+                "translated_categories": ["moves", "species"],
+                "display_text_only": True,
+                "mutates_commands": False,
+                "mutates_tooltips": False,
+                "preserves_unknown_names": True,
+            },
             "mutates_ids": False,
             "protocol_safe": True,
         },
         "mandatory_tests_documented": MANDATORY_TESTS,
         "protected_boundaries_documented": PROTECTED_BOUNDARIES,
         "local_links_checked": links,
+        "rollback_client": T1_08_CLIENT,
         "rollback_anchor": T1_05_MERGE,
     }
 
