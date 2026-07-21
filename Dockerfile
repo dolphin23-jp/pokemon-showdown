@@ -55,7 +55,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-COPY --from=client-builder /client /app/pokemon-showdown-client
 
 RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher-japanese-language.js \
     && node --check scripts/launcher-server.js \
@@ -73,9 +72,6 @@ RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher
         scripts/smoke-bss-faint-recovery.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
-    && python3 scripts/check-built-client.py \
-        --client-root /app/pokemon-showdown-client \
-        --pin-file /app/config/pokemon-showdown-client.json \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
@@ -114,6 +110,13 @@ RUN bash scripts/ensure-codespaces-config.sh \
 # every free-service wake-up.
 RUN bash scripts/sync-all-generations-teams.sh --refresh \
     && python3 scripts/prepare-foul-play-cache.py
+
+# Keep the client outside the server source tree until the server build has
+# finished, preventing the server compiler from traversing client-only sources.
+COPY --from=client-builder /client /app/pokemon-showdown-client
+RUN python3 scripts/check-built-client.py \
+        --client-root /app/pokemon-showdown-client \
+        --pin-file /app/config/pokemon-showdown-client.json
 
 EXPOSE 10000
 
