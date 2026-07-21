@@ -15,9 +15,10 @@ assert.notEqual(injectionStart, -1, 'clientConfigInjection must exist');
 assert.notEqual(iifeStart, -1, 'client login IIFE must exist');
 assert.notEqual(iifeEnd, -1, 'client login IIFE must be complete');
 
+const defaultNamePlaceholder = '$' + '{JSON.stringify(DEFAULT_PLAYER_NAME)}';
 const injectedLoginScript = launcherSource
 	.slice(iifeStart, iifeEnd + '})();'.length)
-	.replace('${JSON.stringify(DEFAULT_PLAYER_NAME)}', JSON.stringify('FallbackUser'));
+	.replace(defaultNamePlaceholder, JSON.stringify('FallbackUser'));
 
 function runScenario({ named, challstr, savedName }) {
 	const sent = [];
