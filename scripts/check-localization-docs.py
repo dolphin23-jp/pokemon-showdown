@@ -21,7 +21,10 @@ TASK_GUIDES = {
 }
 PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 DOCKERFILE = ROOT / "Dockerfile"
-WORKFLOW = ROOT / ".github" / "workflows" / "render-smoke.yml"
+RENDER_WORKFLOW = ROOT / ".github" / "workflows" / "render-smoke.yml"
+INTEGRATION_WORKFLOW = (
+    ROOT / ".github" / "workflows" / "phase1-integration-regression.yml"
+)
 LAUNCHER = ROOT / "scripts" / "launcher-server.js"
 CLIENT_HELPER = ROOT / "scripts" / "pinned-client-preload.js"
 RAW_PATCH = ROOT / "scripts" / "patch-foul-play-raw-receive-log.py"
@@ -34,6 +37,7 @@ ENGINE_TEAM = ROOT / "config" / "bss-engine-boundary-bot.txt"
 SERVER_FIXTURE = ROOT / "scripts" / "test-japanese-protocol-invariants.js"
 SERVER_SMOKE = ROOT / "scripts" / "smoke-bss-protocol-invariants.py"
 INTEGRATION_AUDIT = ROOT / "scripts" / "audit-phase1-integration.py"
+WORKFLOW_GATE = ROOT / "scripts" / "wait-phase1-workflows.py"
 
 CLIENT_COMMIT = "80c72741b52e91d35ee778982a936ea42526c078"
 UPSTREAM_BASE = "085dfabd9bc53c730ac459edf5c28088677adfc2"
@@ -114,6 +118,7 @@ def build_report() -> dict[str, Any]:
             "Phase 1 T1-13",
             "Phase 1完了",
             "scripts/audit-phase1-integration.py",
+            "scripts/wait-phase1-workflows.py",
             "phase1-integration-regression-report",
             "ready_for_phase2",
             "FOUL_PLAY_RAW_RECEIVE_LOG",
@@ -130,11 +135,31 @@ def build_report() -> dict[str, Any]:
     )
 
     previous_markers = {
-        "T1-07": ["window.PSDisplayNames", "mutates_ids: false", "protocol_safe: true"],
-        "T1-08": ["window.BattleJapaneseDisplayNames", DISPLAY_SOURCE_COMMIT, "language ID `11`"],
-        "T1-09": ["MutationObserver", "data-cmd", "data-tooltip", "display_text_only: true"],
-        "T1-10": ["duplicate the same canonical battle input", "scripts/smoke-bss-protocol-invariants.py"],
-        "T1-11": ["FOUL_PLAY_RAW_RECEIVE_LOG", "exact return value of `websocket.recv()`", "baseAbility"],
+        "T1-07": [
+            "window.PSDisplayNames",
+            "mutates_ids: false",
+            "protocol_safe: true",
+        ],
+        "T1-08": [
+            "window.BattleJapaneseDisplayNames",
+            DISPLAY_SOURCE_COMMIT,
+            "language ID `11`",
+        ],
+        "T1-09": [
+            "MutationObserver",
+            "data-cmd",
+            "data-tooltip",
+            "display_text_only: true",
+        ],
+        "T1-10": [
+            "duplicate the same canonical battle input",
+            "scripts/smoke-bss-protocol-invariants.py",
+        ],
+        "T1-11": [
+            "FOUL_PLAY_RAW_RECEIVE_LOG",
+            "exact return value of `websocket.recv()`",
+            "baseAbility",
+        ],
         "T1-12": [
             "PokeEngineState.from_string(state)",
             "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG",
@@ -163,12 +188,27 @@ def build_report() -> dict[str, Any]:
 
     require_markers(
         RAW_PATCH,
-        ["PERSONAL_SERVER_RAW_RECEIVE_LOG", "FOUL_PLAY_RAW_RECEIVE_LOG", '"message": message', "return message"],
+        [
+            "PERSONAL_SERVER_RAW_RECEIVE_LOG",
+            "FOUL_PLAY_RAW_RECEIVE_LOG",
+            '"message": message',
+            "return message",
+        ],
     )
-    require_markers(RAW_TEST, ["Phase 1 T1-11", "exact_frame_preserved", "default_runtime_unchanged"])
+    require_markers(
+        RAW_TEST,
+        ["Phase 1 T1-11", "exact_frame_preserved", "default_runtime_unchanged"],
+    )
     require_markers(
         RAW_SMOKE,
-        ["Phase 1 T1-11", "inspect_bot_requests", "bot_received_japanese_names", "|request|", "|switch|", "|move|"],
+        [
+            "Phase 1 T1-11",
+            "inspect_bot_requests",
+            "bot_received_japanese_names",
+            "|request|",
+            "|switch|",
+            "|move|",
+        ],
     )
     require_markers(
         ENGINE_PATCH,
@@ -206,7 +246,10 @@ def build_report() -> dict[str, Any]:
             *TARGET_IDS,
         ],
     )
-    require_markers(ENGINE_TEAM, ["Pikachu @ Light Ball", "Ability: Static", "- Thunderbolt"])
+    require_markers(
+        ENGINE_TEAM,
+        ["Pikachu @ Light Ball", "Ability: Static", "- Thunderbolt"],
+    )
     require_markers(
         SERVER_FIXTURE,
         ["Phase 1 T1-10", "raw_protocol_unchanged", "choose_command_unchanged"],
@@ -220,6 +263,7 @@ def build_report() -> dict[str, Any]:
         [
             "STATUS_FILES",
             "REQUIRED_ARTIFACTS",
+            "ALLOW_EMPTY_ARTIFACTS",
             "EXPECTED_SCREENSHOT_SIZE = (1024, 1366)",
             '"task": "T1-13"',
             '"phase1_complete": True',
@@ -229,9 +273,20 @@ def build_report() -> dict[str, Any]:
         ],
     )
     require_markers(
+        WORKFLOW_GATE,
+        [
+            "Localization documentation",
+            "Node.js CI",
+            "Render smoke test",
+            "render_smoke_run_id",
+            "all_required_workflows_successful",
+        ],
+    )
+    require_markers(
         DOCKERFILE,
         [
             "scripts/audit-phase1-integration.py",
+            "scripts/wait-phase1-workflows.py",
             "scripts/patch-foul-play-poke-engine-boundary-log.py",
             "scripts/test-foul-play-poke-engine-boundary-log.py",
             "scripts/smoke-bss-poke-engine-boundary-invariants.py",
@@ -240,9 +295,11 @@ def build_report() -> dict[str, Any]:
         ],
     )
     require_markers(
-        WORKFLOW,
+        RENDER_WORKFLOW,
         [
             "Build Render image with captured output",
+            "Verify embedded pinned client build",
+            "Verify duplicate protocol and rendered-text invariants",
             "Start poke-engine boundary container",
             "Exercise Rust poke-engine ID boundary invariants",
             "Exercise foul-play raw input invariants",
@@ -251,17 +308,29 @@ def build_report() -> dict[str, Any]:
             "Exercise faint and forced-switch recovery",
             "Verify access gate and pinned default client",
             "Capture iPad-sized pinned-client baseline",
+            "phase1-localization-artifacts",
+        ],
+    )
+    require_markers(
+        INTEGRATION_WORKFLOW,
+        [
+            "name: Phase 1 integration regression",
+            "Wait for Phase 1 prerequisite workflows",
+            "Download Render smoke artifacts",
+            "merge-multiple: true",
             "Audit Phase 1 integration artifacts",
             "Require Phase 1 ready for Phase 2",
             "phase1-integration-regression-report",
             "/tmp/phase1-integration-regression.json",
-            "/tmp/bss-smoke.status",
-            "/tmp/bss-faint-smoke.status",
+            "/tmp/phase1-workflow-runs.json",
         ],
     )
     require_markers(
         LAUNCHER,
-        ["const { handlePinnedClient } = require('./pinned-client-preload');", "proxyShowdownRequest(req, res);"],
+        [
+            "const { handlePinnedClient } = require('./pinned-client-preload');",
+            "proxyShowdownRequest(req, res);",
+        ],
     )
     require_markers(
         CLIENT_HELPER,
@@ -289,6 +358,8 @@ def build_report() -> dict[str, Any]:
         "runtime_delivery_changed": True,
         "integration_regression": {
             "audit": str(INTEGRATION_AUDIT.relative_to(ROOT)),
+            "workflow_gate": str(WORKFLOW_GATE.relative_to(ROOT)),
+            "workflow": str(INTEGRATION_WORKFLOW.relative_to(ROOT)),
             "clean_docker_build_required": True,
             "all_regression_tests_required": True,
             "browser_and_ipad_required": True,
