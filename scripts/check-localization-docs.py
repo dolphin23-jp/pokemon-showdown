@@ -10,7 +10,8 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 GUIDE = ROOT / "docs" / "localization" / "README.md"
-TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-07-display-name-api.md"
+PREVIOUS_TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-07-display-name-api.md"
+TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-08-generated-name-maps.md"
 PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 LAUNCHER = ROOT / "scripts" / "launcher-server.js"
 CLIENT_HELPER = ROOT / "scripts" / "pinned-client-preload.js"
@@ -18,6 +19,9 @@ BUILD_CHECK = ROOT / "scripts" / "check-built-client.py"
 DOCKERFILE = ROOT / "Dockerfile"
 RENDER = ROOT / "render.yaml"
 T1_05_MERGE = "72d861147333739363cdb3210ff014ba418ab178"
+DISPLAY_NAME_SOURCE_REPOSITORY = "PokeAPI/pokeapi"
+DISPLAY_NAME_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
+DISPLAY_NAME_LANGUAGE_ID = 11
 
 MANDATORY_TESTS = [
     "scripts/test-foul-play-local-login.py",
@@ -49,6 +53,13 @@ RENDER_ENV_KEYS = [
     "FOUL_PLAY_USERNAME",
     "FOUL_PLAY_FORMAT",
 ]
+
+MINIMUM_COUNTS = {
+    "species": 1000,
+    "moves": 800,
+    "abilities": 250,
+    "items": 1500,
+}
 
 
 def read(path: pathlib.Path) -> str:
@@ -93,7 +104,7 @@ def build_report() -> dict[str, Any]:
         if not re.fullmatch(r"[0-9a-f]{40}", value):
             raise AssertionError(f"The pinned client {name} must be a full lowercase SHA")
     if commit == upstream_base:
-        raise AssertionError("T1-07 must pin a fork revision after the upstream base")
+        raise AssertionError("T1-08 must pin a fork revision after the upstream base")
 
     require_markers(
         README,
@@ -107,7 +118,7 @@ def build_report() -> dict[str, Any]:
         GUIDE,
         [
             "# Japanese localization operations",
-            "Phase 1 T1-07",
+            "Phase 1 T1-08",
             "/opt/pokemon-showdown-client",
             "/client.html",
             "/showdown",
@@ -117,29 +128,48 @@ def build_report() -> dict[str, Any]:
             "canonical English",
             "commit_date",
             "upstream_base_commit",
+            "battle-display-names.meta.json",
+            DISPLAY_NAME_SOURCE_REPOSITORY,
+            DISPLAY_NAME_SOURCE_COMMIT,
+            "language ID `11`",
             "X-Pokemon-Showdown-Client-Source: pinned-local",
             "docker build --no-cache --tag pokemon-showdown-ai:localization-check .",
             "python3 scripts/check-pinned-client.py --verify-remote",
             "python3 scripts/check-localization-docs.py",
             T1_05_MERGE,
+            commit,
             *MANDATORY_TESTS,
             *DISPLAY_NAME_FUNCTIONS,
             *PROTECTED_BOUNDARIES,
             *RENDER_ENV_KEYS,
+            *[f"{name} {count}" for name, count in MINIMUM_COUNTS.items()],
         ],
     )
     require_markers(
-        TASK_GUIDE,
+        PREVIOUS_TASK_GUIDE,
         [
             "# Phase 1 T1-07: display-only Japanese name API skeleton",
-            commit,
-            upstream_base,
             "window.PSDisplayNames",
             "window.BattleJapaneseDisplayNames",
             "canonical English Dex name",
             "mutates_ids: false",
             "protocol_safe: true",
-            "T1-08",
+        ],
+    )
+    require_markers(
+        TASK_GUIDE,
+        [
+            "# Phase 1 T1-08: mechanically generated Japanese display-name maps",
+            commit,
+            upstream_base,
+            DISPLAY_NAME_SOURCE_REPOSITORY,
+            DISPLAY_NAME_SOURCE_COMMIT,
+            "language ID `11`",
+            "window.BattleJapaneseDisplayNames",
+            "battle-display-names.meta.json",
+            "canonical English Dex name",
+            "mutates_ids: false",
+            "protocol_safe: true",
             *MANDATORY_TESTS,
             *DISPLAY_NAME_FUNCTIONS,
             *PROTECTED_BOUNDARIES,
@@ -173,12 +203,16 @@ def build_report() -> dict[str, Any]:
     for marker in [
         '"config/japanese-display-name-api.json"',
         '"play.pokemonshowdown.com/js/battle-display-names.js"',
+        '"play.pokemonshowdown.com/js/battle-display-names.meta.json"',
         '"PSDisplayNames"',
         '"BattleJapaneseDisplayNames"',
         '"canonical-english-name"',
         '"mutates_ids": False',
         '"protocol_safe": True',
+        DISPLAY_NAME_SOURCE_REPOSITORY,
+        DISPLAY_NAME_SOURCE_COMMIT,
         *[f'"{function}"' for function in DISPLAY_NAME_FUNCTIONS],
+        *[f'"{name}": {count}' for name, count in MINIMUM_COUNTS.items()],
     ]:
         if marker not in build_check:
             raise AssertionError(f"Display-name artifact verification is missing: {marker}")
@@ -203,13 +237,15 @@ def build_report() -> dict[str, Any]:
     links = {
         str(README.relative_to(ROOT)): verify_local_links(README),
         str(GUIDE.relative_to(ROOT)): verify_local_links(GUIDE),
+        str(PREVIOUS_TASK_GUIDE.relative_to(ROOT)): verify_local_links(PREVIOUS_TASK_GUIDE),
         str(TASK_GUIDE.relative_to(ROOT)): verify_local_links(TASK_GUIDE),
     }
 
     return {
-        "task": "Phase 1 T1-07",
+        "task": "Phase 1 T1-08",
         "guide": str(GUIDE.relative_to(ROOT)),
         "task_guide": str(TASK_GUIDE.relative_to(ROOT)),
+        "previous_task_guide": str(PREVIOUS_TASK_GUIDE.relative_to(ROOT)),
         "readme": str(README.relative_to(ROOT)),
         "pinned_client_commit": commit,
         "upstream_base_commit": upstream_base,
@@ -219,6 +255,10 @@ def build_report() -> dict[str, Any]:
             "data_global": "BattleJapaneseDisplayNames",
             "functions": DISPLAY_NAME_FUNCTIONS,
             "fallback": "canonical-english-name",
+            "source_repository": DISPLAY_NAME_SOURCE_REPOSITORY,
+            "source_commit": DISPLAY_NAME_SOURCE_COMMIT,
+            "language_id": DISPLAY_NAME_LANGUAGE_ID,
+            "minimum_counts": MINIMUM_COUNTS,
             "mutates_ids": False,
             "protocol_safe": True,
         },
