@@ -1,0 +1,36 @@
+name: Localization documentation
+
+on:
+  pull_request:
+    paths:
+      - README.md
+      - docs/localization/**
+      - config/pokemon-showdown-client.json
+      - render.yaml
+      - Dockerfile
+      - scripts/check-localization-docs.py
+      - scripts/check-phase1-baseline.py
+      - scripts/launcher-server.js
+      - scripts/pinned-client-preload.js
+      - scripts/render-start.sh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify localization operations guide
+        run: |
+          python3 scripts/check-localization-docs.py \
+            --output /tmp/localization-docs.json
+          cat /tmp/localization-docs.json
+      - name: Upload documentation verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-t1-06-localization-docs
+          path: /tmp/localization-docs.json
