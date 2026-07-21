@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-Phase 1 T1-08 時点では、次の状態です。
+Phase 1 T1-09 時点では、次の状態です。
 
 - ブラウザの既定入口は `/client.html`
 - クライアントは `dolphin23-jp/pokemon-showdown-client` の完全SHAからDockerビルドされる
@@ -15,10 +15,17 @@ Phase 1 T1-08 時点では、次の状態です。
 - ブラウザユーザーはnamedログイン後に一度だけ `/updatesettings {"language":"japanese"}` を送る
 - クライアントは表示専用の `window.PSDisplayNames` を公開する
 - 日本語名データは `window.BattleJapaneseDisplayNames` の4表に機械生成される
-- 未登録名はcanonical EnglishのDex名へフォールバックする
+- 技選択ボタンと交代・選出・対象選択ボタンの表示名を日本語化する
+- 未登録名、フォーム固有名、ニックネームはcanonical Englishまたは元の表示へフォールバックする
 - foul-playと`poke-engine`は英語の正規化IDとbattle protocolを使い、表示APIを通らない
 
-T1-07のAPI骨格は[表示名API作業記録](./phase-1-t1-07-display-name-api.md)、T1-08の生成マップは[生成マップ作業記録](./phase-1-t1-08-generated-name-maps.md)を参照してください。Phase 1 T1-06でこの正本文書を導入し、以後のタスクで現在状態を更新します。
+作業記録は次を参照してください。
+
+- [T1-07 表示名API](./phase-1-t1-07-display-name-api.md)
+- [T1-08 生成マップ](./phase-1-t1-08-generated-name-maps.md)
+- [T1-09 対戦選択UI](./phase-1-t1-09-battle-controls.md)
+
+Phase 1 T1-06でこの正本文書を導入し、以後のタスクで現在状態を更新します。
 
 ## 構成
 
@@ -30,6 +37,7 @@ Browser
           -> battle-display-names.js
              -> window.BattleJapaneseDisplayNames
              -> window.PSDisplayNames
+             -> battle choice button text only
        -> /showdown
           Pokemon Showdown server : $SHOWDOWN_PORT (default 8000)
 
@@ -49,7 +57,7 @@ foul-play
 | 固定クライアントHTML・静的資産配信 | `scripts/pinned-client-preload.js` |
 | クライアント固定情報 | `config/pokemon-showdown-client.json` |
 | 固定フォーク・SHA・上流基点検証 | `scripts/check-pinned-client.py` |
-| 完成物・表示API・生成マップ検証 | `scripts/check-built-client.py` |
+| 完成物・表示API・生成マップ・UI契約検証 | `scripts/check-built-client.py` |
 | 日本語サーバー辞書 | `translations/japanese/` |
 | Phase 1構成検証 | `scripts/check-phase1-baseline.py` |
 | 文書整合性検証 | `scripts/check-localization-docs.py` |
@@ -98,6 +106,30 @@ T1-08では、クライアントビルド時に `build-tools/generate-japanese-d
 
 生成物は手作業で編集しません。出典を更新する場合は完全SHAを更新し、件数差分、代表名、ID境界、クライアントCI、サーバーDocker完成物を一体で確認します。
 
+### 対戦選択ボタン
+
+T1-09では、生成済み表示名を次の対戦操作UIへ適用します。
+
+- `button.movebutton`: 通常技、Zワザ、ダイマックス技、キョダイマックス技
+- `button[data-tooltip^="switchpokemon|"]`: 交代、選出、手持ち一覧
+- `button[data-tooltip^="allypokemon|"]`: 味方ポケモン
+- `button[data-tooltip^="activepokemon|"]`: 技対象となる場のポケモン
+
+技ボタンは `displayMoveName(...)`、ポケモンボタンは `displaySpeciesName(...)` を使用します。ニックネームや未知の文字列は変更しません。
+
+Preactが描画した後の要素へ対応するため、`MutationObserver` が `childList`、`subtree`、`characterData` を監視します。ただし変更するのはボタン直下の表示テキストノードだけです。
+
+次は必ずcanonical Englishのまま維持します。
+
+- `data-cmd`
+- `data-tooltip`
+- request JSON
+- move indexとswitch index
+- WebSocket battle protocol
+- `/choose` と `/team`
+
+表示契約は `display_text_only: true`、`mutates_commands: false`、`mutates_tooltips: false`、`preserves_unknown_names: true` です。
+
 ## 絶対に変えない境界
 
 以下は日本語化しません。
@@ -111,7 +143,7 @@ T1-08では、クライアントビルド時に `build-tools/generate-japanese-d
 - foul-playへ渡すポケモン、技、持ち物、特性、状態のID
 - Rust `poke-engine` へ渡すID
 
-日本語名は表示専用APIの戻り値としてのみ使用し、内部検索・保存・通信のキーにはしません。表示名から英語IDを逆生成する設計も禁止します。
+日本語名は表示専用APIと表示テキスト置換にのみ使用し、内部検索・保存・通信のキーにはしません。表示名から英語IDを逆生成する設計も禁止します。
 
 ## クライアント固定情報
 
@@ -122,6 +154,12 @@ T1-08では、クライアントビルド時に `build-tools/generate-japanese-d
 - `upstream_base_commit`: フォーク変更の基点となる上流SHA
 - `upstream_base_commit_date`: 上流基点の日付
 - `runtime_delivery_changed`: T1-05の切り替え後は常に `true`
+
+T1-09で固定するクライアントSHAは次です。
+
+```text
+80c72741b52e91d35ee778982a936ea42526c078
+```
 
 `scripts/check-pinned-client.py --verify-remote` は、フォーク関係、各SHAと日付、フォークSHAが上流基点を祖先に持つことを確認します。
 
@@ -158,7 +196,7 @@ T1-08では、クライアントビルド時に `build-tools/generate-japanese-d
 3. `scripts/smoke-bss-battle.py` の実サーバー `/language` 確認を通す
 4. 必須4テストを実行する
 
-### 固定クライアントまたは生成マップの更新
+### 固定クライアント・生成マップ・表示面の更新
 
 クライアント更新はブランチ名ではなく完全な40文字SHAで固定します。
 
@@ -189,8 +227,9 @@ docker run --rm --entrypoint python3 pokemon-showdown-ai:localization-check \
 ```
 
 9. `battle-display-names.meta.json` の出典SHA、言語ID、4表の件数を確認する
-10. `/client.html`、代表的なJS・CSS・config、404境界、iPadサイズ画面を確認する
-11. 必須4テストを通してからマージする
+10. `data-cmd`、`data-tooltip`、request JSON、protocolが英語のままか確認する
+11. `/client.html`、代表的なJS・CSS・config、404境界、iPadサイズ画面を確認する
+12. 必須4テストを通してからマージする
 
 `/opt/pokemon-showdown-client` 内の生成物をサーバーリポジトリへ手作業でコピーしません。Dockerのclient-builder stageを唯一の生成経路とします。
 
@@ -234,7 +273,7 @@ curl --fail https://<service-host>/health
 X-Pokemon-Showdown-Client-Source: pinned-local
 ```
 
-表示名APIと生成マップは `/js/battle-display-names.js` から同じヘッダー付きで配信されます。未知パスが公式サイトの内容を返す場合はT1-05の境界が壊れています。
+表示名API、生成マップ、対戦選択UI連携は `/js/battle-display-names.js` から同じヘッダー付きで配信されます。未知パスが公式サイトの内容を返す場合はT1-05の境界が壊れています。
 
 ### ログ
 
@@ -254,13 +293,27 @@ X-Pokemon-Showdown-Client-Source: pinned-local
 4. HTMLが公式ホストのscript・image・stylesheetを参照していないか確認する
 5. SHA更新直後なら固定SHAと生成物の組み合わせを疑う
 
-### 日本語名が英語へフォールバックする
+### 対戦選択ボタンが英語のままになる
 
 1. `/js/battle-display-names.js` が200を返すか確認する
 2. `window.PSDisplayNames` と `window.BattleJapaneseDisplayNames` が存在するか確認する
-3. `battle-display-names.meta.json` の4表件数を確認する
-4. 対象がPokeAPIのspecies表にないフォーム固有名か確認する
-5. `scripts/check-built-client.py` が固定出典SHAと件数を検証できるか確認する
+3. 対象ボタンがT1-09の4セレクタに一致するか確認する
+4. 対象文字列がニックネームまたは生成元にないフォーム名でないか確認する
+5. `MutationObserver` が動作し、`childList`、`subtree`、`characterData` を監視しているか確認する
+6. `scripts/check-built-client.py` でソースとbundleのT1-09契約を確認する
+
+### 日本語名が英語へフォールバックする
+
+1. `battle-display-names.meta.json` の4表件数を確認する
+2. 対象がPokeAPIのspecies表にないフォーム固有名か確認する
+3. `scripts/check-built-client.py` が固定出典SHAと件数を検証できるか確認する
+
+### 選択操作が失敗する
+
+1. ボタンの `data-cmd` が `/move <index>` または `/switch <index>` のままか確認する
+2. `data-tooltip` がcanonical Englishのままか確認する
+3. WebSocketの `/choose` payloadに日本語文字列が混入していないか確認する
+4. 必須4テストとRender smokeを再実行する
 
 ### Botがログインしない
 
@@ -280,14 +333,19 @@ X-Pokemon-Showdown-Client-Source: pinned-local
 
 ロールバックはforce pushではなくPRで行います。
 
-### 生成マップを含むクライアント更新だけを戻す
+### T1-09の対戦選択UI連携を戻す
 
-1. 直前に成功していた完全SHAを特定する
-2. `commit` と `commit_date` を戻す
-3. 対応する `upstream_base_commit` と `upstream_base_commit_date` を確認する
-4. `runtime_delivery_changed` は `true` のまま維持する
-5. 固定フォーク検証、Dockerビルド、完成物検証、必須4テストを実行する
-6. ロールバックPRをマージし、Renderデプロイを確認する
+直前のT1-08クライアントSHAへ固定を戻します。
+
+```text
+523a5fb38255916f6fb7bcd4b5b3ccaa5414f6eb
+```
+
+1. `commit` と `commit_date` をT1-08へ戻す
+2. `upstream_base_commit` と `upstream_base_commit_date` を維持する
+3. `runtime_delivery_changed` は `true` のまま維持する
+4. 固定フォーク検証、Dockerビルド、完成物検証、必須4テストを実行する
+5. ロールバックPRをマージし、Renderデプロイを確認する
 
 T1-07の表示名APIのみを含む既知正常クライアントSHAは次です。
 
@@ -295,10 +353,10 @@ T1-07の表示名APIのみを含む既知正常クライアントSHAは次です
 1a5d96a4c05f0f4da766de877f3219b68c51f158
 ```
 
-T1-08の生成マップを含むクライアントSHAは次です。
+T1-09の対戦選択UIを含む現在のクライアントSHAは次です。
 
 ```text
-523a5fb38255916f6fb7bcd4b5b3ccaa5414f6eb
+80c72741b52e91d35ee778982a936ea42526c078
 ```
 
 Phase 1で最初に採用した上流基点SHAは次です。
@@ -324,6 +382,9 @@ SHAを戻しても復旧しない重大障害に限ります。
 - [ ] foul-playと`poke-engine`の入力は英語IDのまま
 - [ ] 表示変換は `window.PSDisplayNames` に限定されている
 - [ ] 生成マップは `window.BattleJapaneseDisplayNames` に限定されている
+- [ ] 対戦UIでは表示テキストノードだけを変更している
+- [ ] `data-cmd` と `data-tooltip` はcanonical Englishのまま
+- [ ] ニックネームと未知名を保持する
 - [ ] クライアントと出典は完全SHAで固定されている
 - [ ] 生成メタデータの4表件数が下限以上である
 - [ ] `/client.html` と表示名API資産が`pinned-local`を返す
@@ -343,3 +404,4 @@ SHAを戻しても復旧しない重大障害に限ります。
 - T1-06: 構成、更新、検証、障害対応、ロールバックを正本文書へ統合
 - T1-07: 表示専用の日本語名API骨格を固定クライアントへ追加
 - T1-08: species、moves、abilities、itemsの日本語表示名マップを固定出典から機械生成
+- T1-09: 技選択と交代・選出・対象選択ボタンへ日本語表示名を適用し、操作属性とprotocolを不変に維持
