@@ -111,11 +111,11 @@ RUN bash scripts/ensure-codespaces-config.sh \
 RUN bash scripts/sync-all-generations-teams.sh --refresh \
     && python3 scripts/prepare-foul-play-cache.py
 
-# Keep the client outside the server source tree until the server build has
-# finished, preventing the server compiler from traversing client-only sources.
-COPY --from=client-builder /client /app/pokemon-showdown-client
+# Keep the client outside /app so later server CLI invocations do not traverse
+# client-only sources or symlinks while checking whether a server rebuild is due.
+COPY --from=client-builder /client /opt/pokemon-showdown-client
 RUN python3 scripts/check-built-client.py \
-        --client-root /app/pokemon-showdown-client \
+        --client-root /opt/pokemon-showdown-client \
         --pin-file /app/config/pokemon-showdown-client.json
 
 EXPOSE 10000
