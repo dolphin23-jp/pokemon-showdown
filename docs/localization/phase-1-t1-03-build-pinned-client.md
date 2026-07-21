@@ -22,13 +22,15 @@ The dedicated `client-builder` Docker stage runs:
 
 The resulting source tree and generated artifacts are copied to:
 
-- `/app/pokemon-showdown-client`
+- `/opt/pokemon-showdown-client`
 
 The generated build manifest is:
 
-- `/app/pokemon-showdown-client/build-manifest.json`
+- `/opt/pokemon-showdown-client/build-manifest.json`
 
-It records the fork, upstream, complete commit, client version, build command, file sizes, and SHA-256 hashes for representative local test-client HTML, generated JavaScript, CSS, and configuration files.
+The client is kept outside `/app`, which is the Pokémon Showdown server source tree. This prevents later server CLI commands such as team packing from traversing client-only files while checking whether a server rebuild is required.
+
+The manifest records the fork, upstream, complete commit, client version, build command, file sizes, and SHA-256 hashes for representative local test-client HTML, generated JavaScript, CSS, and configuration files.
 
 ## Verification
 
@@ -48,7 +50,7 @@ T1-03 deliberately leaves runtime delivery unchanged:
 
 - `/client.html` still retrieves the official `testclient-new.html`
 - official client assets are still proxied at runtime
-- `/app/pokemon-showdown-client` is not yet exposed by the launcher
+- `/opt/pokemon-showdown-client` is not yet exposed by the launcher
 
 Local serving is introduced separately in T1-04. Default cutover and removal of the broad runtime proxy remain T1-05.
 
