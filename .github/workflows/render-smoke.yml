@@ -56,6 +56,17 @@ jobs:
             /tmp/docker-build.status
       - name: Require Docker image to build
         run: test "$(cat /tmp/docker-build.status)" = 0
+      - name: Verify embedded pinned client build
+        run: |
+          docker run --rm --entrypoint python3 pokemon-showdown-ai:smoke \
+            /app/scripts/check-built-client.py \
+              --client-root /app/pokemon-showdown-client \
+              --pin-file /app/config/pokemon-showdown-client.json \
+            > /tmp/client-build-verification.json
+          cat /tmp/client-build-verification.json
+          docker run --rm --entrypoint cat pokemon-showdown-ai:smoke \
+            /app/pokemon-showdown-client/build-manifest.json \
+            > /tmp/client-build-manifest.json
       - name: Start container
         run: |
           docker run --detach --name showdown-ai \
@@ -205,6 +216,8 @@ jobs:
           path: |
             /tmp/phase1-baseline.json
             /tmp/client-pin.json
+            /tmp/client-build-verification.json
+            /tmp/client-build-manifest.json
             /tmp/authenticated-launcher.html
             /tmp/authenticated-client.html
             /tmp/launcher-baseline.html
