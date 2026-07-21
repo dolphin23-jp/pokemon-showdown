@@ -35,5 +35,5 @@ The foul-play login test continues to require its exact existing command: `/trn 
 ## Verification
 
 - `scripts/test-launcher-japanese-language.js` executes the injected login code with a fake client model and checks ordering, one-time delivery, and already-named behavior.
-- `scripts/smoke-bss-battle.py` enables Japanese on a real local Showdown connection and requires `/version` to return the translated phrase `サーバーのバージョン` before starting its normal battle smoke test.
+- `scripts/smoke-bss-battle.py` enables Japanese on a real local Showdown connection and requires `/language` to return the translated phrase beginning `現在、Pokémon Showdownを` before starting its normal battle smoke test.
 - The existing foul-play and faint-recovery tests remain required.
