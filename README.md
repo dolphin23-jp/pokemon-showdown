@@ -11,6 +11,18 @@ Navigation: [Website][1] | **Server repository** | [Client repository][2] | [Dex
 [![Dependency Status](https://img.shields.io/librariesio/github/smogon/pokemon-showdown)](https://libraries.io/github/smogon/pokemon-showdown)
 
 
+Personal AI deployment and Japanese localization
+------------------------------------------------------------------------
+
+This fork runs a private Pokémon Showdown server with foul-play and a pinned, locally built browser client. The default `/client.html` no longer depends on the official client host at runtime.
+
+The authoritative guide for the current architecture, client updates, required regression tests, troubleshooting, and rollback is:
+
+* [docs/localization/README.md](./docs/localization/README.md)
+
+Important boundaries for this fork: normalized IDs, battle protocol payloads, `/choose`, `/team`, team Import/Export, foul-play inputs, and Rust `poke-engine` inputs remain English and unchanged. Japanese names and text are display-only.
+
+
 Introduction
 ------------------------------------------------------------------------
 
