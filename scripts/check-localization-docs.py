@@ -10,9 +10,11 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 GUIDE = ROOT / "docs" / "localization" / "README.md"
+TASK_GUIDE = ROOT / "docs" / "localization" / "phase-1-t1-07-display-name-api.md"
 PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 LAUNCHER = ROOT / "scripts" / "launcher-server.js"
 CLIENT_HELPER = ROOT / "scripts" / "pinned-client-preload.js"
+BUILD_CHECK = ROOT / "scripts" / "check-built-client.py"
 DOCKERFILE = ROOT / "Dockerfile"
 RENDER = ROOT / "render.yaml"
 T1_05_MERGE = "72d861147333739363cdb3210ff014ba418ab178"
@@ -22,6 +24,13 @@ MANDATORY_TESTS = [
     "scripts/test-foul-play-battle-fallbacks.py",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
+]
+
+DISPLAY_NAME_FUNCTIONS = [
+    "displaySpeciesName",
+    "displayMoveName",
+    "displayAbilityName",
+    "displayItemName",
 ]
 
 PROTECTED_BOUNDARIES = [
@@ -79,8 +88,12 @@ def build_report() -> dict[str, Any]:
     if pin.get("runtime_delivery_changed") is not True:
         raise AssertionError("The operations guide is valid only after the T1-05 local-client cutover")
     commit = str(pin.get("commit", ""))
-    if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise AssertionError("The pinned client commit must be a full lowercase SHA")
+    upstream_base = str(pin.get("upstream_base_commit", ""))
+    for name, value in (("commit", commit), ("upstream_base_commit", upstream_base)):
+        if not re.fullmatch(r"[0-9a-f]{40}", value):
+            raise AssertionError(f"The pinned client {name} must be a full lowercase SHA")
+    if commit == upstream_base:
+        raise AssertionError("T1-07 must pin a fork revision after the upstream base")
 
     require_markers(
         README,
@@ -94,20 +107,42 @@ def build_report() -> dict[str, Any]:
         GUIDE,
         [
             "# Japanese localization operations",
-            "Phase 1 T1-06",
+            "Phase 1 T1-07",
             "/opt/pokemon-showdown-client",
             "/client.html",
             "/showdown",
             '/updatesettings {"language":"japanese"}',
+            "window.PSDisplayNames",
+            "window.BattleJapaneseDisplayNames",
+            "canonical English",
+            "commit_date",
+            "upstream_base_commit",
             "X-Pokemon-Showdown-Client-Source: pinned-local",
             "docker build --no-cache --tag pokemon-showdown-ai:localization-check .",
             "python3 scripts/check-pinned-client.py --verify-remote",
             "python3 scripts/check-localization-docs.py",
             T1_05_MERGE,
-            commit,
             *MANDATORY_TESTS,
+            *DISPLAY_NAME_FUNCTIONS,
             *PROTECTED_BOUNDARIES,
             *RENDER_ENV_KEYS,
+        ],
+    )
+    require_markers(
+        TASK_GUIDE,
+        [
+            "# Phase 1 T1-07: display-only Japanese name API skeleton",
+            commit,
+            upstream_base,
+            "window.PSDisplayNames",
+            "window.BattleJapaneseDisplayNames",
+            "canonical English Dex name",
+            "mutates_ids: false",
+            "protocol_safe: true",
+            "T1-08",
+            *MANDATORY_TESTS,
+            *DISPLAY_NAME_FUNCTIONS,
+            *PROTECTED_BOUNDARIES,
         ],
     )
 
@@ -134,6 +169,20 @@ def build_report() -> dict[str, Any]:
         if marker not in client_helper:
             raise AssertionError(f"Pinned client architecture no longer matches the guide: {marker}")
 
+    build_check = read(BUILD_CHECK)
+    for marker in [
+        '"config/japanese-display-name-api.json"',
+        '"play.pokemonshowdown.com/js/battle-display-names.js"',
+        '"PSDisplayNames"',
+        '"BattleJapaneseDisplayNames"',
+        '"canonical-english-name"',
+        '"mutates_ids": False',
+        '"protocol_safe": True',
+        *[f'"{function}"' for function in DISPLAY_NAME_FUNCTIONS],
+    ]:
+        if marker not in build_check:
+            raise AssertionError(f"Display-name artifact verification is missing: {marker}")
+
     dockerfile = read(DOCKERFILE)
     for marker in [
         "FROM node:22-bookworm AS client-builder",
@@ -154,14 +203,25 @@ def build_report() -> dict[str, Any]:
     links = {
         str(README.relative_to(ROOT)): verify_local_links(README),
         str(GUIDE.relative_to(ROOT)): verify_local_links(GUIDE),
+        str(TASK_GUIDE.relative_to(ROOT)): verify_local_links(TASK_GUIDE),
     }
 
     return {
-        "task": "Phase 1 T1-06",
+        "task": "Phase 1 T1-07",
         "guide": str(GUIDE.relative_to(ROOT)),
+        "task_guide": str(TASK_GUIDE.relative_to(ROOT)),
         "readme": str(README.relative_to(ROOT)),
         "pinned_client_commit": commit,
+        "upstream_base_commit": upstream_base,
         "runtime_delivery_changed": pin["runtime_delivery_changed"],
+        "display_name_api": {
+            "api_global": "PSDisplayNames",
+            "data_global": "BattleJapaneseDisplayNames",
+            "functions": DISPLAY_NAME_FUNCTIONS,
+            "fallback": "canonical-english-name",
+            "mutates_ids": False,
+            "protocol_safe": True,
+        },
         "mandatory_tests_documented": MANDATORY_TESTS,
         "protected_boundaries_documented": PROTECTED_BOUNDARIES,
         "local_links_checked": links,
