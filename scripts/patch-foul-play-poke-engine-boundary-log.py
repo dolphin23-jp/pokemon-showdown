@@ -25,13 +25,23 @@ FUNCTION_NEEDLE = """def get_result_from_mcts(
 
     res = monte_carlo_tree_search(poke_engine_state, search_time_ms, threads=threads)
 """
-FUNCTION_REPLACEMENT = """def _poke_engine_pokemon_snapshot(pokemon):
+FUNCTION_REPLACEMENT = """def _normalized_poke_engine_id(value):
+    return "".join(character.lower() for character in str(value) if character.isalnum())
+
+
+def _poke_engine_pokemon_snapshot(pokemon):
+    rust_moves = [str(move.id) for move in pokemon.moves]
     return {
-        "id": str(pokemon.id),
-        "ability": str(pokemon.ability),
-        "base_ability": str(pokemon.base_ability),
-        "item": str(pokemon.item),
-        "moves": [str(move.id) for move in pokemon.moves],
+        "rust_id": str(pokemon.id),
+        "id": _normalized_poke_engine_id(pokemon.id),
+        "rust_ability": str(pokemon.ability),
+        "ability": _normalized_poke_engine_id(pokemon.ability),
+        "rust_base_ability": str(pokemon.base_ability),
+        "base_ability": _normalized_poke_engine_id(pokemon.base_ability),
+        "rust_item": str(pokemon.item),
+        "item": _normalized_poke_engine_id(pokemon.item),
+        "rust_moves": rust_moves,
+        "moves": [_normalized_poke_engine_id(move_id) for move_id in rust_moves],
     }
 
 
@@ -52,7 +62,8 @@ def _write_poke_engine_boundary_log(serialized_state, poke_engine_state, index):
     # PERSONAL_SERVER_POKE_ENGINE_BOUNDARY_LOG
     # Capture the exact Rust-backed State after from_string() and immediately
     # before monte_carlo_tree_search(). Normal runtime is unchanged unless the
-    # environment variable is set.
+    # environment variable is set. Rust enum tokens are preserved verbatim and
+    # accompanied by Showdown-style normalized IDs for invariant comparison.
     boundary_log = os.environ.get("FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG")
     if not boundary_log:
         return
