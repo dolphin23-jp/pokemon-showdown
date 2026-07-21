@@ -54,3 +54,5 @@ jobs:
             docs/localization/phase-2-server-translation-inventory.md
           git commit -m "Apply Phase 2 Japanese server dictionary fixes"
           git push origin HEAD:agent/phase2-server-dictionary-quality
+
+# This workflow is temporary and is removed after the generated commit lands.
