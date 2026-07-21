@@ -71,6 +71,7 @@ RUN npx eslint --max-warnings 0 \
     && node scripts/test-launcher-pinned-client.js \
     && python3 -m py_compile \
         scripts/check-built-client.py \
+        scripts/check-localization-docs.py \
         scripts/check-pinned-client.py \
         scripts/check-showdown-user.py \
         scripts/prepare-foul-play-cache.py \
@@ -81,6 +82,7 @@ RUN npx eslint --max-warnings 0 \
         scripts/smoke-bss-faint-recovery.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
+    && python3 scripts/check-localization-docs.py \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \
