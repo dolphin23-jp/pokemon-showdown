@@ -31,6 +31,13 @@ It selects PokeAPI language ID `11`, joins Japanese names to the corresponding E
 - `abilities`
 - `items`
 
+The generated tables are read only through the four helpers already exposed by `window.PSDisplayNames`:
+
+- `displaySpeciesName(...)`
+- `displayMoveName(...)`
+- `displayAbilityName(...)`
+- `displayItemName(...)`
+
 The generated tables are embedded into `play.pokemonshowdown.com/js/battle-display-names.js` after the TypeScript API is compiled. Build metadata is written to `play.pokemonshowdown.com/js/battle-display-names.meta.json`.
 
 Generation fails if the source cannot be fetched, if normalized identifiers collide with different Japanese names, or if table sizes fall below these guards:
