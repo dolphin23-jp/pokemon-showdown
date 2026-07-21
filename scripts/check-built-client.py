@@ -12,9 +12,18 @@ from typing import Any
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_PIN_FILE = ROOT / "config" / "pokemon-showdown-client.json"
 
+DISPLAY_NAME_FUNCTIONS = (
+    "displaySpeciesName",
+    "displayMoveName",
+    "displayAbilityName",
+    "displayItemName",
+)
+
 REQUIRED_ARTIFACTS = (
     "config/config.js",
+    "config/japanese-display-name-api.json",
     "play.pokemonshowdown.com/testclient-new.html",
+    "play.pokemonshowdown.com/js/battle-display-names.js",
     "play.pokemonshowdown.com/js/client-main.js",
     "play.pokemonshowdown.com/js/client-connection.js",
     "play.pokemonshowdown.com/js/panel-battle.js",
@@ -65,6 +74,55 @@ def expected_manifest(client_root: pathlib.Path, pin: dict[str, Any]) -> dict[st
     }
 
 
+def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dict[str, Any]:
+    contract_path = client_root / "config" / "japanese-display-name-api.json"
+    compiled_path = (
+        client_root / "play.pokemonshowdown.com" / "js" / "battle-display-names.js"
+    )
+    contract = read_json(contract_path)
+    expected_contract = {
+        "api_global": "PSDisplayNames",
+        "data_global": "BattleJapaneseDisplayNames",
+        "functions": list(DISPLAY_NAME_FUNCTIONS),
+        "fallback": "canonical-english-name",
+        "mutates_ids": False,
+        "protocol_safe": True,
+    }
+    if contract != expected_contract:
+        raise AssertionError("Japanese display-name API contract is missing or unexpected")
+
+    compiled = compiled_path.read_text(encoding="utf-8")
+    missing_markers = [
+        marker for marker in (
+            "PSDisplayNames",
+            "BattleJapaneseDisplayNames",
+            *DISPLAY_NAME_FUNCTIONS,
+        )
+        if marker not in compiled
+    ]
+    if missing_markers:
+        raise AssertionError(
+            f"Compiled display-name API is missing markers: {missing_markers}"
+        )
+    if 'src="js/battle-display-names.js"' not in testclient:
+        raise AssertionError("Pinned test client does not load the display-name API")
+
+    generated_map = (
+        client_root / "play.pokemonshowdown.com" / "data" / "japanese-display-names.js"
+    )
+    return {
+        "contract": str(contract_path.relative_to(client_root)),
+        "compiled_api": str(compiled_path.relative_to(client_root)),
+        "api_global": contract["api_global"],
+        "data_global": contract["data_global"],
+        "functions": contract["functions"],
+        "fallback": contract["fallback"],
+        "mutates_ids": contract["mutates_ids"],
+        "protocol_safe": contract["protocol_safe"],
+        "generated_map_present": generated_map.is_file(),
+    }
+
+
 def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[str, Any]:
     pin = read_json(pin_file)
     missing = [
@@ -88,6 +146,7 @@ def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[st
     ).read_text(encoding="utf-8")
     required_references = (
         'href="style/client2.css"',
+        'src="js/battle-display-names.js"',
         'src="js/client-main.js"',
         'src="js/client-connection.js"',
         'src="js/panel-battle.js"',
@@ -101,7 +160,9 @@ def validate_build(client_root: pathlib.Path, pin_file: pathlib.Path) -> dict[st
             f"Local test client is missing required build references: {missing_references}"
         )
 
-    return expected_manifest(client_root, pin)
+    manifest = expected_manifest(client_root, pin)
+    manifest["display_name_api"] = validate_display_name_api(client_root, testclient)
+    return manifest
 
 
 def verify_manifest(manifest_path: pathlib.Path, expected: dict[str, Any]) -> None:
@@ -141,6 +202,7 @@ def main() -> None:
         "commit": manifest["commit"],
         "client_version": manifest["client_version"],
         "artifact_count": len(manifest["artifacts"]),
+        "display_name_api": manifest["display_name_api"],
         "verified": True,
     }
     payload = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
