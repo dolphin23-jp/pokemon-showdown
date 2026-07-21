@@ -13,6 +13,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "Dockerfile",
     ".gitmodules",
+    "config/pokemon-showdown-client.json",
+    "scripts/check-pinned-client.py",
     "scripts/launcher-server.js",
     "scripts/smoke-bss-battle.py",
     "scripts/smoke-bss-faint-recovery.py",
@@ -86,6 +88,12 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         ],
     )
 
+    client_pin = json.loads(
+        (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
+    )
+    if client_pin.get("runtime_delivery_changed") is not False:
+        raise AssertionError("T1-02 must not change runtime client delivery")
+
     diff_files = changed_files(base_ref)
     protected_changes = [
         path for path in diff_files
@@ -106,7 +114,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
 
     return {
         "phase": "Phase 1",
-        "task": "T1-01",
+        "task": "T1-02",
         "commit": commit,
         "base_ref": base_ref or "",
         "changed_files": diff_files,
@@ -117,9 +125,13 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
             "battle_server_prefix": "/showdown",
             "browser_login_command": "/trn <name>,0,",
             "browser_language_command": '/updatesettings {"language":"japanese"}',
+            "changed_by_t1_02": False,
         },
         "pinned_dependencies": {
             "foul_play_commit": "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6",
+            "pokemon_showdown_client_fork": client_pin["fork_repository"],
+            "pokemon_showdown_client_upstream": client_pin["upstream_repository"],
+            "pokemon_showdown_client_commit": client_pin["commit"],
         },
         "required_regression_tests": [
             "scripts/smoke-bss-battle.py",
@@ -130,6 +142,7 @@ def build_report(base_ref: str | None) -> dict[str, Any]:
         "localization_safety_tests": [
             "scripts/test-launcher-japanese-language.js",
             "Japanese /language response in scripts/smoke-bss-battle.py",
+            "scripts/check-pinned-client.py --verify-remote",
         ],
         "japanese_server_translation_files": [
             "translations/japanese/main.ts",
