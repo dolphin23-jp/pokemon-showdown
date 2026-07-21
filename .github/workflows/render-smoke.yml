@@ -19,9 +19,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record Phase 1 baseline invariants
+        run: |
+          python3 scripts/check-phase1-baseline.py \
+            --base-ref "${{ github.base_ref }}" \
+            --output /tmp/phase1-baseline.json
+          cat /tmp/phase1-baseline.json
       - name: Build Render image with captured output
         shell: bash
         run: |
@@ -123,7 +131,81 @@ jobs:
           curl --fail --silent \
             --cookie /tmp/showdown-ai.cookies \
             http://127.0.0.1:10000/ \
-            | grep -q 'National Dex All Generations BSS'
+            --output /tmp/authenticated-launcher.html
+          grep -q 'National Dex All Generations BSS' /tmp/authenticated-launcher.html
+          grep -q '名前を保存してShowdownを開く' /tmp/authenticated-launcher.html
+          curl --fail --silent \
+            --cookie /tmp/showdown-ai.cookies \
+            http://127.0.0.1:10000/client.html \
+            --output /tmp/authenticated-client.html
+          grep -q 'Config.defaultserver' /tmp/authenticated-client.html
+          grep -q "prefix: '/showdown'" /tmp/authenticated-client.html
+          grep -q "ps.send('/trn ' + cleaned + ',0,');" /tmp/authenticated-client.html
+      - name: Start unprotected visual baseline container
+        run: |
+          docker run --detach --name showdown-baseline \
+            -p 10001:10000 \
+            -e PORT=10000 \
+            -e DEFAULT_PLAYER_NAME=Dolphin23 \
+            -e FOUL_PLAY_USERNAME=BaselineBot \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
+            pokemon-showdown-ai:smoke
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:10001/health | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-baseline | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Install Japanese screenshot fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+      - name: Capture iPad-sized visual baseline
+        shell: bash
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          curl --fail --silent http://127.0.0.1:10001/ \
+            --output /tmp/launcher-baseline.html
+          curl --fail --silent http://127.0.0.1:10001/client.html \
+            --output /tmp/client-baseline.html
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --hide-scrollbars --no-proxy-server \
+            --user-data-dir=/tmp/chrome-launcher-baseline \
+            --window-size=1024,1366 \
+            --virtual-time-budget=5000 \
+            --screenshot=/tmp/phase1-launcher-ipad.png \
+            http://127.0.0.1:10001/
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --hide-scrollbars --no-proxy-server \
+            --user-data-dir=/tmp/chrome-client-baseline \
+            --window-size=1024,1366 \
+            --virtual-time-budget=15000 \
+            --screenshot=/tmp/phase1-client-ipad.png \
+            http://127.0.0.1:10001/client.html
+          test -s /tmp/phase1-launcher-ipad.png
+          test -s /tmp/phase1-client-ipad.png
+      - name: Upload Phase 1 baseline artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-t1-00-baseline
+          path: |
+            /tmp/phase1-baseline.json
+            /tmp/authenticated-launcher.html
+            /tmp/authenticated-client.html
+            /tmp/launcher-baseline.html
+            /tmp/client-baseline.html
+            /tmp/phase1-launcher-ipad.png
+            /tmp/phase1-client-ipad.png
+      - name: Cleanup visual baseline container
+        if: always()
+        run: docker rm --force showdown-baseline >/dev/null 2>&1 || true
       - name: Capture container diagnostics
         if: always()
         shell: bash
