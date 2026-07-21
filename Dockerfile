@@ -56,10 +56,20 @@ RUN npm ci
 
 COPY . .
 
-RUN npx eslint --max-warnings 0 scripts/launcher-server.js scripts/test-launcher-japanese-language.js \
+ENV PINNED_CLIENT_ROOT=/opt/pokemon-showdown-client \
+    NODE_OPTIONS=--require=/app/scripts/pinned-client-preload.js
+
+RUN npx eslint --max-warnings 0 \
+        scripts/launcher-server.js \
+        scripts/pinned-client-preload.js \
+        scripts/test-launcher-japanese-language.js \
+        scripts/test-launcher-pinned-client.js \
     && node --check scripts/launcher-server.js \
+    && node --check scripts/pinned-client-preload.js \
     && node --check scripts/test-launcher-japanese-language.js \
+    && node --check scripts/test-launcher-pinned-client.js \
     && node scripts/test-launcher-japanese-language.js \
+    && node scripts/test-launcher-pinned-client.js \
     && python3 -m py_compile \
         scripts/check-built-client.py \
         scripts/check-pinned-client.py \
