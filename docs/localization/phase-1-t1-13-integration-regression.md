@@ -19,13 +19,14 @@ T1-13はテスト・文書・成果物監査だけを変更します。
 - `scripts/audit-phase1-integration.py`
 - `scripts/wait-phase1-workflows.py`
 - `.github/workflows/phase1-integration-regression.yml`
+- `.github/workflows/render-smoke.yml`の日本語フォント準備
 - `scripts/check-phase1-baseline.py`
 - `scripts/check-localization-docs.py`
 - `docs/localization/README.md`
 - この文書
 - `Dockerfile`のPython構文検査対象
 
-既存の`.github/workflows/render-smoke.yml`は変更しません。ゲームデータ、シミュレーター、クライアント実装、翻訳データ、foul-playの対戦判断、Rust Stateも変更しません。
+Render smokeの検査内容と成果物経路は維持します。日本語フォント準備だけは、既存フォントがあれば即時通過し、未導入時はapt通信を時間制限付きで最大3回試行し、最後に日本語フォントの存在を検証する形へ堅牢化します。ゲームデータ、シミュレーター、クライアント実装、翻訳データ、foul-playの対戦判断、Rust Stateは変更しません。
 
 ## workflow分離
 
@@ -107,6 +108,7 @@ T1-13で継続成功を要求する検査は次です。
 - path traversalと未知resourceは404
 - 外部Showdown clientへ依存しない
 - launcherとclientを1024×1366で撮影
+- 日本語フォント準備は既存フォントを優先し、apt使用時は各コマンド3分上限・最大3回で終了する
 
 ## 成果物監査
 
