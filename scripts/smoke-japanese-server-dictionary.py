@@ -13,7 +13,6 @@ from collections.abc import AsyncIterator
 import websockets
 
 ROOM = "lobby"
-JAPANESE_LANGUAGE_CONFIRMATION = "Pokémon Showdownは言語部屋以外の場所はJapaneseで表示されます。"
 FAQ_MARKERS = (
     "ティア制度に関するよくある質問",
     "バッジに関するよくある質問",
@@ -118,8 +117,8 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
         await wait_for_challenge_string(websocket, deadline, history)
         await wait_for_named_login(websocket, player, deadline, history)
 
-        # The completion condition explicitly requires the public command, not
-        # only the settings JSON shortcut used by the client bootstrap.
+        # The first /language response is built in the command's original
+        # language context. The authoritative confirmation is updateuser.
         await websocket.send("|/language japanese")
         await websocket.send(f"|/join {ROOM}")
 
@@ -129,15 +128,13 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
                 websocket, deadline, history, "Japanese command verification"
             )
 
-            if JAPANESE_LANGUAGE_CONFIRMATION in message or (
-                "Pokémon Showdown" in message and "Japanese" in message and "表示されます" in message
-            ):
+            if '"language":"japanese"' in message:
                 language_confirmed = True
+            if "|init|chat" in message and "|title|Lobby" in message:
+                room_joined = True
 
-            for room, line in protocol_lines(message):
-                if room == ROOM and line.startswith("|init|chat"):
-                    room_joined = True
-                if room == ROOM and USERLIST_PREFIX in line:
+            for _room, line in protocol_lines(message):
+                if USERLIST_PREFIX in line:
                     userlist_responses.append(line)
                     if ENGLISH_USERLIST.search(line):
                         raise AssertionError(f"/userlist still returned direct English: {line}")
@@ -148,7 +145,7 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
                     if marker in line:
                         faq_confirmed[marker] = True
 
-            if room_joined and not commands_sent:
+            if language_confirmed and room_joined and not commands_sent:
                 await websocket.send(f"{ROOM}|/faq tiers")
                 await websocket.send(f"{ROOM}|/faq badges")
                 await websocket.send(f"{ROOM}|/userlist")
@@ -160,7 +157,7 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
                     "player": player,
                     "room": ROOM,
                     "language_command": "/language japanese",
-                    "language_confirmed": True,
+                    "language_setting_confirmed_by_updateuser": True,
                     "commands_checked": ["/faq tiers", "/faq badges", "/userlist"],
                     "faq_markers": faq_confirmed,
                     "userlist_japanese_prefix": USERLIST_PREFIX,
