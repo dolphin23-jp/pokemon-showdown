@@ -249,7 +249,7 @@ async function verifyJapaneseForm() {
 		species: 'ピカチュウ',
 		ability: 'せいでんき',
 		item: 'でんきだま',
-		move: '10まんボルト',
+		move: '１０まんボルト',
 	};
 	await waitFor(() => (
 		field('set-0-pokemon')?.value === expectedValues.species &&
@@ -395,7 +395,7 @@ try {
 		query: 'Thunderbolt',
 		canonicalName: 'Thunderbolt',
 		entrySelector: 'a[data-entry^="move|Thunderbolt"]',
-		expectedJapanese: '10まんボルト',
+		expectedJapanese: '１０まんボルト',
 	}));
 
 	report.form = await browserCall(client, verifyJapaneseForm);
