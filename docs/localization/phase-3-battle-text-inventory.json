@@ -1,45 +1,17 @@
 {
-  "generatedFromServerSha": "39cc33901269494f65c9da90bedf90fdf2c9d804",
-  "generatedFromClientSha": "d2939675265dabb8e42c5b8ade059115ee3086db",
-  "totalMissing": 452,
+  "generatedFromServerSha": "0c919401b339c66672059a5bc1541e23b71e9289",
+  "generatedFromClientSha": "7b73bc607d1ca1018e59a37c0f581b1f4649b93e",
+  "totalMissing": 322,
   "byNamespace": {
-    "abilityshield": [
-      "block"
-    ],
-    "aftermath": [
-      "damage"
-    ],
     "afteryou": [
-      "activate"
-    ],
-    "airballoon": [
-      "end",
-      "start"
-    ],
-    "airlock": [
-      "start"
-    ],
-    "angerpoint": [
-      "boost"
-    ],
-    "anticipation": [
       "activate"
     ],
     "aquaring": [
       "heal",
       "start"
     ],
-    "armortail": [
-      "block"
-    ],
     "aromatherapy": [
       "activate"
-    ],
-    "aromaveil": [
-      "block"
-    ],
-    "asone": [
-      "start"
     ],
     "attract": [
       "activate",
@@ -48,9 +20,6 @@
       "endFromItem",
       "start",
       "startFromItem"
-    ],
-    "aurabreak": [
-      "start"
     ],
     "auroraveil": [
       "end",
@@ -61,16 +30,6 @@
     ],
     "axekick": [
       "damage"
-    ],
-    "baddreams": [
-      "damage"
-    ],
-    "battlebond": [
-      "activate",
-      "transform"
-    ],
-    "beadsofruin": [
-      "start"
     ],
     "beakblast": [
       "start"
@@ -95,9 +54,6 @@
     "bind": [
       "move",
       "start"
-    ],
-    "blacksludge": [
-      "heal"
     ],
     "bounce": [
       "prepare"
@@ -124,18 +80,6 @@
       "move",
       "start"
     ],
-    "clearamulet": [
-      "block"
-    ],
-    "cloudnine": [
-      "start"
-    ],
-    "comatose": [
-      "start"
-    ],
-    "commander": [
-      "activate"
-    ],
     "conversion": [
       "typeChange"
     ],
@@ -157,21 +101,9 @@
       "damage",
       "start"
     ],
-    "custapberry": [
-      "activate"
-    ],
-    "damp": [
-      "block"
-    ],
-    "darkaura": [
-      "start"
-    ],
     "darkvoid": [
       "fail",
       "failWrongForme"
-    ],
-    "dazzling": [
-      "block"
     ],
     "destinybond": [
       "activate",
@@ -187,10 +119,6 @@
       "cant",
       "end",
       "start"
-    ],
-    "disguise": [
-      "block",
-      "transform"
     ],
     "dive": [
       "prepare"
@@ -208,22 +136,10 @@
     "dragoncheer": [
       "start"
     ],
-    "dryskin": [
-      "damage"
-    ],
     "eeriespell": [
       "activate"
     ],
-    "ejectbutton": [
-      "end"
-    ],
-    "ejectpack": [
-      "end"
-    ],
     "electrify": [
-      "start"
-    ],
-    "electromorphosis": [
       "start"
     ],
     "electroshot": [
@@ -233,27 +149,12 @@
       "end",
       "start"
     ],
-    "embodyaspectcornerstone": [
-      "boost"
-    ],
-    "embodyaspecthearthflame": [
-      "boost"
-    ],
-    "embodyaspectteal": [
-      "boost"
-    ],
-    "embodyaspectwellspring": [
-      "boost"
-    ],
     "encore": [
       "end",
       "start"
     ],
     "endure": [
       "activate",
-      "start"
-    ],
-    "fairyaura": [
       "start"
     ],
     "fairylock": [
@@ -284,23 +185,14 @@
     "flameburst": [
       "damage"
     ],
-    "flashfire": [
-      "start"
-    ],
     "fling": [
       "removeItem"
     ],
     "flipturn": [
       "switchOut"
     ],
-    "flowerveil": [
-      "block"
-    ],
     "fly": [
       "prepare"
-    ],
-    "focusband": [
-      "activate"
     ],
     "focusenergy": [
       "start",
@@ -311,9 +203,6 @@
       "cant",
       "start"
     ],
-    "focussash": [
-      "end"
-    ],
     "followme": [
       "start",
       "startFromZEffect"
@@ -321,19 +210,11 @@
     "foresight": [
       "start"
     ],
-    "forewarn": [
-      "activate",
-      "activateNoTarget"
-    ],
     "freezedry": [
       "champions"
     ],
     "freezeshock": [
       "prepare"
-    ],
-    "frisk": [
-      "activate",
-      "activateNoTarget"
     ],
     "futuresight": [
       "activate",
@@ -384,15 +265,8 @@
     "guardsplit": [
       "activate"
     ],
-    "hadronengine": [
-      "activate",
-      "start"
-    ],
     "happyhour": [
       "activate"
-    ],
-    "harvest": [
-      "addItem"
     ],
     "haze": [
       "activate"
@@ -414,17 +288,11 @@
     "healingwish": [
       "heal"
     ],
-    "healreplacement": [
-      "activate"
-    ],
     "helpinghand": [
       "start"
     ],
     "highjumpkick": [
       "damage"
-    ],
-    "hospitality": [
-      "heal"
     ],
     "hyperspacefury": [
       "activate",
@@ -435,9 +303,6 @@
     ],
     "iceburn": [
       "prepare"
-    ],
-    "illusion": [
-      "end"
     ],
     "imprison": [
       "cant",
@@ -454,17 +319,11 @@
       "heal",
       "start"
     ],
-    "innardsout": [
-      "damage"
-    ],
     "instruct": [
       "activate"
     ],
     "iondeluge": [
       "activate"
-    ],
-    "ironbarbs": [
-      "damage"
     ],
     "ironhead": [
       "champions"
@@ -484,28 +343,10 @@
       "end",
       "start"
     ],
-    "leftovers": [
-      "heal"
-    ],
-    "leppaberry": [
-      "activate"
-    ],
-    "lifeorb": [
-      "damage"
-    ],
-    "lightningrod": [
-      "activate"
-    ],
     "lightscreen": [
       "end",
       "start",
       "startGen1"
-    ],
-    "lingeringaroma": [
-      "changeAbility"
-    ],
-    "liquidooze": [
-      "damage"
     ],
     "lockon": [
       "start"
@@ -516,9 +357,6 @@
     ],
     "lunardance": [
       "heal"
-    ],
-    "magicbounce": [
-      "move"
     ],
     "magiccoat": [
       "move",
@@ -557,9 +395,6 @@
     "mimic": [
       "start"
     ],
-    "mimicry": [
-      "activate"
-    ],
     "mindblown": [
       "damage"
     ],
@@ -568,9 +403,6 @@
     ],
     "miracleeye": [
       "start"
-    ],
-    "mirrorherb": [
-      "activate"
     ],
     "mist": [
       "block",
@@ -581,27 +413,11 @@
       "startGen1",
       "startGen2"
     ],
-    "moldbreaker": [
-      "start"
-    ],
     "moonblast": [
       "champions"
     ],
-    "mummy": [
-      "changeAbility"
-    ],
-    "mysteryberry": [
-      "activate"
-    ],
-    "naturalcure": [
-      "activate"
-    ],
     "naturepower": [
       "move"
-    ],
-    "neutralizinggas": [
-      "end",
-      "start"
     ],
     "nightmare": [
       "damage",
@@ -611,10 +427,6 @@
       "start"
     ],
     "octolock": [
-      "start"
-    ],
-    "orichalcumpulse": [
-      "activate",
       "start"
     ],
     "painsplit": [
@@ -627,22 +439,13 @@
     "payday": [
       "activate"
     ],
-    "perishbody": [
-      "start"
-    ],
     "perishsong": [
       "activate",
       "start"
     ],
-    "persistent": [
-      "activate"
-    ],
     "phantomforce": [
       "activate",
       "prepare"
-    ],
-    "pickup": [
-      "addItem"
     ],
     "pluck": [
       "removeItem"
@@ -653,16 +456,6 @@
     "powder": [
       "activate",
       "start"
-    ],
-    "powerconstruct": [
-      "activate",
-      "transform"
-    ],
-    "powerherb": [
-      "end"
-    ],
-    "powerofalchemy": [
-      "changeAbility"
     ],
     "powershift": [
       "end",
@@ -675,41 +468,14 @@
       "end",
       "start"
     ],
-    "pressure": [
-      "start"
-    ],
     "protect": [
       "block",
-      "start"
-    ],
-    "protectivepads": [
-      "block"
-    ],
-    "protosynthesis": [
-      "activate",
-      "activateFromItem",
-      "end",
       "start"
     ],
     "pursuit": [
       "activate"
     ],
-    "quarkdrive": [
-      "activate",
-      "activateFromItem",
-      "end",
-      "start"
-    ],
     "quash": [
-      "activate"
-    ],
-    "queenlymajesty": [
-      "block"
-    ],
-    "quickclaw": [
-      "activate"
-    ],
-    "quickdraw": [
       "activate"
     ],
     "quickguard": [
@@ -729,17 +495,8 @@
     "razorwind": [
       "prepare"
     ],
-    "rebound": [
-      "move"
-    ],
-    "receiver": [
-      "changeAbility"
-    ],
     "recycle": [
       "addItem"
-    ],
-    "redcard": [
-      "end"
     ],
     "reflect": [
       "end",
@@ -752,25 +509,16 @@
     "revivalblessing": [
       "heal"
     ],
-    "rockyhelmet": [
-      "damage"
-    ],
     "roleplay": [
       "changeAbility"
     ],
     "roost": [
       "start"
     ],
-    "roughskin": [
-      "damage"
-    ],
     "safeguard": [
       "block",
       "end",
       "start"
-    ],
-    "safetygoggles": [
-      "block"
     ],
     "saltcure": [
       "champions",
@@ -779,10 +527,6 @@
     ],
     "sandtomb": [
       "start"
-    ],
-    "schooling": [
-      "transform",
-      "transformEnd"
     ],
     "shadowforce": [
       "activate",
@@ -793,17 +537,10 @@
       "fail",
       "start"
     ],
-    "shellbell": [
-      "heal"
-    ],
     "shelltrap": [
       "cant",
       "prepare",
       "start"
-    ],
-    "shieldsdown": [
-      "transform",
-      "transformEnd"
     ],
     "sketch": [
       "activate"
@@ -825,10 +562,6 @@
     ],
     "slowbronite": [
       "champions"
-    ],
-    "slowstart": [
-      "end",
-      "start"
     ],
     "smackdown": [
       "start"
@@ -870,10 +603,6 @@
       "start",
       "startFromZEffect"
     ],
-    "stancechange": [
-      "transform",
-      "transformEnd"
-    ],
     "stealthrock": [
       "damage",
       "end",
@@ -881,9 +610,6 @@
     ],
     "steelbeam": [
       "damage"
-    ],
-    "stickyhold": [
-      "block"
     ],
     "stickyweb": [
       "activate",
@@ -894,14 +620,8 @@
       "end",
       "start"
     ],
-    "stormdrain": [
-      "activate"
-    ],
     "stuffcheeks": [
       "champions"
-    ],
-    "sturdy": [
-      "activate"
     ],
     "substitute": [
       "activate",
@@ -910,35 +630,14 @@
       "fail",
       "start"
     ],
-    "suctioncups": [
-      "block"
-    ],
     "supercellslam": [
       "damage"
-    ],
-    "supersweetsyrup": [
-      "start"
-    ],
-    "supremeoverlord": [
-      "activate"
-    ],
-    "sweetveil": [
-      "block"
     ],
     "switcheroo": [
       "activate",
       "champions"
     ],
-    "swordofruin": [
-      "start"
-    ],
-    "symbiosis": [
-      "activate"
-    ],
     "syrupbomb": [
-      "start"
-    ],
-    "tabletsofruin": [
       "start"
     ],
     "tailwind": [
@@ -959,18 +658,6 @@
     ],
     "telekinesis": [
       "end",
-      "start"
-    ],
-    "telepathy": [
-      "block"
-    ],
-    "terashell": [
-      "activate"
-    ],
-    "terashift": [
-      "transform"
-    ],
-    "teravolt": [
       "start"
     ],
     "thief": [
@@ -996,28 +683,12 @@
     "toxicthread": [
       "champions"
     ],
-    "trace": [
-      "changeAbility"
-    ],
     "transform": [
       "transform"
     ],
     "trick": [
       "activate",
       "champions"
-    ],
-    "truant": [
-      "cant"
-    ],
-    "turboblaze": [
-      "start"
-    ],
-    "ultranecroziumz": [
-      "activate",
-      "transform"
-    ],
-    "unnerve": [
-      "start"
     ],
     "unseenfist": [
       "champions"
@@ -1032,14 +703,8 @@
     "uturn": [
       "switchOut"
     ],
-    "vesselofruin": [
-      "start"
-    ],
     "voltswitch": [
       "switchOut"
-    ],
-    "wanderingspirit": [
-      "activate"
     ],
     "waterpledge": [
       "activate",
@@ -1052,14 +717,8 @@
     "whirlpool": [
       "start"
     ],
-    "whiteherb": [
-      "end"
-    ],
     "wideguard": [
       "block",
-      "start"
-    ],
-    "windpower": [
       "start"
     ],
     "wish": [
@@ -1071,13 +730,6 @@
     ],
     "yawn": [
       "start"
-    ],
-    "zenmode": [
-      "transform",
-      "transformEnd"
-    ],
-    "zerotohero": [
-      "activate"
     ]
   }
 }
