@@ -9,12 +9,12 @@ function parseArgs(argv) {
 		outputDir: '/tmp/japanese-teambuilder',
 		url: 'http://127.0.0.1:10004/index-new.html#teambuilder',
 	};
-	for (let i = 2; i < argv.length; i++) {
-		const arg = argv[i];
-		if (arg === '--debug-url') args.debugUrl = argv[++i];
-		else if (arg === '--output-dir') args.outputDir = argv[++i];
-		else if (arg === '--url') args.url = argv[++i];
-		else throw new Error(`Unknown argument: ${arg}`);
+	for (let index = 2; index < argv.length; index++) {
+		const argument = argv[index];
+		if (argument === '--debug-url') args.debugUrl = argv[++index];
+		else if (argument === '--output-dir') args.outputDir = argv[++index];
+		else if (argument === '--url') args.url = argv[++index];
+		else throw new Error(`Unknown argument: ${argument}`);
 	}
 	return args;
 }
@@ -29,14 +29,14 @@ async function findPageTarget(debugUrl) {
 			const response = await fetch(`${debugUrl}/json`);
 			if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
 			const targets = await response.json();
-			const target = targets.find(candidate => candidate.type === 'page' && candidate.webSocketDebuggerUrl);
-			if (target) return target;
+			const page = targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl);
+			if (page) return page;
 		} catch (error) {
 			lastError = error;
 		}
 		await sleep(250);
 	}
-	throw new Error(`Chrome DevTools page target was not available: ${lastError || 'timed out'}`);
+	throw new Error(`Chrome DevTools page target unavailable: ${lastError || 'timed out'}`);
 }
 
 class CDPClient {
@@ -181,7 +181,7 @@ try {
 
 	const formReport = await evaluate(client, `(async () => {
 		const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-		const waitFor = async (predicate, label, timeout = 30000) => {
+		const waitFor = async (predicate, label, timeout = 30_000) => {
 			const deadline = Date.now() + timeout;
 			let lastError = null;
 			while (Date.now() < deadline) {
@@ -207,7 +207,16 @@ try {
 			setter.call(input, value);
 			input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
 		};
-		const choose = async (focus, query, expectedCanonical) => {
+		const canonicalModelMatches = (focus, expectedCanonical) => {
+			const set = window.PS?.room?.editor?.sets?.[0];
+			if (!set) return false;
+			if (focus.endsWith('-pokemon')) return set.species === expectedCanonical;
+			if (focus.endsWith('-ability')) return set.ability === expectedCanonical;
+			if (focus.endsWith('-item')) return set.item === expectedCanonical;
+			if (focus.endsWith('-move-0')) return set.moves?.[0] === expectedCanonical;
+			return false;
+		};
+		const choose = async (focus, query, expectedCanonical, entrySelector) => {
 			let input = await waitFor(
 				() => document.querySelector('.team-focus-editor input.set-field[data-focus="' + focus + '"]') ||
 					document.querySelector('.teameditor input.set-field[data-focus="' + focus + '"]'),
@@ -217,18 +226,16 @@ try {
 			await delay(120);
 			input = document.querySelector('.team-focus-editor input.set-field[data-focus="' + focus + '"]') || input;
 			setInputValue(input, query);
-			await delay(120);
-			input.blur();
-			await waitFor(() => {
-				const set = window.PS?.room?.editor?.sets?.[0];
-				if (!set) return false;
-				if (focus.endsWith('-pokemon')) return set.species === expectedCanonical;
-				if (focus.endsWith('-ability')) return set.ability === expectedCanonical;
-				if (focus.endsWith('-item')) return set.item === expectedCanonical;
-				if (focus.endsWith('-move-0')) return set.moves?.[0] === expectedCanonical;
-				return false;
-			}, focus + ' canonical model value');
-			await delay(200);
+			const result = await waitFor(
+				() => document.querySelector(entrySelector),
+				entrySelector + ' result'
+			);
+			click(result);
+			await waitFor(
+				() => canonicalModelMatches(focus, expectedCanonical),
+				focus + ' canonical model value'
+			);
+			await delay(150);
 		};
 
 		click(document.querySelector('#room-teambuilder button[data-cmd="/newteam"]'));
@@ -237,41 +244,39 @@ try {
 			'new team link'
 		);
 		click(teamLink);
-		await waitFor(() => window.PS?.room?.editor && document.querySelector('.teameditor'), 'new team editor');
-		click(await waitFor(() => document.querySelector('.teameditor button[name="addpokemon"]'), 'Add Pokemon button'));
-		await choose('set-0-pokemon', 'Pikachu', 'Pikachu');
-		await choose('set-0-ability', 'Static', 'Static');
-		await choose('set-0-item', 'Light Ball', 'Light Ball');
-		await choose('set-0-move-0', 'Thunderbolt', 'Thunderbolt');
+		await waitFor(
+			() => window.PS?.room?.editor && document.querySelector('.teameditor'),
+			'new team editor'
+		);
+		click(await waitFor(
+			() => document.querySelector('.teameditor button[name="addpokemon"]'),
+			'Add Pokemon button'
+		));
+		await choose('set-0-pokemon', 'Pikachu', 'Pikachu', 'a[data-entry^="pokemon|Pikachu"]');
+		await choose('set-0-ability', 'Static', 'Static', 'a[data-entry^="ability|Static"]');
+		await choose('set-0-item', 'Light Ball', 'Light Ball', 'a[data-entry^="item|Light Ball"]');
+		await choose('set-0-move-0', 'Thunderbolt', 'Thunderbolt', 'a[data-entry^="move|Thunderbolt"]');
 
 		const backButton = document.querySelector('.team-focus-editor .tabbar .home-li button');
 		if (backButton) click(backButton);
 		await waitFor(() => !document.querySelector('.team-focus-editor'), 'closed focused editor');
 		document.activeElement?.blur?.();
-		await delay(300);
+		await delay(350);
 
-		const inputValue = focus => document.querySelector('.teameditor input.set-field[data-focus="' + focus + '"]')?.value || '';
-		const canonicalValue = focus => document.querySelector('.teameditor input.set-field[data-focus="' + focus + '"]')?.getAttribute('data-ps-canonical-value') || '';
-		const set = window.PS.room.editor.sets[0];
-		const mainImportButton = document.querySelector('.teameditor > .tabbar button[value="import"]');
-		const detailsButton = document.querySelector('.teameditor button[name="details"][value="set-0-details"]');
-		const fixedText = {
-			formTab: document.querySelector('.teameditor > .tabbar button[value="form"]')?.textContent.trim() || '',
-			importExport: mainImportButton?.textContent.trim() || '',
-			details: detailsButton?.closest('label')?.childNodes?.[0]?.nodeValue?.trim() || '',
-		};
+		const field = focus => document.querySelector('.teameditor input.set-field[data-focus="' + focus + '"]');
 		const values = {
-			species: inputValue('set-0-pokemon'),
-			ability: inputValue('set-0-ability'),
-			item: inputValue('set-0-item'),
-			move: inputValue('set-0-move-0'),
+			species: field('set-0-pokemon')?.value || '',
+			ability: field('set-0-ability')?.value || '',
+			item: field('set-0-item')?.value || '',
+			move: field('set-0-move-0')?.value || '',
 		};
 		const canonical = {
-			species: canonicalValue('set-0-pokemon'),
-			ability: canonicalValue('set-0-ability'),
-			item: canonicalValue('set-0-item'),
-			move: canonicalValue('set-0-move-0'),
+			species: field('set-0-pokemon')?.getAttribute('data-ps-canonical-value') || '',
+			ability: field('set-0-ability')?.getAttribute('data-ps-canonical-value') || '',
+			item: field('set-0-item')?.getAttribute('data-ps-canonical-value') || '',
+			move: field('set-0-move-0')?.getAttribute('data-ps-canonical-value') || '',
 		};
+		const set = window.PS.room.editor.sets[0];
 		const model = {
 			species: set.species,
 			ability: set.ability,
@@ -279,11 +284,25 @@ try {
 			moves: [...set.moves],
 			packedTeam: window.PS.room.team.packedTeam,
 		};
+		const formButton = document.querySelector('.teameditor > .tabbar button[value="form"]');
+		const importButton = document.querySelector('.teameditor > .tabbar button[value="import"]');
+		const detailsButton = document.querySelector('.teameditor button[name="details"][value="set-0-details"]');
+		const fixedText = {
+			formTab: formButton?.textContent.trim() || '',
+			importExport: importButton?.textContent.trim() || '',
+			details: detailsButton?.closest('label')?.childNodes?.[0]?.nodeValue?.trim() || '',
+		};
 		const expectedValues = {
-			species: 'ピカチュウ', ability: 'せいでんき', item: 'でんきだま', move: '10まんボルト',
+			species: 'ピカチュウ',
+			ability: 'せいでんき',
+			item: 'でんきだま',
+			move: '10まんボルト',
 		};
 		const expectedCanonical = {
-			species: 'Pikachu', ability: 'Static', item: 'Light Ball', move: 'Thunderbolt',
+			species: 'Pikachu',
+			ability: 'Static',
+			item: 'Light Ball',
+			move: 'Thunderbolt',
 		};
 		if (JSON.stringify(values) !== JSON.stringify(expectedValues)) {
 			throw new Error('Japanese form values mismatch: ' + JSON.stringify(values));
@@ -291,13 +310,20 @@ try {
 		if (JSON.stringify(canonical) !== JSON.stringify(expectedCanonical)) {
 			throw new Error('Canonical DOM values mismatch: ' + JSON.stringify(canonical));
 		}
-		if (model.species !== 'Pikachu' || model.ability !== 'Static' || model.item !== 'Light Ball' || model.moves[0] !== 'Thunderbolt') {
+		if (
+			model.species !== 'Pikachu' || model.ability !== 'Static' ||
+			model.item !== 'Light Ball' || model.moves[0] !== 'Thunderbolt'
+		) {
 			throw new Error('Canonical editor model mismatch: ' + JSON.stringify(model));
 		}
-		if (/[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/.test(model.packedTeam)) {
+		if (/[\\u3040-\\u30ff\\u3400-\\u9fff\\uff66-\\uff9f]/.test(model.packedTeam)) {
 			throw new Error('Packed team unexpectedly contains Japanese: ' + model.packedTeam);
 		}
-		if (fixedText.formTab !== 'フォーム' || fixedText.importExport !== 'インポート／エクスポート' || fixedText.details !== '詳細') {
+		if (
+			fixedText.formTab !== 'フォーム' ||
+			fixedText.importExport !== 'インポート／エクスポート' ||
+			fixedText.details !== '詳細'
+		) {
 			throw new Error('Fixed Teambuilder text mismatch: ' + JSON.stringify(fixedText));
 		}
 		return { values, canonical, model, fixedText, roomId: window.PS.room.id };
@@ -307,7 +333,7 @@ try {
 
 	const importExportReport = await evaluate(client, `(async () => {
 		const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-		const waitFor = async (predicate, label, timeout = 15000) => {
+		const waitFor = async (predicate, label, timeout = 15_000) => {
 			const deadline = Date.now() + timeout;
 			while (Date.now() < deadline) {
 				const value = predicate();
@@ -317,32 +343,30 @@ try {
 			throw new Error('Timed out waiting for ' + label);
 		};
 		const button = document.querySelector('.teameditor > .tabbar button[value="import"]');
-		if (!button) throw new Error('Main Import/Export button was not found');
-		button.click();
-		const textarea = await waitFor(() => document.querySelector('.teameditor textarea.teamtextbox:not(.heighttester)'), 'team Import/Export textarea');
-		await delay(200);
+		if (!button) throw new Error('Import/Export tab missing');
+		button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+		const textarea = await waitFor(
+			() => document.querySelector('.teameditor textarea.teamtextbox'),
+			'Import/Export textarea'
+		);
+		await delay(250);
 		const text = textarea.value;
 		const required = ['Pikachu @ Light Ball', 'Ability: Static', '- Thunderbolt'];
-		const missing = required.filter(fragment => !text.includes(fragment));
-		const containsJapanese = /[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/.test(text);
-		if (missing.length) throw new Error('Import/Export text is missing: ' + missing.join(', ') + '\n' + text);
-		if (containsJapanese) throw new Error('Import/Export text unexpectedly contains Japanese: ' + text);
-		return {
-			text,
-			required,
-			missing,
-			containsJapanese,
-			tabText: button.textContent.trim(),
-		};
+		const missing = required.filter(value => !text.includes(value));
+		const containsJapanese = /[\\u3040-\\u30ff\\u3400-\\u9fff\\uff66-\\uff9f]/.test(text);
+		if (missing.length) throw new Error('Import/Export missing canonical text: ' + JSON.stringify(missing));
+		if (containsJapanese) throw new Error('Import/Export unexpectedly contains Japanese: ' + text);
+		return { text, required, missing, containsJapanese };
 	})()`);
 	report.importExport = importExportReport;
 	await captureScreenshot(client, exportScreenshotPath);
+
 	report.verified = true;
-	fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
 	console.log(JSON.stringify(report, null, 2));
 } catch (error) {
-	report.error = error.stack || String(error);
-	fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+	report.error = error?.stack || String(error);
+	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
 	throw error;
 } finally {
 	client.close();
