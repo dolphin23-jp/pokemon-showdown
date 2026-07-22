@@ -1,0 +1,110 @@
+name: Update Teambuilder contract
+
+on:
+  push:
+    branches:
+      - agent/japanese-teambuilder
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/japanese-teambuilder
+      - name: Extend pinned-client validation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/check-built-client.py')
+          text = path.read_text(encoding='utf-8')
+
+          old_contract = '''        "battle_log": {
+              "template_source": "play.pokemonshowdown.com/src/battle-text-ja.js",
+              "translated_categories": list(BATTLE_LOG_CATEGORIES),
+              "display_name_api": "PSDisplayNames",
+              "display_text_only": True,
+              "mutates_protocol_args": False,
+              "preserves_number_placeholders": True,
+          },
+          "mutates_ids": False,'''
+          new_contract = '''        "battle_log": {
+              "template_source": "play.pokemonshowdown.com/src/battle-text-ja.js",
+              "translated_categories": list(BATTLE_LOG_CATEGORIES),
+              "display_name_api": "PSDisplayNames",
+              "display_text_only": True,
+              "mutates_protocol_args": False,
+              "preserves_number_placeholders": True,
+          },
+          "teambuilder": {
+              "translated_categories": [
+                  "species",
+                  "moves",
+                  "abilities",
+                  "items",
+                  "fixed UI labels",
+              ],
+              "display_name_api": "PSDisplayNames",
+              "display_text_only": True,
+              "canonical_input_restored_before_edit": True,
+              "localizes_search_result_text_only": True,
+              "mutates_search_data_entry": False,
+              "mutates_import_export_text": False,
+              "mutates_packed_team": False,
+              "mutates_saved_team_data": False,
+          },
+          "mutates_ids": False,'''
+          if text.count(old_contract) != 1:
+              raise SystemExit('expected contract insertion point was not unique')
+          text = text.replace(old_contract, new_contract)
+
+          old_source = '''        "textNode.nodeValue = rawName.replace(name, translatedName)",
+              *BATTLE_CONTROL_SELECTORS,'''
+          new_source = '''        "textNode.nodeValue = rawName.replace(name, translatedName)",
+              "localizeTeambuilder",
+              "localizeTeambuilderInput",
+              "restoreTeambuilderInput",
+              "localizeTeambuilderSearchEntry",
+              "TEAMBUILDER_CANONICAL_ATTRIBUTE",
+              *BATTLE_CONTROL_SELECTORS,'''
+          if text.count(old_source) != 1:
+              raise SystemExit('source marker insertion point was not unique')
+          text = text.replace(old_source, new_source)
+
+          old_compiled = '''            "localizeBattleControlButton",
+              "MutationObserver",
+              *DISPLAY_NAME_FUNCTIONS,'''
+          new_compiled = '''            "localizeBattleControlButton",
+              "localizeTeambuilder",
+              "localizeTeambuilderInput",
+              "restoreTeambuilderInput",
+              "localizeTeambuilderSearchEntry",
+              "TEAMBUILDER_CANONICAL_ATTRIBUTE",
+              "MutationObserver",
+              *DISPLAY_NAME_FUNCTIONS,'''
+          if text.count(old_compiled) != 1:
+              raise SystemExit('compiled marker insertion point was not unique')
+          text = text.replace(old_compiled, new_compiled)
+
+          old_return = '''        "battle_log": contract["battle_log"],
+              "mutates_ids": contract["mutates_ids"],'''
+          new_return = '''        "battle_log": contract["battle_log"],
+              "teambuilder": contract["teambuilder"],
+              "mutates_ids": contract["mutates_ids"],'''
+          if text.count(old_return) != 1:
+              raise SystemExit('manifest return insertion point was not unique')
+          text = text.replace(old_return, new_return)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit validation update
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/check-built-client.py
+          git commit -m "Validate Japanese Teambuilder contract"
+          git push origin HEAD:agent/japanese-teambuilder
