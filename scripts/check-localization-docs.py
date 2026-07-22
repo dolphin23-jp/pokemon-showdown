@@ -39,7 +39,7 @@ SERVER_SMOKE = ROOT / "scripts" / "smoke-bss-protocol-invariants.py"
 INTEGRATION_AUDIT = ROOT / "scripts" / "audit-phase1-integration.py"
 WORKFLOW_GATE = ROOT / "scripts" / "wait-phase1-workflows.py"
 
-CLIENT_COMMIT = "e8e489bdb310218599eb5b5fc26f8cfd9315b4f0"
+CLIENT_COMMIT = json.loads(PIN_FILE.read_text(encoding="utf-8"))["commit"]
 UPSTREAM_BASE = "085dfabd9bc53c730ac459edf5c28088677adfc2"
 FOUL_PLAY_COMMIT = "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6"
 DISPLAY_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
