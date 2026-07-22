@@ -70,15 +70,22 @@ jobs:
             sleep 2
           done
           exit 1
-      - name: Log in and verify Japanese command responses
+      - name: Log in and capture Japanese command responses
+        shell: bash
         run: |
+          set +e
           docker exec showdown-phase2 \
             .venv/bin/python scripts/smoke-japanese-server-dictionary.py \
               --port 8000 \
               --timeout 60 \
-              --output /app/.runtime/phase2-japanese-server-dictionary.json
+              --output /app/.runtime/phase2-japanese-server-dictionary.json \
+            > /tmp/phase2-japanese-server-dictionary.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/phase2-japanese-server-dictionary.status
           docker cp showdown-phase2:/app/.runtime/phase2-japanese-server-dictionary.json \
-            /tmp/phase2-japanese-server-dictionary.json
+            /tmp/phase2-japanese-server-dictionary.json 2>/dev/null || true
+          cat /tmp/phase2-japanese-server-dictionary.log
+          exit 0
       - name: Capture diagnostics
         if: always()
         run: |
@@ -94,8 +101,12 @@ jobs:
             /tmp/phase2-node-ci.log
             /tmp/phase2-node-ci.status
             /tmp/phase2-japanese-translation-audit.json
+            /tmp/phase2-japanese-server-dictionary.log
+            /tmp/phase2-japanese-server-dictionary.status
             /tmp/phase2-japanese-server-dictionary.json
             /tmp/phase2-container.log
+      - name: Require Japanese command responses
+        run: test "$(cat /tmp/phase2-japanese-server-dictionary.status)" = 0
       - name: Cleanup
         if: always()
         run: docker rm --force showdown-phase2 >/dev/null 2>&1 || true
