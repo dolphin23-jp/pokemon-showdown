@@ -10,7 +10,7 @@ import pathlib
 import struct
 from typing import Any
 
-EXPECTED_CLIENT_COMMIT = "80c72741b52e91d35ee778982a936ea42526c078"
+EXPECTED_CLIENT_COMMIT = "e8e489bdb310218599eb5b5fc26f8cfd9315b4f0"
 EXPECTED_SCREENSHOT_SIZE = (1024, 1366)
 ALLOW_EMPTY_ARTIFACTS = {"client-traversal.txt"}
 
@@ -163,11 +163,11 @@ def build_report(root: pathlib.Path) -> dict[str, Any]:
     if baseline.get("protected_paths_changed") != []:
         raise AssertionError("Protected data/ or sim/ paths changed during Phase 1")
     if baseline.get("pinned_client_commit") != EXPECTED_CLIENT_COMMIT:
-        raise AssertionError("Phase 1 baseline changed the pinned client commit")
+        raise AssertionError("Integration baseline used an unexpected pinned client commit")
 
     client_pin = read_json(paths["client-pin.json"])
     if client_pin.get("commit") != EXPECTED_CLIENT_COMMIT:
-        raise AssertionError("Remote client pin report does not match the Phase 1 commit")
+        raise AssertionError("Remote client pin report does not match the approved commit")
     require_true(client_pin, "remote_verified", "client-pin.json")
     require_true(client_pin, "runtime_delivery_changed", "client-pin.json")
 
