@@ -254,7 +254,10 @@ try {
 			'Add Pokemon button'
 		));
 		await choose('set-0-pokemon', 'Pikachu', 'Pikachu', 'a[data-entry^="pokemon|Pikachu"]');
-		await choose('set-0-ability', 'Static', 'Static', 'a[data-entry^="ability|Static"]');
+		await waitFor(
+			() => canonicalModelMatches('set-0-ability', 'Static'),
+			'default Static ability'
+		);
 		await choose('set-0-item', 'Light Ball', 'Light Ball', 'a[data-entry^="item|Light Ball"]');
 		await choose('set-0-move-0', 'Thunderbolt', 'Thunderbolt', 'a[data-entry^="move|Thunderbolt"]');
 
