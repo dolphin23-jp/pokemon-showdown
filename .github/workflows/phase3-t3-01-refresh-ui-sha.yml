@@ -1,0 +1,46 @@
+name: Phase 3 T3-01 refresh UI inventory SHA
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/phase3-t3-01-refresh-ui-sha.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Refresh UI inventory source SHA
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const pin = require('./config/pokemon-showdown-client.json');
+          const file = 'docs/localization/phase-3-ui-chrome-inventory.md';
+          let text = fs.readFileSync(file, 'utf8');
+          const next = text.replace(
+            /^Generated from client SHA `[^`]+`\.$/m,
+            `Generated from client SHA \`${pin.commit}\`.`
+          );
+          if (next === text && !text.includes(pin.commit)) {
+            throw new Error('UI inventory SHA line was not found');
+          }
+          fs.writeFileSync(file, next);
+          NODE
+          git add docs/localization/phase-3-ui-chrome-inventory.md
+          if git diff --cached --quiet; then
+            echo "UI inventory SHA already current."
+          else
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git commit -m "Refresh Phase 3 UI inventory client SHA"
+            git push origin "HEAD:${HEAD_BRANCH}"
+          fi
