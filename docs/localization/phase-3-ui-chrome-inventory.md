@@ -1,6 +1,6 @@
 # Phase 3 UI chrome inventory
 
-Generated from client SHA `d2939675265dabb8e42c5b8ade059115ee3086db`.
+Generated from client SHA `7b73bc607d1ca1018e59a37c0f581b1f4649b93e`.
 
 This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.
 
