@@ -1,0 +1,237 @@
+name: Japanese battle log live smoke
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - config/pokemon-showdown-client.json
+      - scripts/smoke-japanese-battle-log.py
+      - .github/workflows/japanese-battle-log.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify pinned client commit
+        run: |
+          python3 scripts/check-pinned-client.py \
+            --verify-remote \
+            --output /tmp/japanese-battle-log-client-pin.json
+          cat /tmp/japanese-battle-log-client-pin.json
+
+      - name: Build clean server image
+        shell: bash
+        run: |
+          set +e
+          docker build --progress=plain \
+            --tag pokemon-showdown-japanese-log:smoke . \
+            > /tmp/japanese-battle-log-build.log 2>&1
+          build_status=$?
+          echo "$build_status" > /tmp/japanese-battle-log-build.status
+          tail -n 300 /tmp/japanese-battle-log-build.log
+          exit 0
+
+      - name: Require clean image build
+        run: test "$(cat /tmp/japanese-battle-log-build.status)" = 0
+
+      - name: Start Japanese battle log server
+        run: |
+          docker run --detach --name showdown-japanese-log \
+            -p 10003:10000 \
+            -e PORT=10000 \
+            -e DEFAULT_PLAYER_NAME=BattleLogViewer \
+            -e FOUL_PLAY_USERNAME=BattleLogBot \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
+            pokemon-showdown-japanese-log:smoke
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://127.0.0.1:10003/health \
+                | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-japanese-log \
+                | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Run deterministic first turn
+        shell: bash
+        run: |
+          set +e
+          docker exec showdown-japanese-log \
+            .venv/bin/python scripts/smoke-japanese-battle-log.py \
+              --port 8000 \
+              --timeout 120 \
+              --protocol-output /app/.runtime/japanese-battle-log-protocol.txt \
+              --report-output /app/.runtime/japanese-battle-log-report.json \
+            > /tmp/japanese-battle-log-live.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/japanese-battle-log-live.status
+          docker cp \
+            showdown-japanese-log:/app/.runtime/japanese-battle-log-protocol.txt \
+            /tmp/japanese-battle-log-protocol.txt 2>/dev/null || true
+          docker cp \
+            showdown-japanese-log:/app/.runtime/japanese-battle-log-report.json \
+            /tmp/japanese-battle-log-report.json 2>/dev/null || true
+          cat /tmp/japanese-battle-log-live.log
+          exit 0
+
+      - name: Require deterministic first turn
+        run: |
+          test "$(cat /tmp/japanese-battle-log-live.status)" = 0
+          test -s /tmp/japanese-battle-log-protocol.txt
+          test -s /tmp/japanese-battle-log-report.json
+          grep -q '|move|.*|Storm Throw|' /tmp/japanese-battle-log-protocol.txt
+          grep -q '|-supereffective|' /tmp/japanese-battle-log-protocol.txt
+          grep -q '|-crit|' /tmp/japanese-battle-log-protocol.txt
+          grep -q '|move|.*|Nuzzle|' /tmp/japanese-battle-log-protocol.txt
+          grep -q '|-status|.*|par$' /tmp/japanese-battle-log-protocol.txt
+          grep -q '^|turn|2$' /tmp/japanese-battle-log-protocol.txt
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+
+          report = json.loads(
+              pathlib.Path('/tmp/japanese-battle-log-report.json').read_text(
+                  encoding='utf-8'
+              )
+          )
+          assert report['verified'] is True
+          assert report['turn_one_completed'] is True
+          assert all(report['observed'].values())
+          protocol = pathlib.Path(
+              '/tmp/japanese-battle-log-protocol.txt'
+          ).read_text(encoding='utf-8')
+          assert not re.search(r'[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]', protocol)
+          PY
+
+      - name: Expose actual protocol to pinned client
+        run: |
+          docker cp /tmp/japanese-battle-log-protocol.txt \
+            showdown-japanese-log:/opt/pokemon-showdown-client/battle-log-smoke.txt
+          docker cp /tmp/japanese-battle-log-report.json \
+            showdown-japanese-log:/opt/pokemon-showdown-client/battle-log-smoke.json
+          docker exec showdown-japanese-log \
+            test -s /opt/pokemon-showdown-client/battle-text-ja-smoke.html
+          docker exec showdown-japanese-log \
+            test -s /opt/pokemon-showdown-client/src/battle-text-ja.js
+          docker exec showdown-japanese-log \
+            test -s /opt/pokemon-showdown-client/src/battle-text-ja-smoke.js
+          curl --fail --silent \
+            http://127.0.0.1:10003/battle-text-ja-smoke.html \
+            --output /tmp/japanese-battle-log-smoke.html
+          grep -q 'battle-text-ja.js' /tmp/japanese-battle-log-smoke.html
+
+      - name: Install Japanese screenshot fonts
+        shell: bash
+        run: |
+          set -euo pipefail
+          fc-cache -f
+          if fc-list :lang=ja family | grep -q .; then
+            exit 0
+          fi
+          for attempt in 1 2 3; do
+            if sudo timeout 180s apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                update \
+              && sudo timeout 180s env DEBIAN_FRONTEND=noninteractive apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                install -y --no-install-recommends fonts-noto-cjk; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+          fc-cache -f
+          fc-list :lang=ja family | grep -q .
+
+      - name: Render and capture Japanese battle log
+        shell: bash
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --hide-scrollbars --no-proxy-server \
+            --user-data-dir=/tmp/chrome-japanese-battle-log-dom \
+            --window-size=1024,1366 \
+            --virtual-time-budget=15000 \
+            --dump-dom \
+            http://127.0.0.1:10003/battle-text-ja-smoke.html \
+            > /tmp/japanese-battle-log-dom.html
+          grep -q 'data-verified="true"' /tmp/japanese-battle-log-dom.html
+          grep -q 'やまあらし' /tmp/japanese-battle-log-dom.html
+          grep -q '効果はばつぐんだ！' /tmp/japanese-battle-log-dom.html
+          grep -q '急所に当たった！' /tmp/japanese-battle-log-dom.html
+          grep -q 'ほっぺすりすり' /tmp/japanese-battle-log-dom.html
+          grep -q 'まひして技が出にくくなった！' /tmp/japanese-battle-log-dom.html
+          grep -q 'ターン 2' /tmp/japanese-battle-log-dom.html
+
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --hide-scrollbars --no-proxy-server \
+            --user-data-dir=/tmp/chrome-japanese-battle-log-png \
+            --window-size=1024,1366 \
+            --virtual-time-budget=15000 \
+            --screenshot=/tmp/japanese-battle-log-ipad.png \
+            http://127.0.0.1:10003/battle-text-ja-smoke.html
+          test -s /tmp/japanese-battle-log-ipad.png
+          python3 - <<'PY'
+          import pathlib
+          import struct
+
+          data = pathlib.Path('/tmp/japanese-battle-log-ipad.png').read_bytes()
+          assert data[:8] == b'\x89PNG\r\n\x1a\n'
+          width, height = struct.unpack('>II', data[16:24])
+          assert (width, height) == (1024, 1366), (width, height)
+          PY
+
+      - name: Capture server diagnostics
+        if: always()
+        run: |
+          docker logs --timestamps showdown-japanese-log \
+            > /tmp/japanese-battle-log-container.log 2>&1 || true
+          docker ps -a > /tmp/japanese-battle-log-containers.txt 2>&1 || true
+
+      - name: Upload Japanese battle log evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-battle-log-live-evidence
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/japanese-battle-log-client-pin.json
+            /tmp/japanese-battle-log-build.log
+            /tmp/japanese-battle-log-build.status
+            /tmp/japanese-battle-log-live.log
+            /tmp/japanese-battle-log-live.status
+            /tmp/japanese-battle-log-protocol.txt
+            /tmp/japanese-battle-log-report.json
+            /tmp/japanese-battle-log-smoke.html
+            /tmp/japanese-battle-log-dom.html
+            /tmp/japanese-battle-log-ipad.png
+            /tmp/japanese-battle-log-container.log
+            /tmp/japanese-battle-log-containers.txt
+
+      - name: Cleanup
+        if: always()
+        run: docker rm --force showdown-japanese-log >/dev/null 2>&1 || true
