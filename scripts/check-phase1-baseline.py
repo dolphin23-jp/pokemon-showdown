@@ -9,7 +9,9 @@ import subprocess
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-CLIENT_COMMIT = "e8e489bdb310218599eb5b5fc26f8cfd9315b4f0"
+CLIENT_COMMIT = json.loads(
+    (ROOT / "config" / "pokemon-showdown-client.json").read_text(encoding="utf-8")
+)["commit"]
 FOUL_PLAY_COMMIT = "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6"
 PROTECTED_PREFIXES = ("data/", "sim/")
 TARGET_IDS = ["pikachu", "thunderbolt", "static", "lightball"]
