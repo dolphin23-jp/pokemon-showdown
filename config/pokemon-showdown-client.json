@@ -1,8 +1,8 @@
 {
   "fork_repository": "dolphin23-jp/pokemon-showdown-client",
   "upstream_repository": "smogon/pokemon-showdown-client",
-  "commit": "a4aa61d9bc25e4e373ba449365a481cab7a13ecf",
-  "commit_date": "2026-07-22T05:09:07Z",
+  "commit": "ceb5f59e785a33083d008c61d0c6b93e5b6a89e2",
+  "commit_date": "2026-07-22T09:11:55Z",
   "upstream_base_commit": "085dfabd9bc53c730ac459edf5c28088677adfc2",
   "upstream_base_commit_date": "2026-07-17T04:21:54Z",
   "runtime_delivery_changed": true

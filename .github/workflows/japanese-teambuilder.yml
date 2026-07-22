@@ -1,0 +1,207 @@
+name: Japanese Teambuilder live smoke
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - config/pokemon-showdown-client.json
+      - scripts/smoke-japanese-teambuilder.mjs
+      - .github/workflows/japanese-teambuilder.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify pinned client commit
+        run: |
+          python3 scripts/check-pinned-client.py \
+            --verify-remote \
+            --output /tmp/japanese-teambuilder-client-pin.json
+          cat /tmp/japanese-teambuilder-client-pin.json
+
+      - name: Check browser smoke syntax
+        run: node --check scripts/smoke-japanese-teambuilder.mjs
+
+      - name: Build clean server image
+        shell: bash
+        run: |
+          set +e
+          docker build --progress=plain \
+            --tag pokemon-showdown-japanese-teambuilder:smoke . \
+            > /tmp/japanese-teambuilder-build.log 2>&1
+          build_status=$?
+          echo "$build_status" > /tmp/japanese-teambuilder-build.status
+          tail -n 300 /tmp/japanese-teambuilder-build.log
+          exit 0
+
+      - name: Require clean image build
+        run: test "$(cat /tmp/japanese-teambuilder-build.status)" = 0
+
+      - name: Serve pinned client
+        run: |
+          docker run --detach --name showdown-japanese-teambuilder \
+            -p 10004:10004 \
+            pokemon-showdown-japanese-teambuilder:smoke \
+            sh -c 'cd /opt/pokemon-showdown-client/play.pokemonshowdown.com && python3 -m http.server 10004 --bind 0.0.0.0'
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent \
+                http://127.0.0.1:10004/index-new.html \
+                --output /tmp/japanese-teambuilder-index.html; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-japanese-teambuilder \
+                | grep -q true; then
+              docker logs showdown-japanese-teambuilder
+              exit 1
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Install Japanese screenshot fonts
+        shell: bash
+        run: |
+          set -euo pipefail
+          fc-cache -f
+          if fc-list :lang=ja family | grep -q .; then
+            exit 0
+          fi
+          for attempt in 1 2 3; do
+            if sudo timeout 180s apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                update \
+              && sudo timeout 180s env DEBIAN_FRONTEND=noninteractive apt-get \
+                -o Acquire::Retries=3 \
+                -o Acquire::http::Timeout=30 \
+                -o Acquire::https::Timeout=30 \
+                install -y --no-install-recommends fonts-noto-cjk; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              exit 1
+            fi
+            sleep $((attempt * 10))
+          done
+          fc-cache -f
+          fc-list :lang=ja family | grep -q .
+
+      - name: Start headless Chrome
+        shell: bash
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          "$browser" \
+            --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --hide-scrollbars --no-proxy-server --remote-allow-origins='*' \
+            --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 \
+            --user-data-dir=/tmp/chrome-japanese-teambuilder \
+            about:blank \
+            > /tmp/japanese-teambuilder-chrome.log 2>&1 &
+          echo $! > /tmp/japanese-teambuilder-chrome.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:9222/json/version \
+                --output /tmp/japanese-teambuilder-chrome-version.json; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/japanese-teambuilder-chrome.log
+          exit 1
+
+      - name: Add one Pokemon and capture Teambuilder
+        shell: bash
+        run: |
+          set +e
+          node scripts/smoke-japanese-teambuilder.mjs \
+            --url http://127.0.0.1:10004/index-new.html#teambuilder \
+            --output-dir /tmp/japanese-teambuilder \
+            > /tmp/japanese-teambuilder-live.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/japanese-teambuilder-live.status
+          cat /tmp/japanese-teambuilder-live.log
+          exit 0
+
+      - name: Require Japanese display and English Import/Export
+        run: |
+          test "$(cat /tmp/japanese-teambuilder-live.status)" = 0
+          test -s /tmp/japanese-teambuilder/japanese-teambuilder-form.png
+          test -s /tmp/japanese-teambuilder/japanese-teambuilder-import-export.png
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import struct
+
+          root = pathlib.Path('/tmp/japanese-teambuilder')
+          report = json.loads((root / 'japanese-teambuilder-report.json').read_text(encoding='utf-8'))
+          assert report['verified'] is True
+          assert report['form']['values'] == {
+              'species': 'ピカチュウ',
+              'ability': 'せいでんき',
+              'item': 'でんきだま',
+              'move': '10まんボルト',
+          }
+          assert report['form']['canonical'] == {
+              'species': 'Pikachu',
+              'ability': 'Static',
+              'item': 'Light Ball',
+              'move': 'Thunderbolt',
+          }
+          assert report['importExport']['containsJapanese'] is False
+          assert report['importExport']['missing'] == []
+          for filename in (
+              'japanese-teambuilder-form.png',
+              'japanese-teambuilder-import-export.png',
+          ):
+              data = (root / filename).read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n'
+              width, height = struct.unpack('>II', data[16:24])
+              assert (width, height) == (1280, 900), (filename, width, height)
+          PY
+
+      - name: Capture diagnostics
+        if: always()
+        run: |
+          docker logs --timestamps showdown-japanese-teambuilder \
+            > /tmp/japanese-teambuilder-container.log 2>&1 || true
+          docker ps -a > /tmp/japanese-teambuilder-containers.txt 2>&1 || true
+
+      - name: Upload Japanese Teambuilder evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-teambuilder-live-evidence
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/japanese-teambuilder-client-pin.json
+            /tmp/japanese-teambuilder-index.html
+            /tmp/japanese-teambuilder-build.log
+            /tmp/japanese-teambuilder-build.status
+            /tmp/japanese-teambuilder-chrome.log
+            /tmp/japanese-teambuilder-chrome-version.json
+            /tmp/japanese-teambuilder-live.log
+            /tmp/japanese-teambuilder-live.status
+            /tmp/japanese-teambuilder/japanese-teambuilder-report.json
+            /tmp/japanese-teambuilder/japanese-teambuilder-form.png
+            /tmp/japanese-teambuilder/japanese-teambuilder-import-export.png
+            /tmp/japanese-teambuilder-container.log
+            /tmp/japanese-teambuilder-containers.txt
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -s /tmp/japanese-teambuilder-chrome.pid ]; then
+            kill "$(cat /tmp/japanese-teambuilder-chrome.pid)" >/dev/null 2>&1 || true
+          fi
+          docker rm --force showdown-japanese-teambuilder >/dev/null 2>&1 || true

@@ -24,9 +24,11 @@ function namedEntry(id, name) {
 }
 
 function fakeButton(kind, text, command, tooltip) {
-	const textNode = { nodeType: 3, nodeValue: text, parentElement: null };
+	const textNode = { nodeType: 3, nodeValue: text, parentElement: null, childNodes: [] };
 	const button = {
-		childNodes: [textNode, { nodeType: 1, nodeValue: null }],
+		nodeType: 1,
+		tagName: 'BUTTON',
+		childNodes: [textNode, { nodeType: 1, tagName: 'I', nodeValue: null, childNodes: [] }],
 		dataCmd: command,
 		dataTooltip: tooltip,
 		matches(selector) {
@@ -39,6 +41,16 @@ function fakeButton(kind, text, command, tooltip) {
 				return kind === 'species';
 			}
 			return false;
+		},
+		closest() {
+			return null;
+		},
+		getAttribute() {
+			return null;
+		},
+		setAttribute() {},
+		querySelector() {
+			return null;
 		},
 		querySelectorAll() {
 			return [];
@@ -116,11 +128,27 @@ function main() {
 	);
 	const buttons = [moveControl.button, speciesControl.button];
 	const root = {
+		nodeType: 1,
+		tagName: 'BODY',
+		childNodes: [],
 		matches() {
 			return false;
 		},
-		querySelectorAll() {
-			return buttons;
+		closest() {
+			return null;
+		},
+		getAttribute() {
+			return null;
+		},
+		setAttribute() {},
+		querySelector() {
+			return null;
+		},
+		querySelectorAll(selector) {
+			if (selector.includes('button.movebutton') && selector.includes('switchpokemon|')) {
+				return buttons;
+			}
+			return [];
 		},
 	};
 	const observers = [];
@@ -162,7 +190,12 @@ function main() {
 			abilities: makeTable('abilities'),
 			items: makeTable('items'),
 		},
-		document: { body: root, documentElement: root },
+		document: {
+			body: root,
+			documentElement: root,
+			activeElement: null,
+			addEventListener() {},
+		},
 		MutationObserver: class MutationObserver {
 			constructor(callback) {
 				this.callback = callback;
@@ -174,6 +207,10 @@ function main() {
 			}
 		},
 		Object,
+		setTimeout(callback) {
+			callback();
+			return 0;
+		},
 		window,
 	});
 	vm.runInContext(fs.readFileSync(bundlePath, 'utf8'), context, { filename: bundlePath });
