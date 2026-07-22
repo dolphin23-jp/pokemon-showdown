@@ -27,6 +27,24 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Lint Phase 2 TypeScript changes
+        shell: bash
+        run: |
+          set +e
+          npx eslint --max-warnings 0 \
+            server/chat-commands/core.ts \
+            translations/japanese/core-commands.ts \
+            translations/japanese/helptickets.ts \
+            translations/japanese/main.ts \
+            translations/japanese/minor-activities.ts \
+            translations/japanese/repeats.ts \
+            > /tmp/phase2-translation-lint.log 2>&1
+          lint_status=$?
+          echo "$lint_status" > /tmp/phase2-translation-lint.status
+          cat /tmp/phase2-translation-lint.log
+          exit 0
+      - name: Require Phase 2 TypeScript lint
+        run: test "$(cat /tmp/phase2-translation-lint.status)" = 0
       - name: Audit fixed strings and translation coverage
         run: |
           node --check scripts/audit-japanese-server-translations.js
@@ -76,6 +94,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           path: |
+            /tmp/phase2-translation-lint.log
+            /tmp/phase2-translation-lint.status
             /tmp/phase2-japanese-translation-audit.json
             /tmp/phase2-japanese-server-dictionary.json
             /tmp/phase2-container.log
