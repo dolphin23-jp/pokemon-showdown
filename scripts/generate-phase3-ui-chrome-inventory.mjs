@@ -8,13 +8,16 @@ import ts from 'typescript';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const DEFAULT_SERVER_ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
-const TARGET_FILES = [
-	'play.pokemonshowdown.com/src/panel-battle.tsx',
-	'play.pokemonshowdown.com/src/panel-popups.tsx',
-	'play.pokemonshowdown.com/src/battle-team-editor.tsx',
-	'play.pokemonshowdown.com/src/panel-teambuilder.tsx',
-	'play.pokemonshowdown.com/src/panel-teambuilder-team.tsx',
-	'play.pokemonshowdown.com/src/panel-teamdropdown.tsx',
+const TARGETS = [
+	{file: 'play.pokemonshowdown.com/src/panel-battle.tsx'},
+	{
+		file: 'play.pokemonshowdown.com/src/panel-popups.tsx',
+		classes: ['BattleForfeitPanel', 'ReplacePlayerPanel'],
+	},
+	{file: 'play.pokemonshowdown.com/src/battle-team-editor.tsx'},
+	{file: 'play.pokemonshowdown.com/src/panel-teambuilder.tsx'},
+	{file: 'play.pokemonshowdown.com/src/panel-teambuilder-team.tsx'},
+	{file: 'play.pokemonshowdown.com/src/panel-teamdropdown.tsx'},
 ];
 const REQUIRED_STRINGS = [
 	'Battle',
@@ -80,7 +83,7 @@ function resolveClientRoot(serverRoot, explicitRoot) {
 		path.resolve(serverRoot, 'caches', 'pokemon-showdown-client'),
 	].filter(Boolean).map(candidate => path.resolve(candidate));
 	for (const candidate of candidates) {
-		if (TARGET_FILES.every(file => fs.existsSync(path.join(candidate, file)))) return candidate;
+		if (TARGETS.every(target => fs.existsSync(path.join(candidate, target.file)))) return candidate;
 	}
 	throw new Error([
 		'Unable to locate pokemon-showdown-client with all Phase 3 UI files.',
@@ -113,6 +116,40 @@ function staticText(node) {
 	return null;
 }
 
+function renderedExpressionStrings(expression) {
+	const results = [];
+	function collect(node) {
+		const text = staticText(node);
+		if (text !== null) {
+			results.push([node, text]);
+			return;
+		}
+		if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) ||
+			ts.isTypeAssertionExpression(node) || ts.isNonNullExpression(node)) {
+			collect(node.expression);
+			return;
+		}
+		if (ts.isConditionalExpression(node)) {
+			collect(node.whenTrue);
+			collect(node.whenFalse);
+			return;
+		}
+		if (ts.isArrayLiteralExpression(node)) {
+			for (const element of node.elements) collect(element);
+			return;
+		}
+		if (ts.isBinaryExpression(node) && (
+			node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken ||
+			node.operatorToken.kind === ts.SyntaxKind.BarBarToken ||
+			node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+		)) {
+			collect(node.right);
+		}
+	}
+	collect(expression);
+	return results;
+}
+
 function jsxAttributeName(attribute) {
 	return attribute.name.getText();
 }
@@ -125,34 +162,6 @@ function openingElementHasDataTooltip(openingElement) {
 
 function lineNumber(sourceFile, node) {
 	return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
-}
-
-function collectExpressionStrings(expression, add) {
-	const text = staticText(expression);
-	if (text !== null) {
-		add(expression, text);
-		return;
-	}
-	if (ts.isParenthesizedExpression(expression)) {
-		collectExpressionStrings(expression.expression, add);
-		return;
-	}
-	if (ts.isConditionalExpression(expression)) {
-		collectExpressionStrings(expression.whenTrue, add);
-		collectExpressionStrings(expression.whenFalse, add);
-		return;
-	}
-	if (ts.isBinaryExpression(expression) && [
-		ts.SyntaxKind.AmpersandAmpersandToken,
-		ts.SyntaxKind.BarBarToken,
-		ts.SyntaxKind.QuestionQuestionToken,
-	].includes(expression.operatorToken.kind)) {
-		collectExpressionStrings(expression.right, add);
-		return;
-	}
-	if (ts.isArrayLiteralExpression(expression)) {
-		for (const element of expression.elements) collectExpressionStrings(element, add);
-	}
 }
 
 function collectNotify(call, sourceFile, addEntry) {
@@ -177,8 +186,25 @@ function collectNotify(call, sourceFile, addEntry) {
 	}
 }
 
-function collectFile(clientRoot, relativePath, fileIndex) {
-	const filePath = path.join(clientRoot, relativePath);
+function targetRoots(sourceFile, target) {
+	if (!target.classes) return [sourceFile];
+	const roots = [];
+	const found = new Set();
+	for (const statement of sourceFile.statements) {
+		if (!ts.isClassDeclaration(statement) || !statement.name) continue;
+		if (!target.classes.includes(statement.name.text)) continue;
+		roots.push(statement);
+		found.add(statement.name.text);
+	}
+	const missing = target.classes.filter(className => !found.has(className));
+	if (missing.length) {
+		throw new Error(`Missing scoped class in ${target.file}: ${missing.join(', ')}`);
+	}
+	return roots;
+}
+
+function collectFile(clientRoot, target, fileIndex) {
+	const filePath = path.join(clientRoot, target.file);
 	const source = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 	const entries = [];
@@ -190,14 +216,16 @@ function collectFile(clientRoot, relativePath, fileIndex) {
 		const fingerprint = `${line}\0${type}\0${text}`;
 		if (seen.has(fingerprint)) return;
 		seen.add(fingerprint);
-		entries.push({file: relativePath, fileIndex, line, type, text});
+		entries.push({file: target.file, fileIndex, line, type, text});
 	}
 	function visit(node) {
 		if (ts.isJsxText(node)) {
 			addEntry(node, 'label', node.getText(sourceFile));
 		} else if (ts.isJsxExpression(node) && node.expression &&
 			(ts.isJsxElement(node.parent) || ts.isJsxFragment(node.parent))) {
-			collectExpressionStrings(node.expression, (literalNode, text) => addEntry(literalNode, 'label', text));
+			for (const [literalNode, text] of renderedExpressionStrings(node.expression)) {
+				addEntry(literalNode, 'label', text);
+			}
 		} else if (ts.isJsxAttribute(node)) {
 			const name = jsxAttributeName(node);
 			if (name === 'placeholder' || name === 'title') {
@@ -218,7 +246,7 @@ function collectFile(clientRoot, relativePath, fileIndex) {
 		}
 		ts.forEachChild(node, visit);
 	}
-	visit(sourceFile);
+	for (const root of targetRoots(sourceFile, target)) visit(root);
 	return entries;
 }
 
@@ -232,7 +260,7 @@ function renderMarkdown(clientSha, entries) {
 		'',
 		`Generated from client SHA \`${clientSha}\`.`,
 		'',
-		'This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.',
+		'This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.',
 		'',
 		'| File:line | Type | Current English string |',
 		'| --- | --- | --- |',
@@ -254,7 +282,7 @@ function assertRequiredStrings(entries) {
 function main() {
 	const args = parseArgs(process.argv.slice(2));
 	const clientRoot = resolveClientRoot(args.serverRoot, args.clientRoot);
-	const entries = TARGET_FILES.flatMap((file, index) => collectFile(clientRoot, file, index));
+	const entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index));
 	entries.sort((a, b) =>
 		a.fileIndex - b.fileIndex || a.line - b.line || a.type.localeCompare(b.type) || a.text.localeCompare(b.text)
 	);
