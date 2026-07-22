@@ -6,7 +6,7 @@ Phase 3 T3-00 records the remaining English battle narration and UI chrome in th
 
 The recorded baseline is:
 
-- server input SHA: `1cd50bc887fcba6d76a4784e49d155b78a827d6b`
+- server input SHA: `39cc33901269494f65c9da90bedf90fdf2c9d804`
 - pinned client SHA: `d2939675265dabb8e42c5b8ade059115ee3086db`
 - missing battle-text templates: 452 keys across 312 namespaces
 - hard-coded UI chrome entries: 319
