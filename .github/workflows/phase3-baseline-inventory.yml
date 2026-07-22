@@ -1,0 +1,87 @@
+name: Phase 3 baseline inventory
+
+on:
+  pull_request:
+    paths:
+      - data/text/**
+      - config/pokemon-showdown-client.json
+      - docs/localization/phase-3-**
+      - scripts/generate-phase3-battle-text-inventory.mjs
+      - scripts/generate-phase3-ui-chrome-inventory.mjs
+      - .github/workflows/phase3-baseline-inventory.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out server head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          path: server
+
+      - name: Resolve pinned client
+        id: client
+        working-directory: server
+        run: |
+          echo "repository=$(node -p "require('./config/pokemon-showdown-client.json').fork_repository")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(node -p "require('./config/pokemon-showdown-client.json').commit")" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pinned client
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.client.outputs.repository }}
+          ref: ${{ steps.client.outputs.sha }}
+          fetch-depth: 1
+          path: client
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server development dependencies
+        run: npm ci --prefix server
+
+      - name: Check generator syntax
+        run: |
+          node --check server/scripts/generate-phase3-battle-text-inventory.mjs
+          node --check server/scripts/generate-phase3-ui-chrome-inventory.mjs
+
+      - name: Generate Phase 3 inventories
+        run: |
+          mkdir -p "$RUNNER_TEMP/phase3"
+          node server/scripts/generate-phase3-battle-text-inventory.mjs \
+            --server-root server \
+            --client-root client \
+            --output "$RUNNER_TEMP/phase3/phase-3-battle-text-inventory.json"
+          node server/scripts/generate-phase3-ui-chrome-inventory.mjs \
+            --server-root server \
+            --client-root client \
+            --output "$RUNNER_TEMP/phase3/phase-3-ui-chrome-inventory.md"
+
+      - name: Upload generated inventories
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-3-t3-00-generated-inventories
+          path: ${{ runner.temp }}/phase3
+          if-no-files-found: warn
+
+      - name: Verify committed inventories
+        run: |
+          node server/scripts/generate-phase3-battle-text-inventory.mjs \
+            --server-root server \
+            --client-root client \
+            --check
+          node server/scripts/generate-phase3-ui-chrome-inventory.mjs \
+            --server-root server \
+            --client-root client \
+            --check
