@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -66,6 +66,28 @@ jobs:
             --server-root server \
             --client-root client \
             --output "$RUNNER_TEMP/phase3/phase-3-ui-chrome-inventory.md"
+
+      - name: Commit generated inventories
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        working-directory: server
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          cp "$RUNNER_TEMP/phase3/phase-3-battle-text-inventory.json" \
+            docs/localization/phase-3-battle-text-inventory.json
+          cp "$RUNNER_TEMP/phase3/phase-3-ui-chrome-inventory.md" \
+            docs/localization/phase-3-ui-chrome-inventory.md
+          git add \
+            docs/localization/phase-3-battle-text-inventory.json \
+            docs/localization/phase-3-ui-chrome-inventory.md
+          if git diff --cached --quiet; then
+            echo "Inventories already match generated output."
+          else
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git commit -m "Record Phase 3 baseline inventories"
+            git push origin "HEAD:${HEAD_BRANCH}"
+          fi
 
       - name: Upload generated inventories
         if: always()
