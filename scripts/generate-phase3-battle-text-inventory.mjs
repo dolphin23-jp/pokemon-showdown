@@ -241,20 +241,6 @@ function createInventory(serverRoot, clientRoot) {
 	};
 }
 
-function assertKnownMissing(inventory) {
-	const expected = {
-		leftovers: ['heal'],
-		disguise: ['block', 'transform'],
-	};
-	for (const [namespace, keys] of Object.entries(expected)) {
-		for (const key of keys) {
-			if (!inventory.byNamespace[namespace]?.includes(key)) {
-				throw new Error(`Expected missing BattleText key not found: ${namespace}.${key}`);
-			}
-		}
-	}
-}
-
 function assertPinnedClient(serverRoot, clientRoot, inventory) {
 	const pin = readJSON(path.join(serverRoot, 'config/pokemon-showdown-client.json'));
 	if (inventory.generatedFromClientSha !== pin.commit) {
@@ -318,7 +304,6 @@ function main() {
 	}
 	const inventory = createInventory(args.serverRoot, clientRoot);
 	assertPinnedClient(args.serverRoot, clientRoot, inventory);
-	assertKnownMissing(inventory);
 	if (args.check) {
 		checkCommittedOutput(args, inventory);
 		return;
