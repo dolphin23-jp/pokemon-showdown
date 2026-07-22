@@ -1,16 +1,19 @@
 name: Patch Teambuilder native selection
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/japanese-teambuilder
+      - master
+    paths:
+      - scripts/smoke-japanese-teambuilder.mjs
+      - .github/workflows/patch-teambuilder-ability-selection.yml
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: github.actor != 'github-actions[bot]'
+    if: github.event.pull_request.head.ref == 'agent/japanese-teambuilder' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
