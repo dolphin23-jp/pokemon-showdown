@@ -1,0 +1,1083 @@
+{
+  "generatedFromServerSha": "1cd50bc887fcba6d76a4784e49d155b78a827d6b",
+  "generatedFromClientSha": "d2939675265dabb8e42c5b8ade059115ee3086db",
+  "totalMissing": 452,
+  "byNamespace": {
+    "abilityshield": [
+      "block"
+    ],
+    "aftermath": [
+      "damage"
+    ],
+    "afteryou": [
+      "activate"
+    ],
+    "airballoon": [
+      "end",
+      "start"
+    ],
+    "airlock": [
+      "start"
+    ],
+    "angerpoint": [
+      "boost"
+    ],
+    "anticipation": [
+      "activate"
+    ],
+    "aquaring": [
+      "heal",
+      "start"
+    ],
+    "armortail": [
+      "block"
+    ],
+    "aromatherapy": [
+      "activate"
+    ],
+    "aromaveil": [
+      "block"
+    ],
+    "asone": [
+      "start"
+    ],
+    "attract": [
+      "activate",
+      "cant",
+      "end",
+      "endFromItem",
+      "start",
+      "startFromItem"
+    ],
+    "aurabreak": [
+      "start"
+    ],
+    "auroraveil": [
+      "end",
+      "start"
+    ],
+    "autotomize": [
+      "start"
+    ],
+    "axekick": [
+      "damage"
+    ],
+    "baddreams": [
+      "damage"
+    ],
+    "battlebond": [
+      "activate",
+      "transform"
+    ],
+    "beadsofruin": [
+      "start"
+    ],
+    "beakblast": [
+      "start"
+    ],
+    "beatup": [
+      "activate"
+    ],
+    "belch": [
+      "champions"
+    ],
+    "bellydrum": [
+      "boost"
+    ],
+    "bestow": [
+      "takeItem"
+    ],
+    "bide": [
+      "activate",
+      "end",
+      "start"
+    ],
+    "bind": [
+      "move",
+      "start"
+    ],
+    "blacksludge": [
+      "heal"
+    ],
+    "bounce": [
+      "prepare"
+    ],
+    "brickbreak": [
+      "activate"
+    ],
+    "bugbite": [
+      "removeItem"
+    ],
+    "burnup": [
+      "typeChange"
+    ],
+    "celebrate": [
+      "activate"
+    ],
+    "charge": [
+      "start"
+    ],
+    "chillyreception": [
+      "prepare"
+    ],
+    "clamp": [
+      "move",
+      "start"
+    ],
+    "clearamulet": [
+      "block"
+    ],
+    "cloudnine": [
+      "start"
+    ],
+    "comatose": [
+      "start"
+    ],
+    "commander": [
+      "activate"
+    ],
+    "conversion": [
+      "typeChange"
+    ],
+    "corrosivegas": [
+      "fail",
+      "removeItem"
+    ],
+    "courtchange": [
+      "activate"
+    ],
+    "covet": [
+      "champions"
+    ],
+    "craftyshield": [
+      "block",
+      "start"
+    ],
+    "curse": [
+      "damage",
+      "start"
+    ],
+    "custapberry": [
+      "activate"
+    ],
+    "damp": [
+      "block"
+    ],
+    "darkaura": [
+      "start"
+    ],
+    "darkvoid": [
+      "fail",
+      "failWrongForme"
+    ],
+    "dazzling": [
+      "block"
+    ],
+    "destinybond": [
+      "activate",
+      "start"
+    ],
+    "dig": [
+      "prepare"
+    ],
+    "direclaw": [
+      "champions"
+    ],
+    "disable": [
+      "cant",
+      "end",
+      "start"
+    ],
+    "disguise": [
+      "block",
+      "transform"
+    ],
+    "dive": [
+      "prepare"
+    ],
+    "doomdesire": [
+      "activate",
+      "start"
+    ],
+    "doubleshock": [
+      "typeChange"
+    ],
+    "dragonascent": [
+      "megaNoItem"
+    ],
+    "dragoncheer": [
+      "start"
+    ],
+    "dryskin": [
+      "damage"
+    ],
+    "eeriespell": [
+      "activate"
+    ],
+    "ejectbutton": [
+      "end"
+    ],
+    "ejectpack": [
+      "end"
+    ],
+    "electrify": [
+      "start"
+    ],
+    "electromorphosis": [
+      "start"
+    ],
+    "electroshot": [
+      "prepare"
+    ],
+    "embargo": [
+      "end",
+      "start"
+    ],
+    "embodyaspectcornerstone": [
+      "boost"
+    ],
+    "embodyaspecthearthflame": [
+      "boost"
+    ],
+    "embodyaspectteal": [
+      "boost"
+    ],
+    "embodyaspectwellspring": [
+      "boost"
+    ],
+    "encore": [
+      "end",
+      "start"
+    ],
+    "endure": [
+      "activate",
+      "start"
+    ],
+    "fairyaura": [
+      "start"
+    ],
+    "fairylock": [
+      "activate"
+    ],
+    "fakeout": [
+      "champions"
+    ],
+    "feint": [
+      "activate"
+    ],
+    "ficklebeam": [
+      "activate"
+    ],
+    "firepledge": [
+      "activate",
+      "damage",
+      "end",
+      "start"
+    ],
+    "firespin": [
+      "move",
+      "start"
+    ],
+    "firstimpression": [
+      "champions"
+    ],
+    "flameburst": [
+      "damage"
+    ],
+    "flashfire": [
+      "start"
+    ],
+    "fling": [
+      "removeItem"
+    ],
+    "flipturn": [
+      "switchOut"
+    ],
+    "flowerveil": [
+      "block"
+    ],
+    "fly": [
+      "prepare"
+    ],
+    "focusband": [
+      "activate"
+    ],
+    "focusenergy": [
+      "start",
+      "startFromItem",
+      "startFromZEffect"
+    ],
+    "focuspunch": [
+      "cant",
+      "start"
+    ],
+    "focussash": [
+      "end"
+    ],
+    "followme": [
+      "start",
+      "startFromZEffect"
+    ],
+    "foresight": [
+      "start"
+    ],
+    "forewarn": [
+      "activate",
+      "activateNoTarget"
+    ],
+    "freezedry": [
+      "champions"
+    ],
+    "freezeshock": [
+      "prepare"
+    ],
+    "frisk": [
+      "activate",
+      "activateNoTarget"
+    ],
+    "futuresight": [
+      "activate",
+      "start"
+    ],
+    "gastroacid": [
+      "start"
+    ],
+    "geomancy": [
+      "prepare"
+    ],
+    "gmaxcannonade": [
+      "damage",
+      "start"
+    ],
+    "gmaxchistrike": [
+      "start"
+    ],
+    "gmaxdepletion": [
+      "activate"
+    ],
+    "gmaxsteelsurge": [
+      "damage",
+      "end",
+      "start"
+    ],
+    "gmaxvinelash": [
+      "damage",
+      "start"
+    ],
+    "gmaxvolcalith": [
+      "damage",
+      "start"
+    ],
+    "gmaxwildfire": [
+      "damage",
+      "start"
+    ],
+    "grasspledge": [
+      "activate",
+      "end",
+      "start"
+    ],
+    "grudge": [
+      "activate",
+      "start"
+    ],
+    "guardsplit": [
+      "activate"
+    ],
+    "hadronengine": [
+      "activate",
+      "start"
+    ],
+    "happyhour": [
+      "activate"
+    ],
+    "harvest": [
+      "addItem"
+    ],
+    "haze": [
+      "activate"
+    ],
+    "healbell": [
+      "activate"
+    ],
+    "healblock": [
+      "cant",
+      "cantGen8",
+      "end",
+      "endGen8",
+      "fail",
+      "start"
+    ],
+    "healer": [
+      "champions"
+    ],
+    "healingwish": [
+      "heal"
+    ],
+    "healreplacement": [
+      "activate"
+    ],
+    "helpinghand": [
+      "start"
+    ],
+    "highjumpkick": [
+      "damage"
+    ],
+    "hospitality": [
+      "heal"
+    ],
+    "hyperspacefury": [
+      "activate",
+      "fail"
+    ],
+    "hyperspacehole": [
+      "activate"
+    ],
+    "iceburn": [
+      "prepare"
+    ],
+    "illusion": [
+      "end"
+    ],
+    "imprison": [
+      "cant",
+      "start"
+    ],
+    "incinerate": [
+      "removeItem"
+    ],
+    "infestation": [
+      "start"
+    ],
+    "ingrain": [
+      "block",
+      "heal",
+      "start"
+    ],
+    "innardsout": [
+      "damage"
+    ],
+    "instruct": [
+      "activate"
+    ],
+    "iondeluge": [
+      "activate"
+    ],
+    "ironbarbs": [
+      "damage"
+    ],
+    "ironhead": [
+      "champions"
+    ],
+    "jumpkick": [
+      "damage"
+    ],
+    "knockoff": [
+      "champions",
+      "removeItem"
+    ],
+    "laserfocus": [
+      "start"
+    ],
+    "leechseed": [
+      "damage",
+      "end",
+      "start"
+    ],
+    "leftovers": [
+      "heal"
+    ],
+    "leppaberry": [
+      "activate"
+    ],
+    "lifeorb": [
+      "damage"
+    ],
+    "lightningrod": [
+      "activate"
+    ],
+    "lightscreen": [
+      "end",
+      "start",
+      "startGen1"
+    ],
+    "lingeringaroma": [
+      "changeAbility"
+    ],
+    "liquidooze": [
+      "damage"
+    ],
+    "lockon": [
+      "start"
+    ],
+    "luckychant": [
+      "end",
+      "start"
+    ],
+    "lunardance": [
+      "heal"
+    ],
+    "magicbounce": [
+      "move"
+    ],
+    "magiccoat": [
+      "move",
+      "start"
+    ],
+    "magmastorm": [
+      "start"
+    ],
+    "magnetrise": [
+      "end",
+      "start"
+    ],
+    "magnitude": [
+      "activate"
+    ],
+    "makeitrain": [
+      "activate",
+      "champions"
+    ],
+    "matblock": [
+      "block",
+      "start"
+    ],
+    "maxguard": [
+      "activate"
+    ],
+    "memento": [
+      "heal"
+    ],
+    "meteorbeam": [
+      "prepare"
+    ],
+    "metronome": [
+      "move"
+    ],
+    "mimic": [
+      "start"
+    ],
+    "mimicry": [
+      "activate"
+    ],
+    "mindblown": [
+      "damage"
+    ],
+    "mindreader": [
+      "start"
+    ],
+    "miracleeye": [
+      "start"
+    ],
+    "mirrorherb": [
+      "activate"
+    ],
+    "mist": [
+      "block",
+      "blockGen1",
+      "blockGen2",
+      "end",
+      "start",
+      "startGen1",
+      "startGen2"
+    ],
+    "moldbreaker": [
+      "start"
+    ],
+    "moonblast": [
+      "champions"
+    ],
+    "mummy": [
+      "changeAbility"
+    ],
+    "mysteryberry": [
+      "activate"
+    ],
+    "naturalcure": [
+      "activate"
+    ],
+    "naturepower": [
+      "move"
+    ],
+    "neutralizinggas": [
+      "end",
+      "start"
+    ],
+    "nightmare": [
+      "damage",
+      "start"
+    ],
+    "noretreat": [
+      "start"
+    ],
+    "octolock": [
+      "start"
+    ],
+    "orichalcumpulse": [
+      "activate",
+      "start"
+    ],
+    "painsplit": [
+      "activate"
+    ],
+    "partingshot": [
+      "heal",
+      "switchOut"
+    ],
+    "payday": [
+      "activate"
+    ],
+    "perishbody": [
+      "start"
+    ],
+    "perishsong": [
+      "activate",
+      "start"
+    ],
+    "persistent": [
+      "activate"
+    ],
+    "phantomforce": [
+      "activate",
+      "prepare"
+    ],
+    "pickup": [
+      "addItem"
+    ],
+    "pluck": [
+      "removeItem"
+    ],
+    "poltergeist": [
+      "activate"
+    ],
+    "powder": [
+      "activate",
+      "start"
+    ],
+    "powerconstruct": [
+      "activate",
+      "transform"
+    ],
+    "powerherb": [
+      "end"
+    ],
+    "powerofalchemy": [
+      "changeAbility"
+    ],
+    "powershift": [
+      "end",
+      "start"
+    ],
+    "powersplit": [
+      "activate"
+    ],
+    "powertrick": [
+      "end",
+      "start"
+    ],
+    "pressure": [
+      "start"
+    ],
+    "protect": [
+      "block",
+      "start"
+    ],
+    "protectivepads": [
+      "block"
+    ],
+    "protosynthesis": [
+      "activate",
+      "activateFromItem",
+      "end",
+      "start"
+    ],
+    "pursuit": [
+      "activate"
+    ],
+    "quarkdrive": [
+      "activate",
+      "activateFromItem",
+      "end",
+      "start"
+    ],
+    "quash": [
+      "activate"
+    ],
+    "queenlymajesty": [
+      "block"
+    ],
+    "quickclaw": [
+      "activate"
+    ],
+    "quickdraw": [
+      "activate"
+    ],
+    "quickguard": [
+      "block",
+      "start"
+    ],
+    "ragefist": [
+      "champions"
+    ],
+    "ragepowder": [
+      "start",
+      "startFromZEffect"
+    ],
+    "ragingbull": [
+      "activate"
+    ],
+    "razorwind": [
+      "prepare"
+    ],
+    "rebound": [
+      "move"
+    ],
+    "receiver": [
+      "changeAbility"
+    ],
+    "recycle": [
+      "addItem"
+    ],
+    "redcard": [
+      "end"
+    ],
+    "reflect": [
+      "end",
+      "start",
+      "startGen1"
+    ],
+    "reflecttype": [
+      "typeChange"
+    ],
+    "revivalblessing": [
+      "heal"
+    ],
+    "rockyhelmet": [
+      "damage"
+    ],
+    "roleplay": [
+      "changeAbility"
+    ],
+    "roost": [
+      "start"
+    ],
+    "roughskin": [
+      "damage"
+    ],
+    "safeguard": [
+      "block",
+      "end",
+      "start"
+    ],
+    "safetygoggles": [
+      "block"
+    ],
+    "saltcure": [
+      "champions",
+      "damage",
+      "start"
+    ],
+    "sandtomb": [
+      "start"
+    ],
+    "schooling": [
+      "transform",
+      "transformEnd"
+    ],
+    "shadowforce": [
+      "activate",
+      "prepare"
+    ],
+    "shedtail": [
+      "alreadyStarted",
+      "fail",
+      "start"
+    ],
+    "shellbell": [
+      "heal"
+    ],
+    "shelltrap": [
+      "cant",
+      "prepare",
+      "start"
+    ],
+    "shieldsdown": [
+      "transform",
+      "transformEnd"
+    ],
+    "sketch": [
+      "activate"
+    ],
+    "skillswap": [
+      "activate"
+    ],
+    "skullbash": [
+      "prepare"
+    ],
+    "skyattack": [
+      "prepare"
+    ],
+    "skydrop": [
+      "end",
+      "failSelect",
+      "failTooHeavy",
+      "prepare"
+    ],
+    "slowbronite": [
+      "champions"
+    ],
+    "slowstart": [
+      "end",
+      "start"
+    ],
+    "smackdown": [
+      "start"
+    ],
+    "snaptrap": [
+      "start"
+    ],
+    "snatch": [
+      "activate",
+      "start"
+    ],
+    "solarbeam": [
+      "prepare"
+    ],
+    "solarblade": [
+      "prepare"
+    ],
+    "spectralthief": [
+      "clearBoost"
+    ],
+    "speedswap": [
+      "activate"
+    ],
+    "spikes": [
+      "damage",
+      "end",
+      "start"
+    ],
+    "spikyshield": [
+      "damage"
+    ],
+    "spite": [
+      "activate"
+    ],
+    "splash": [
+      "activate"
+    ],
+    "spotlight": [
+      "start",
+      "startFromZEffect"
+    ],
+    "stancechange": [
+      "transform",
+      "transformEnd"
+    ],
+    "stealthrock": [
+      "damage",
+      "end",
+      "start"
+    ],
+    "steelbeam": [
+      "damage"
+    ],
+    "stickyhold": [
+      "block"
+    ],
+    "stickyweb": [
+      "activate",
+      "end",
+      "start"
+    ],
+    "stockpile": [
+      "end",
+      "start"
+    ],
+    "stormdrain": [
+      "activate"
+    ],
+    "stuffcheeks": [
+      "champions"
+    ],
+    "sturdy": [
+      "activate"
+    ],
+    "substitute": [
+      "activate",
+      "alreadyStarted",
+      "end",
+      "fail",
+      "start"
+    ],
+    "suctioncups": [
+      "block"
+    ],
+    "supercellslam": [
+      "damage"
+    ],
+    "supersweetsyrup": [
+      "start"
+    ],
+    "supremeoverlord": [
+      "activate"
+    ],
+    "sweetveil": [
+      "block"
+    ],
+    "switcheroo": [
+      "activate",
+      "champions"
+    ],
+    "swordofruin": [
+      "start"
+    ],
+    "symbiosis": [
+      "activate"
+    ],
+    "syrupbomb": [
+      "start"
+    ],
+    "tabletsofruin": [
+      "start"
+    ],
+    "tailwind": [
+      "end",
+      "start"
+    ],
+    "tarshot": [
+      "start"
+    ],
+    "taunt": [
+      "cant",
+      "end",
+      "start"
+    ],
+    "teatime": [
+      "activate",
+      "fail"
+    ],
+    "telekinesis": [
+      "end",
+      "start"
+    ],
+    "telepathy": [
+      "block"
+    ],
+    "terashell": [
+      "activate"
+    ],
+    "terashift": [
+      "transform"
+    ],
+    "teravolt": [
+      "start"
+    ],
+    "thief": [
+      "champions"
+    ],
+    "throatchop": [
+      "cant"
+    ],
+    "thundercage": [
+      "start"
+    ],
+    "tidyup": [
+      "activate"
+    ],
+    "torment": [
+      "end",
+      "start"
+    ],
+    "toxicspikes": [
+      "end",
+      "start"
+    ],
+    "toxicthread": [
+      "champions"
+    ],
+    "trace": [
+      "changeAbility"
+    ],
+    "transform": [
+      "transform"
+    ],
+    "trick": [
+      "activate",
+      "champions"
+    ],
+    "truant": [
+      "cant"
+    ],
+    "turboblaze": [
+      "start"
+    ],
+    "ultranecroziumz": [
+      "activate",
+      "transform"
+    ],
+    "unnerve": [
+      "start"
+    ],
+    "unseenfist": [
+      "champions"
+    ],
+    "uproar": [
+      "block",
+      "blockSelf",
+      "end",
+      "start",
+      "upkeep"
+    ],
+    "uturn": [
+      "switchOut"
+    ],
+    "vesselofruin": [
+      "start"
+    ],
+    "voltswitch": [
+      "switchOut"
+    ],
+    "wanderingspirit": [
+      "activate"
+    ],
+    "waterpledge": [
+      "activate",
+      "end",
+      "start"
+    ],
+    "weatherball": [
+      "move"
+    ],
+    "whirlpool": [
+      "start"
+    ],
+    "whiteherb": [
+      "end"
+    ],
+    "wideguard": [
+      "block",
+      "start"
+    ],
+    "windpower": [
+      "start"
+    ],
+    "wish": [
+      "heal"
+    ],
+    "wrap": [
+      "move",
+      "start"
+    ],
+    "yawn": [
+      "start"
+    ],
+    "zenmode": [
+      "transform",
+      "transformEnd"
+    ],
+    "zerotohero": [
+      "activate"
+    ]
+  }
+}
