@@ -10,11 +10,13 @@ permissions:
 
 jobs:
   patch:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: agent/japanese-teambuilder
+          fetch-depth: 0
       - name: Open the newly created team
         run: |
           python3 - <<'PY'
@@ -32,18 +34,16 @@ jobs:
 \t\tclick(teamLink);
 \t\tawait waitFor(() => window.PS?.room?.editor && document.querySelector('.teameditor'), 'new team editor');'''
           if old not in text:
-              if new in text:
-                  raise SystemExit(0)
-              raise SystemExit('expected new-team block was not found')
-          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              if new not in text:
+                  raise SystemExit('expected new-team block was not found')
+          else:
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
-      - name: Commit patch
+      - name: Commit patch and remove helper workflow
         run: |
-          if git diff --quiet; then
-            exit 0
-          fi
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/patch-japanese-teambuilder-smoke.yml
           git add scripts/smoke-japanese-teambuilder.mjs
           git commit -m "Open newly created team in browser smoke"
           git push origin HEAD:agent/japanese-teambuilder
