@@ -26,7 +26,7 @@ function namedEntry(id, name) {
 function fakeButton(kind, text, command, tooltip) {
 	const textNode = { nodeType: 3, nodeValue: text, parentElement: null };
 	const button = {
-		childNodes: [textNode, { nodeType: 1, nodeValue: null }],
+		childNodes: [textNode, { nodeType: 1, nodeValue: null, childNodes: [] }],
 		dataCmd: command,
 		dataTooltip: tooltip,
 		matches(selector) {
@@ -119,8 +119,16 @@ function main() {
 		matches() {
 			return false;
 		},
-		querySelectorAll() {
-			return buttons;
+		querySelectorAll(selector) {
+			if (
+				selector.includes('button.movebutton') ||
+				selector.includes('switchpokemon|') ||
+				selector.includes('allypokemon|') ||
+				selector.includes('activepokemon|')
+			) {
+				return buttons;
+			}
+			return [];
 		},
 	};
 	const observers = [];
@@ -162,7 +170,11 @@ function main() {
 			abilities: makeTable('abilities'),
 			items: makeTable('items'),
 		},
-		document: { body: root, documentElement: root },
+		document: {
+			body: root,
+			documentElement: root,
+			addEventListener() {},
+		},
 		MutationObserver: class MutationObserver {
 			constructor(callback) {
 				this.callback = callback;
