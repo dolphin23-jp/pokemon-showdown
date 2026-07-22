@@ -45,6 +45,30 @@ jobs:
           exit 0
       - name: Require Phase 2 TypeScript lint
         run: test "$(cat /tmp/phase2-translation-lint.status)" = 0
+      - name: Typecheck server
+        shell: bash
+        run: |
+          set +e
+          npx tsc --pretty false > /tmp/phase2-typecheck.log 2>&1
+          typecheck_status=$?
+          echo "$typecheck_status" > /tmp/phase2-typecheck.status
+          cat /tmp/phase2-typecheck.log
+          exit 0
+      - name: Require server typecheck
+        run: test "$(cat /tmp/phase2-typecheck.status)" = 0
+      - name: Run non-simulator server tests
+        shell: bash
+        run: |
+          set +e
+          npx mocha --timeout 8000 --forbid-only -g '.*' \
+            --exclude 'test/{sim,random-battles}/**' \
+            > /tmp/phase2-server-tests.log 2>&1
+          test_status=$?
+          echo "$test_status" > /tmp/phase2-server-tests.status
+          tail -n 300 /tmp/phase2-server-tests.log
+          exit 0
+      - name: Require non-simulator server tests
+        run: test "$(cat /tmp/phase2-server-tests.status)" = 0
       - name: Audit fixed strings and translation coverage
         run: |
           node --check scripts/audit-japanese-server-translations.js
@@ -96,6 +120,10 @@ jobs:
           path: |
             /tmp/phase2-translation-lint.log
             /tmp/phase2-translation-lint.status
+            /tmp/phase2-typecheck.log
+            /tmp/phase2-typecheck.status
+            /tmp/phase2-server-tests.log
+            /tmp/phase2-server-tests.status
             /tmp/phase2-japanese-translation-audit.json
             /tmp/phase2-japanese-server-dictionary.json
             /tmp/phase2-container.log
