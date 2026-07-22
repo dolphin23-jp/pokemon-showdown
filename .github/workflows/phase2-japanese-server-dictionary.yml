@@ -1,0 +1,112 @@
+name: Phase 2 Japanese server dictionary
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - server/chat-commands/core.ts
+      - translations/japanese/**
+      - scripts/audit-japanese-server-translations.js
+      - scripts/smoke-japanese-server-dictionary.py
+      - docs/localization/phase-2-server-translation-inventory.*
+      - .github/workflows/phase2-japanese-server-dictionary.yml
+
+permissions:
+  contents: read
+
+jobs:
+  dictionary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - name: Mirror Node.js CI for changed server source
+        shell: bash
+        env:
+          CI: true
+          FILES: server/chat-commands/core.ts
+          SKIPSIMTESTS: true
+        run: |
+          set +e
+          npm run full-test-ci > /tmp/phase2-node-ci.log 2>&1
+          node_ci_status=$?
+          echo "$node_ci_status" > /tmp/phase2-node-ci.status
+          tail -n 400 /tmp/phase2-node-ci.log
+          exit 0
+      - name: Require mirrored Node.js CI
+        run: test "$(cat /tmp/phase2-node-ci.status)" = 0
+      - name: Audit fixed strings and translation coverage
+        run: |
+          node --check scripts/audit-japanese-server-translations.js
+          python3 -m py_compile scripts/smoke-japanese-server-dictionary.py
+          node scripts/audit-japanese-server-translations.js \
+            --check-fixed \
+            --json-output /tmp/phase2-japanese-translation-audit.json
+      - name: Build clean server image
+        run: docker build --progress=plain --tag pokemon-showdown-phase2:smoke .
+      - name: Start local Japanese dictionary server
+        run: |
+          docker run --detach --name showdown-phase2 \
+            -e PORT=10000 \
+            -e DEFAULT_PLAYER_NAME=Phase2JapaneseSmoke \
+            -e FOUL_PLAY_USERNAME=Phase2DictionaryBot \
+            -e FOUL_PLAY_TEAM_NAME=/app/config/all-generations-fallback/06-ghost-nightmare.txt \
+            pokemon-showdown-phase2:smoke
+          for attempt in $(seq 1 90); do
+            if docker exec showdown-phase2 curl --fail --silent http://127.0.0.1:10000/health \
+                | grep -q 'gen9nationaldexallgenerationsbss'; then
+              exit 0
+            fi
+            if ! docker inspect -f '{{.State.Running}}' showdown-phase2 | grep -q true; then
+              exit 1
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Log in and capture Japanese command responses
+        shell: bash
+        run: |
+          set +e
+          docker exec showdown-phase2 \
+            .venv/bin/python scripts/smoke-japanese-server-dictionary.py \
+              --port 8000 \
+              --timeout 60 \
+              --output /app/.runtime/phase2-japanese-server-dictionary.json \
+            > /tmp/phase2-japanese-server-dictionary.log 2>&1
+          smoke_status=$?
+          echo "$smoke_status" > /tmp/phase2-japanese-server-dictionary.status
+          docker cp showdown-phase2:/app/.runtime/phase2-japanese-server-dictionary.json \
+            /tmp/phase2-japanese-server-dictionary.json 2>/dev/null || true
+          cat /tmp/phase2-japanese-server-dictionary.log
+          exit 0
+      - name: Capture diagnostics
+        if: always()
+        run: |
+          docker logs --timestamps showdown-phase2 > /tmp/phase2-container.log 2>&1 || true
+      - name: Upload Phase 2 dictionary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-japanese-server-dictionary-evidence
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/phase2-node-ci.log
+            /tmp/phase2-node-ci.status
+            /tmp/phase2-japanese-translation-audit.json
+            /tmp/phase2-japanese-server-dictionary.log
+            /tmp/phase2-japanese-server-dictionary.status
+            /tmp/phase2-japanese-server-dictionary.json
+            /tmp/phase2-container.log
+      - name: Require Japanese command responses
+        run: test "$(cat /tmp/phase2-japanese-server-dictionary.status)" = 0
+      - name: Cleanup
+        if: always()
+        run: docker rm --force showdown-phase2 >/dev/null 2>&1 || true

@@ -69,6 +69,7 @@ RUN npx eslint --max-warnings 0 \
     && node --check scripts/test-japanese-protocol-invariants.js \
     && node --check scripts/test-launcher-japanese-language.js \
     && node --check scripts/test-launcher-pinned-client.js \
+    && node --check scripts/audit-japanese-server-translations.js \
     && node scripts/test-launcher-japanese-language.js \
     && node scripts/test-launcher-pinned-client.js \
     && python3 -m py_compile \
@@ -89,11 +90,14 @@ RUN npx eslint --max-warnings 0 \
         scripts/smoke-bss-protocol-invariants.py \
         scripts/smoke-bss-foul-play-input-invariants.py \
         scripts/smoke-bss-poke-engine-boundary-invariants.py \
+        scripts/smoke-japanese-server-dictionary.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
         scripts/test-foul-play-raw-receive-log.py \
         scripts/test-foul-play-poke-engine-boundary-log.py \
     && python3 scripts/check-localization-docs.py \
+    && node scripts/audit-japanese-server-translations.js --check-fixed \
+        --json-output /tmp/phase2-japanese-translation-audit.json \
     && bash -n scripts/showdown-ai.sh \
     && bash -n scripts/render-start.sh \
     && bash -n scripts/sync-bss-teams.sh \

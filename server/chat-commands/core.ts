@@ -202,7 +202,10 @@ export const commands: Chat.ChatCommands = {
 			userList.push(Utils.escapeHTML(curUser.getIdentity(room)));
 		}
 
-		let output = `There ${Chat.plural(userList, "are", "is")} <strong style="color:#24678d">${Chat.count(userList, "</strong> users")} in this room:<br />`;
+		const count = userList.length;
+		let output = count === 1 ?
+			this.tr`There is <strong style="color:#24678d">${count}</strong> user in this room:<br />` :
+			this.tr`There are <strong style="color:#24678d">${count}</strong> users in this room:<br />`;
 		output += userList.join(`, `);
 
 		this.sendReplyBox(output);

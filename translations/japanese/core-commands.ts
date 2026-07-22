@@ -3,6 +3,8 @@ import type { Translations } from '../../server/chat';
 export const translations: Translations = {
 	strings: {
 		"Server version: <b>${version}</b>": "サーバーのバージョン: <b>${version}</b>",
+		"There is <strong style=\"color:#24678d\">${count}</strong> user in this room:<br />": "この部屋には<strong style=\"color:#24678d\">${count}</strong>人のユーザーがいます。<br />",
+		"There are <strong style=\"color:#24678d\">${count}</strong> users in this room:<br />": "この部屋には<strong style=\"color:#24678d\">${count}</strong>人のユーザーがいます。<br />",
 		"/mee - must not start with a letter or number": "文字や数字を最初においてはいけません。",
 		"What?! How are you not more excited to battle?! Try /battle! to show me you're ready.": "バトルが盛り上がってないって!?覚悟を決めて、/battle! だ!",
 		"Access denied for custom avatar - make sure you're on the right account?": "このカスタムアバターを使用する権限がありません。許可されているアカウントでログインしてください。",
