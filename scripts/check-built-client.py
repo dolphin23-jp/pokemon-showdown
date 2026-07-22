@@ -57,6 +57,13 @@ REQUIRED_ARTIFACTS = (
     "play.pokemonshowdown.com/testclient-new.html",
     "play.pokemonshowdown.com/index-new.html",
     "play.pokemonshowdown.com/battle-text-ja-smoke.html",
+    "play.pokemonshowdown.com/data/pokedex.js",
+    "play.pokemonshowdown.com/data/moves.js",
+    "play.pokemonshowdown.com/data/items.js",
+    "play.pokemonshowdown.com/data/abilities.js",
+    "play.pokemonshowdown.com/data/search-index.js",
+    "play.pokemonshowdown.com/data/teambuilder-tables.js",
+    "play.pokemonshowdown.com/data/typechart.js",
     "play.pokemonshowdown.com/src/battle-display-names.ts",
     "play.pokemonshowdown.com/src/battle-text-ja.js",
     "play.pokemonshowdown.com/src/battle-text-ja-smoke.js",
@@ -107,7 +114,7 @@ def expected_manifest(client_root: pathlib.Path, pin: dict[str, Any]) -> dict[st
         "upstream_repository": pin["upstream_repository"],
         "commit": pin["commit"],
         "client_version": package["version"],
-        "build_command": "npm ci && npm run build",
+        "build_command": "npm ci && npm run build-full",
         "artifacts": artifacts,
     }
 
