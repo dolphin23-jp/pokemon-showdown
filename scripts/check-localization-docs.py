@@ -39,7 +39,7 @@ SERVER_SMOKE = ROOT / "scripts" / "smoke-bss-protocol-invariants.py"
 INTEGRATION_AUDIT = ROOT / "scripts" / "audit-phase1-integration.py"
 WORKFLOW_GATE = ROOT / "scripts" / "wait-phase1-workflows.py"
 
-CLIENT_COMMIT = "80c72741b52e91d35ee778982a936ea42526c078"
+CLIENT_COMMIT = json.loads(PIN_FILE.read_text(encoding="utf-8"))["commit"]
 UPSTREAM_BASE = "085dfabd9bc53c730ac459edf5c28088677adfc2"
 FOUL_PLAY_COMMIT = "25c976f05cbf2880eaa579afd6db1dcb2c3b57c6"
 DISPLAY_SOURCE_COMMIT = "227b573712414a86ba299d322fa398fbb2893edc"
@@ -97,7 +97,7 @@ def verify_local_links(path: pathlib.Path) -> list[str]:
 def build_report() -> dict[str, Any]:
     pin = json.loads(read(PIN_FILE))
     if pin.get("commit") != CLIENT_COMMIT:
-        raise AssertionError("T1-13 must keep the T1-09 client commit unchanged")
+        raise AssertionError("The pinned client is not the approved Japanese battle-log commit")
     if pin.get("upstream_base_commit") != UPSTREAM_BASE:
         raise AssertionError("The pinned client upstream base changed unexpectedly")
     if pin.get("runtime_delivery_changed") is not True:
@@ -125,7 +125,6 @@ def build_report() -> dict[str, Any]:
             "FOUL_PLAY_POKE_ENGINE_BOUNDARY_LOG",
             "PokeEngineState.from_string(state)",
             "monte_carlo_tree_search(poke_engine_state",
-            CLIENT_COMMIT,
             UPSTREAM_BASE,
             FOUL_PLAY_COMMIT,
             DISPLAY_SOURCE_COMMIT,

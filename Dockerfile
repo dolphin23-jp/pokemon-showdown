@@ -90,6 +90,7 @@ RUN npx eslint --max-warnings 0 \
         scripts/smoke-bss-protocol-invariants.py \
         scripts/smoke-bss-foul-play-input-invariants.py \
         scripts/smoke-bss-poke-engine-boundary-invariants.py \
+        scripts/smoke-japanese-battle-log.py \
         scripts/smoke-japanese-server-dictionary.py \
         scripts/test-foul-play-local-login.py \
         scripts/test-foul-play-battle-fallbacks.py \
