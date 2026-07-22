@@ -149,7 +149,8 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
                         faq_confirmed[marker] = True
 
             if room_joined and not commands_sent:
-                await websocket.send(f"{ROOM}|/faq")
+                await websocket.send(f"{ROOM}|/faq tiers")
+                await websocket.send(f"{ROOM}|/faq badges")
                 await websocket.send(f"{ROOM}|/userlist")
                 commands_sent = True
 
@@ -160,7 +161,7 @@ async def run_smoke(port: int, timeout: float, output: pathlib.Path | None) -> N
                     "room": ROOM,
                     "language_command": "/language japanese",
                     "language_confirmed": True,
-                    "commands_checked": ["/faq", "/userlist"],
+                    "commands_checked": ["/faq tiers", "/faq badges", "/userlist"],
                     "faq_markers": faq_confirmed,
                     "userlist_japanese_prefix": USERLIST_PREFIX,
                     "userlist_direct_english": False,
