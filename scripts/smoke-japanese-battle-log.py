@@ -150,6 +150,7 @@ async def run_smoke(
         )
         await alpha_ws.send(f"|/utm {alpha_team}")
         await beta_ws.send(f"|/utm {beta_team}")
+        await asyncio.sleep(0.25)
         await alpha_ws.send(f"|/challenge {BETA},{FORMAT}")
 
         alpha = PlayerState(ALPHA, alpha_ws)
@@ -160,8 +161,8 @@ async def run_smoke(
             asyncio.create_task(beta_ws.recv()): "beta",
         }
         battle_room = ""
-        beta_accepted = False
         alpha_protocol: list[str] = []
+        recent_global: list[str] = []
         observed = {
             "storm_throw": False,
             "super_effective": False,
@@ -170,15 +171,29 @@ async def run_smoke(
             "paralysis": False,
             "turn_two": False,
         }
+        accept_delays = iter((0.25, 0.75, 1.5, 3.0, 5.0))
+        next_accept_at = time.monotonic() + next(accept_delays)
 
         while time.monotonic() < deadline:
-            remaining = max(0.1, deadline - time.monotonic())
+            now = time.monotonic()
+            wait_until = deadline
+            if not battle_room:
+                wait_until = min(wait_until, next_accept_at)
+            wait_timeout = max(0.05, wait_until - now)
             done, _pending = await asyncio.wait(
                 recv_tasks,
-                timeout=remaining,
+                timeout=wait_timeout,
                 return_when=asyncio.FIRST_COMPLETED,
             )
+
             if not done:
+                if not battle_room and time.monotonic() >= next_accept_at:
+                    await beta_ws.send(f"|/accept {ALPHA}")
+                    try:
+                        next_accept_at = time.monotonic() + next(accept_delays)
+                    except StopIteration:
+                        next_accept_at = deadline
+                    continue
                 break
 
             for task in done:
@@ -188,14 +203,17 @@ async def run_smoke(
                 recv_tasks[asyncio.create_task(player.websocket.recv())] = label
 
                 for room, line in protocol_lines(message):
+                    if not room:
+                        recent_global.append(f"{label}:{line}")
+                        recent_global = recent_global[-30:]
+
                     if (
                         label == "beta"
                         and line.startswith("|updatechallenges|")
                         and to_id(ALPHA) in to_id(line)
-                        and not beta_accepted
+                        and not battle_room
                     ):
                         await beta_ws.send(f"|/accept {ALPHA}")
-                        beta_accepted = True
 
                     if room.startswith("battle-"):
                         battle_room = room
@@ -215,8 +233,7 @@ async def run_smoke(
                             player.sent_team = True
                             continue
                         if (
-                            player.sent_team
-                            and not player.sent_move
+                            not player.sent_move
                             and not request.get("wait")
                             and request.get("active")
                         ):
@@ -279,10 +296,11 @@ async def run_smoke(
 
         for recv_task in recv_tasks:
             recv_task.cancel()
+        excerpt = "\n".join(recent_global[-20:])
         raise TimeoutError(
             "Japanese battle log smoke did not complete the deterministic first "
             f"turn. Battle room: {battle_room or '(not created)'}; "
-            f"observed: {observed}"
+            f"observed: {observed}; recent global protocol:\n{excerpt}"
         )
 
 
