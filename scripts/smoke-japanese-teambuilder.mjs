@@ -232,7 +232,12 @@ try {
 		};
 
 		click(document.querySelector('#room-teambuilder button[data-cmd="/newteam"]'));
-		await waitFor(() => window.PS?.room?.id?.startsWith('team-') && document.querySelector('.teameditor'), 'new team editor');
+		const teamLink = await waitFor(
+			() => document.querySelector('#room-teambuilder a.team[href^="team-"]'),
+			'new team link'
+		);
+		click(teamLink);
+		await waitFor(() => window.PS?.room?.editor && document.querySelector('.teameditor'), 'new team editor');
 		click(await waitFor(() => document.querySelector('.teameditor button[name="addpokemon"]'), 'Add Pokemon button'));
 		await choose('set-0-pokemon', 'Pikachu', 'Pikachu', 'a[data-entry^="pokemon|Pikachu"]');
 		await choose('set-0-ability', 'Static', 'Static', 'a[data-entry^="ability|Static"]');
@@ -320,7 +325,7 @@ try {
 		const required = ['Pikachu @ Light Ball', 'Ability: Static', '- Thunderbolt'];
 		const missing = required.filter(fragment => !text.includes(fragment));
 		const containsJapanese = /[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/.test(text);
-		if (missing.length) throw new Error('Import/Export text is missing: ' + missing.join(', ') + '\\n' + text);
+		if (missing.length) throw new Error('Import/Export text is missing: ' + missing.join(', ') + '\n' + text);
 		if (containsJapanese) throw new Error('Import/Export text unexpectedly contains Japanese: ' + text);
 		return {
 			text,
