@@ -100,7 +100,7 @@ function normalizeText(text) {
 }
 
 function hasEnglish(text) {
-	return /[A-Za-z]/.test(text);
+	return /[A-Za-z]/.test(text.replace(/&(?:[A-Za-z][A-Za-z0-9]+|#\d+|#x[0-9A-Fa-f]+);/g, ''));
 }
 
 function staticText(node) {
@@ -128,16 +128,31 @@ function lineNumber(sourceFile, node) {
 }
 
 function collectExpressionStrings(expression, add) {
-	function visit(node) {
-		if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) return;
-		const text = staticText(node);
-		if (text !== null) {
-			add(node, text);
-			return;
-		}
-		ts.forEachChild(node, visit);
+	const text = staticText(expression);
+	if (text !== null) {
+		add(expression, text);
+		return;
 	}
-	visit(expression);
+	if (ts.isParenthesizedExpression(expression)) {
+		collectExpressionStrings(expression.expression, add);
+		return;
+	}
+	if (ts.isConditionalExpression(expression)) {
+		collectExpressionStrings(expression.whenTrue, add);
+		collectExpressionStrings(expression.whenFalse, add);
+		return;
+	}
+	if (ts.isBinaryExpression(expression) && [
+		ts.SyntaxKind.AmpersandAmpersandToken,
+		ts.SyntaxKind.BarBarToken,
+		ts.SyntaxKind.QuestionQuestionToken,
+	].includes(expression.operatorToken.kind)) {
+		collectExpressionStrings(expression.right, add);
+		return;
+	}
+	if (ts.isArrayLiteralExpression(expression)) {
+		for (const element of expression.elements) collectExpressionStrings(element, add);
+	}
 }
 
 function collectNotify(call, sourceFile, addEntry) {
