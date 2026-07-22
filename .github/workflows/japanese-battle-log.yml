@@ -47,6 +47,7 @@ jobs:
         run: |
           docker run --detach --name showdown-japanese-log \
             -p 10003:10000 \
+            -p 10004:10004 \
             -e PORT=10000 \
             -e DEFAULT_PLAYER_NAME=BattleLogViewer \
             -e FOUL_PLAY_USERNAME=BattleLogBot \
@@ -130,9 +131,16 @@ jobs:
             test -s "${client_web_root}/src/battle-text-ja.js"
           docker exec showdown-japanese-log \
             test -s "${client_web_root}/src/battle-text-ja-smoke.js"
-          curl --fail --silent \
-            http://127.0.0.1:10003/battle-text-ja-smoke.html \
-            --output /tmp/japanese-battle-log-smoke.html
+          docker exec --detach showdown-japanese-log \
+            sh -c "cd '${client_web_root}' && python3 -m http.server 10004 --bind 0.0.0.0 >/tmp/japanese-client-http.log 2>&1"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent \
+                http://127.0.0.1:10004/battle-text-ja-smoke.html \
+                --output /tmp/japanese-battle-log-smoke.html; then
+              break
+            fi
+            sleep 1
+          done
           grep -q 'battle-text-ja.js' /tmp/japanese-battle-log-smoke.html
 
       - name: Install Japanese screenshot fonts
@@ -176,7 +184,7 @@ jobs:
             --window-size=1024,1366 \
             --virtual-time-budget=15000 \
             --dump-dom \
-            http://127.0.0.1:10003/battle-text-ja-smoke.html \
+            http://127.0.0.1:10004/battle-text-ja-smoke.html \
             > /tmp/japanese-battle-log-dom.html
           grep -q 'data-verified="true"' /tmp/japanese-battle-log-dom.html
           grep -q 'やまあらし' /tmp/japanese-battle-log-dom.html
@@ -193,7 +201,7 @@ jobs:
             --window-size=1024,1366 \
             --virtual-time-budget=15000 \
             --screenshot=/tmp/japanese-battle-log-ipad.png \
-            http://127.0.0.1:10003/battle-text-ja-smoke.html
+            http://127.0.0.1:10004/battle-text-ja-smoke.html
           test -s /tmp/japanese-battle-log-ipad.png
           python3 - <<'PY'
           import pathlib
@@ -210,6 +218,9 @@ jobs:
         run: |
           docker logs --timestamps showdown-japanese-log \
             > /tmp/japanese-battle-log-container.log 2>&1 || true
+          docker exec showdown-japanese-log \
+            cat /tmp/japanese-client-http.log \
+            > /tmp/japanese-client-http.log 2>&1 || true
           docker ps -a > /tmp/japanese-battle-log-containers.txt 2>&1 || true
 
       - name: Upload Japanese battle log evidence
@@ -231,6 +242,7 @@ jobs:
             /tmp/japanese-battle-log-dom.html
             /tmp/japanese-battle-log-ipad.png
             /tmp/japanese-battle-log-container.log
+            /tmp/japanese-client-http.log
             /tmp/japanese-battle-log-containers.txt
 
       - name: Cleanup
