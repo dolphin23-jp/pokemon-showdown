@@ -62,7 +62,7 @@ function extractDictionary() {
 	const duplicateKeys = [];
 	for (const file of walk(JAPANESE_DIR, f => f.endsWith('.ts'))) {
 		const sf = sourceFile(file);
-		function visit(node) {
+		const visit = node => {
 			if (ts.isPropertyAssignment(node) && propertyNameText(node.name) === 'strings' && ts.isObjectLiteralExpression(node.initializer)) {
 				for (const prop of node.initializer.properties) {
 					if (!ts.isPropertyAssignment(prop)) continue;
@@ -81,7 +81,7 @@ function extractDictionary() {
 				}
 			}
 			ts.forEachChild(node, visit);
-		}
+		};
 		visit(sf);
 	}
 	return { entries, duplicateKeys };
@@ -124,7 +124,7 @@ function scanServer(dictionary) {
 		const rel = path.relative(ROOT, file).replaceAll(path.sep, '/');
 		if (rel.startsWith('server/translations/')) continue;
 		const sf = sourceFile(file);
-		function visit(node) {
+		const visit = node => {
 			if (ts.isTaggedTemplateExpression(node) && ts.isPropertyAccessExpression(node.tag) && node.tag.name.text === 'tr') {
 				const key = templateKey(node.template, sf);
 				if (key !== null) {
@@ -157,7 +157,7 @@ function scanServer(dictionary) {
 				}
 			}
 			ts.forEachChild(node, visit);
-		}
+		};
 		visit(sf);
 	}
 
