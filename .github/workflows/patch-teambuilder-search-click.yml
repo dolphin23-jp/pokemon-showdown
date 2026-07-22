@@ -36,10 +36,11 @@ jobs:
           else:
               path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
-      - name: Commit patch
+      - name: Commit patch and remove helper workflow
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/patch-teambuilder-search-click.yml
           git add scripts/smoke-japanese-teambuilder.mjs
           git commit -m "Prevent Teambuilder search link navigation"
           git push origin HEAD:agent/japanese-teambuilder
