@@ -12,6 +12,7 @@ WORKDIR /build-context
 COPY config/pokemon-showdown-client.json config/pokemon-showdown-client.json
 COPY scripts/check-built-client.py scripts/check-built-client.py
 
+# The visual Teambuilder smoke needs the complete search datasets from build-full.
 RUN set -eux; \
     CLIENT_REPOSITORY="$(node -e "process.stdout.write(require('/build-context/config/pokemon-showdown-client.json').fork_repository)")"; \
     CLIENT_SHA="$(node -e "process.stdout.write(require('/build-context/config/pokemon-showdown-client.json').commit)")"; \

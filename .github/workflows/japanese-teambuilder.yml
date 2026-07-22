@@ -6,6 +6,7 @@ on:
       - Dockerfile
       - config/pokemon-showdown-client.json
       - scripts/smoke-japanese-teambuilder.mjs
+      - scripts/dump-japanese-teambuilder-state.mjs
       - .github/workflows/japanese-teambuilder.yml
   workflow_dispatch:
 
@@ -29,7 +30,9 @@ jobs:
           cat /tmp/japanese-teambuilder-client-pin.json
 
       - name: Check browser smoke syntax
-        run: node --check scripts/smoke-japanese-teambuilder.mjs
+        run: |
+          node --check scripts/smoke-japanese-teambuilder.mjs
+          node --check scripts/dump-japanese-teambuilder-state.mjs
 
       - name: Build clean server image
         shell: bash
@@ -149,7 +152,7 @@ jobs:
               'species': 'ピカチュウ',
               'ability': 'せいでんき',
               'item': 'でんきだま',
-              'move': '10まんボルト',
+              'move': '１０まんボルト',
           }
           assert report['form']['canonical'] == {
               'species': 'Pikachu',
@@ -172,6 +175,11 @@ jobs:
       - name: Capture diagnostics
         if: always()
         run: |
+          node scripts/dump-japanese-teambuilder-state.mjs \
+            http://127.0.0.1:9222 \
+            /tmp/japanese-teambuilder-browser-state.json \
+            > /tmp/japanese-teambuilder-browser-state.log 2>&1 || true
+          cat /tmp/japanese-teambuilder-browser-state.log || true
           docker logs --timestamps showdown-japanese-teambuilder \
             > /tmp/japanese-teambuilder-container.log 2>&1 || true
           docker ps -a > /tmp/japanese-teambuilder-containers.txt 2>&1 || true
@@ -192,6 +200,8 @@ jobs:
             /tmp/japanese-teambuilder-chrome-version.json
             /tmp/japanese-teambuilder-live.log
             /tmp/japanese-teambuilder-live.status
+            /tmp/japanese-teambuilder-browser-state.json
+            /tmp/japanese-teambuilder-browser-state.log
             /tmp/japanese-teambuilder/japanese-teambuilder-report.json
             /tmp/japanese-teambuilder/japanese-teambuilder-form.png
             /tmp/japanese-teambuilder/japanese-teambuilder-import-export.png

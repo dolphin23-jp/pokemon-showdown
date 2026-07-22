@@ -171,23 +171,16 @@ async function resetAndOpenTeam() {
 		() => document.querySelector('#room-teambuilder button[data-cmd="/newteam"]'),
 		'new team button'
 	));
-	const teamLink = await waitFor(
+	click(await waitFor(
 		() => document.querySelector('#room-teambuilder a.team[href^="team-"]'),
 		'new team link'
-	);
-	click(teamLink);
-	await waitFor(
-		() => window.PS?.room?.editor && document.querySelector('.teameditor'),
-		'new team editor'
-	);
+	));
+	await waitFor(() => window.PS?.room?.editor && document.querySelector('.teameditor'), 'new team editor');
 	click(await waitFor(
 		() => document.querySelector('.teameditor button[name="addpokemon"]'),
 		'Add Pokemon button'
 	));
-	await waitFor(
-		() => window.PS?.room?.editor?.innerFocus?.type === 'pokemon',
-		'Pokemon search mode'
-	);
+	await waitFor(() => window.PS?.room?.editor?.innerFocus?.type === 'pokemon', 'Pokemon search mode');
 	return window.PS.room.id;
 }
 
@@ -195,25 +188,31 @@ async function selectSearchResult(options) {
 	const { delay, setInputValue, waitFor } = window.__teambuilderSmoke;
 	const { focus, query, canonicalName, entrySelector, expectedJapanese } = options;
 	const expectedType = focus.split('-')[2];
+	const inputSelector = `.team-focus-editor input.set-field[data-focus="${focus}"]`;
+	const fallbackInputSelector = `.teameditor input.set-field[data-focus="${focus}"]`;
 	let input = await waitFor(
-		() => document.querySelector(`.team-focus-editor input.set-field[data-focus="${focus}"]`) ||
-			document.querySelector(`.teameditor input.set-field[data-focus="${focus}"]`),
+		() => document.querySelector(inputSelector) || document.querySelector(fallbackInputSelector),
 		`${focus} input`
 	);
 	input.focus();
-	await waitFor(
-		() => window.PS?.room?.editor?.innerFocus?.type === expectedType,
-		`${focus} search mode`
-	);
+	await waitFor(() => window.PS?.room?.editor?.innerFocus?.type === expectedType, `${focus} search mode`);
 	await delay(120);
-	input = document.querySelector(`.team-focus-editor input.set-field[data-focus="${focus}"]`) || input;
+	input = document.querySelector(inputSelector) || document.querySelector(fallbackInputSelector) || input;
 	setInputValue(input, query);
-	const result = await waitFor(() => document.querySelector(entrySelector), `${entrySelector} result`);
-	await waitFor(() => result.textContent?.includes(expectedJapanese), `${expectedJapanese} visible search result`);
+
+	// Search rendering replaces rows while filtering. Re-query on every poll so the
+	// assertion observes the current connected row, not a detached stale element.
+	const result = await waitFor(() => {
+		const candidate = document.querySelector(entrySelector);
+		if (!candidate?.isConnected) return null;
+		const dataEntry = candidate.getAttribute('data-entry') || '';
+		if (!dataEntry.includes(canonicalName)) return null;
+		if (!candidate.textContent?.includes(expectedJapanese)) return null;
+		return candidate;
+	}, `${expectedJapanese} localized live search result`);
 	const dataEntry = result.getAttribute('data-entry') || '';
-	if (!dataEntry.includes(canonicalName)) {
-		throw new Error(`Search data-entry lost canonical English: ${dataEntry}`);
-	}
+	const visibleText = result.textContent?.trim() || '';
+
 	const enterEvent = new KeyboardEvent('keydown', {
 		key: 'Enter',
 		code: 'Enter',
@@ -235,7 +234,7 @@ async function selectSearchResult(options) {
 		return false;
 	}, `${focus} canonical model value`);
 	await delay(150);
-	return { type: expectedType, dataEntry, visibleText: result.textContent?.trim() || '' };
+	return { type: expectedType, dataEntry, visibleText };
 }
 
 async function verifyJapaneseForm() {
@@ -250,7 +249,7 @@ async function verifyJapaneseForm() {
 		species: 'ピカチュウ',
 		ability: 'せいでんき',
 		item: 'でんきだま',
-		move: '10まんボルト',
+		move: '１０まんボルト',
 	};
 	await waitFor(() => (
 		field('set-0-pokemon')?.value === expectedValues.species &&
@@ -396,7 +395,7 @@ try {
 		query: 'Thunderbolt',
 		canonicalName: 'Thunderbolt',
 		entrySelector: 'a[data-entry^="move|Thunderbolt"]',
-		expectedJapanese: '10まんボルト',
+		expectedJapanese: '１０まんボルト',
 	}));
 
 	report.form = await browserCall(client, verifyJapaneseForm);
