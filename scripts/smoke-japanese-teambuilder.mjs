@@ -214,7 +214,6 @@ async function selectSearchResult(options) {
 	if (!dataEntry.includes(canonicalName)) {
 		throw new Error(`Search data-entry lost canonical English: ${dataEntry}`);
 	}
-	result.addEventListener('click', event => event.preventDefault(), { once: true, capture: true });
 	click(result);
 	await waitFor(() => {
 		const set = window.PS?.room?.editor?.sets?.[0];
