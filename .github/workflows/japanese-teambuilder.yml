@@ -152,7 +152,7 @@ jobs:
               'species': 'ピカチュウ',
               'ability': 'せいでんき',
               'item': 'でんきだま',
-              'move': '10まんボルト',
+              'move': '１０まんボルト',
           }
           assert report['form']['canonical'] == {
               'species': 'Pikachu',
