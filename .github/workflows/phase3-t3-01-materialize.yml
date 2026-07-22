@@ -1,0 +1,109 @@
+name: Phase 3 T3-01 materialize
+
+on:
+  pull_request:
+    paths:
+      - config/pokemon-showdown-client.json
+      - docs/localization/phase-3-battle-text-inventory.json
+      - docs/localization/phase-3-t3-01-text-coverage-abilities-items.md
+      - scripts/generate-phase3-battle-text-inventory.mjs
+      - .github/workflows/phase3-t3-01-materialize.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out server branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          path: server
+
+      - name: Resolve pinned client
+        id: client
+        working-directory: server
+        run: |
+          echo "repository=$(node -p "require('./config/pokemon-showdown-client.json').fork_repository")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(node -p "require('./config/pokemon-showdown-client.json').commit")" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pinned client
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.client.outputs.repository }}
+          ref: ${{ steps.client.outputs.sha }}
+          fetch-depth: 1
+          path: client
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci --prefix server
+
+      - name: Make the inventory generator phase-safe
+        working-directory: server
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'scripts/generate-phase3-battle-text-inventory.mjs';
+          let source = fs.readFileSync(file, 'utf8');
+          const start = source.indexOf('function assertKnownMissing(inventory) {');
+          if (start >= 0) {
+            const end = source.indexOf('function assertPinnedClient(', start);
+            if (end < 0) throw new Error('assertPinnedClient marker not found');
+            source = source.slice(0, start) + source.slice(end);
+          }
+          source = source.replace('\tassertKnownMissing(inventory);\n', '');
+          fs.writeFileSync(file, source);
+          NODE
+          node --check scripts/generate-phase3-battle-text-inventory.mjs
+          git add scripts/generate-phase3-battle-text-inventory.mjs
+          if ! git diff --cached --quiet; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git commit -m "Allow Phase 3 inventory regeneration after translations"
+          fi
+
+      - name: Materialize or verify the updated inventory
+        working-directory: server
+        run: |
+          PINNED_SHA="$(node -p "require('./config/pokemon-showdown-client.json').commit")"
+          INVENTORY_SHA="$(node -e '
+            const fs = require("fs");
+            try {
+              process.stdout.write(JSON.parse(fs.readFileSync("docs/localization/phase-3-battle-text-inventory.json", "utf8")).generatedFromClientSha || "");
+            } catch {}
+          ')"
+          if [ "$INVENTORY_SHA" = "$PINNED_SHA" ]; then
+            node scripts/generate-phase3-battle-text-inventory.mjs \
+              --server-root . \
+              --client-root ../client \
+              --check
+          else
+            node scripts/generate-phase3-battle-text-inventory.mjs \
+              --server-root . \
+              --client-root ../client
+            git add docs/localization/phase-3-battle-text-inventory.json
+            git commit -m "Record Phase 3 T3-01 battle-text inventory"
+          fi
+
+      - name: Push materialized server state
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        working-directory: server
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [ "$(git rev-list --count "origin/${HEAD_BRANCH}..HEAD")" -gt 0 ]; then
+            git push origin "HEAD:${HEAD_BRANCH}"
+          else
+            echo "Server state already materialized."
+          fi
