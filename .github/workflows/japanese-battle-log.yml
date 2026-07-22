@@ -119,16 +119,17 @@ jobs:
 
       - name: Expose actual protocol to pinned client
         run: |
+          client_web_root=/opt/pokemon-showdown-client/play.pokemonshowdown.com
           docker cp /tmp/japanese-battle-log-protocol.txt \
-            showdown-japanese-log:/opt/pokemon-showdown-client/battle-log-smoke.txt
+            "showdown-japanese-log:${client_web_root}/battle-log-smoke.txt"
           docker cp /tmp/japanese-battle-log-report.json \
-            showdown-japanese-log:/opt/pokemon-showdown-client/battle-log-smoke.json
+            "showdown-japanese-log:${client_web_root}/battle-log-smoke.json"
           docker exec showdown-japanese-log \
-            test -s /opt/pokemon-showdown-client/battle-text-ja-smoke.html
+            test -s "${client_web_root}/battle-text-ja-smoke.html"
           docker exec showdown-japanese-log \
-            test -s /opt/pokemon-showdown-client/src/battle-text-ja.js
+            test -s "${client_web_root}/src/battle-text-ja.js"
           docker exec showdown-japanese-log \
-            test -s /opt/pokemon-showdown-client/src/battle-text-ja-smoke.js
+            test -s "${client_web_root}/src/battle-text-ja-smoke.js"
           curl --fail --silent \
             http://127.0.0.1:10003/battle-text-ja-smoke.html \
             --output /tmp/japanese-battle-log-smoke.html
