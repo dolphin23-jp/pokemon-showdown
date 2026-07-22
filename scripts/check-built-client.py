@@ -36,11 +36,30 @@ BATTLE_CONTROL_SELECTORS = (
     'button[data-tooltip^="activepokemon|"]',
 )
 
+BATTLE_LOG_CATEGORIES = (
+    "battle flow",
+    "moves",
+    "switching",
+    "fainting",
+    "effectiveness",
+    "critical hits",
+    "status conditions",
+    "weather",
+    "terrain",
+    "stat changes",
+    "damage and healing",
+    "items and abilities",
+)
+
 REQUIRED_ARTIFACTS = (
     "config/config.js",
     "config/japanese-display-name-api.json",
     "play.pokemonshowdown.com/testclient-new.html",
+    "play.pokemonshowdown.com/index-new.html",
+    "play.pokemonshowdown.com/battle-text-ja-smoke.html",
     "play.pokemonshowdown.com/src/battle-display-names.ts",
+    "play.pokemonshowdown.com/src/battle-text-ja.js",
+    "play.pokemonshowdown.com/src/battle-text-ja-smoke.js",
     "play.pokemonshowdown.com/js/battle-display-names.js",
     "play.pokemonshowdown.com/js/battle-display-names.meta.json",
     "play.pokemonshowdown.com/js/client-main.js",
@@ -107,6 +126,17 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
         / "js"
         / "battle-display-names.meta.json"
     )
+    battle_log_path = (
+        client_root / "play.pokemonshowdown.com" / "src" / "battle-text-ja.js"
+    )
+    battle_log_smoke_path = (
+        client_root / "play.pokemonshowdown.com" / "src" / "battle-text-ja-smoke.js"
+    )
+    battle_log_page_path = (
+        client_root / "play.pokemonshowdown.com" / "battle-text-ja-smoke.html"
+    )
+    index_path = client_root / "play.pokemonshowdown.com" / "index-new.html"
+
     contract = read_json(contract_path)
     expected_contract = {
         "api_global": "PSDisplayNames",
@@ -131,6 +161,14 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
             "mutates_commands": False,
             "mutates_tooltips": False,
             "preserves_unknown_names": True,
+        },
+        "battle_log": {
+            "template_source": "play.pokemonshowdown.com/src/battle-text-ja.js",
+            "translated_categories": list(BATTLE_LOG_CATEGORIES),
+            "display_name_api": "PSDisplayNames",
+            "display_text_only": True,
+            "mutates_protocol_args": False,
+            "preserves_number_placeholders": True,
         },
         "mutates_ids": False,
         "protocol_safe": True,
@@ -168,6 +206,60 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
             "Battle-control localization must not mutate command or tooltip attributes: "
             + ", ".join(present_forbidden_markers)
         )
+
+    battle_log_source = battle_log_path.read_text(encoding="utf-8")
+    battle_log_markers = (
+        "JAPANESE_BATTLE_TEXT",
+        "superEffective",
+        "crit",
+        "brn",
+        "raindance",
+        "localizeRenderedNames",
+        "originalParseArgsInner",
+        "PSDisplayNames",
+        "[NUMBER]",
+        "[PERCENTAGE]",
+        "japaneseBattleTextInstalled",
+    )
+    missing_battle_log_markers = [
+        marker for marker in battle_log_markers if marker not in battle_log_source
+    ]
+    if missing_battle_log_markers:
+        raise AssertionError(
+            f"Japanese battle-log source is missing markers: {missing_battle_log_markers}"
+        )
+    if "args[" not in battle_log_source or "kwArgs" not in battle_log_source:
+        raise AssertionError("Japanese battle-log source does not read parser display inputs")
+
+    index = index_path.read_text(encoding="utf-8")
+    text_position = index.find('src="/data/text.js?"')
+    japanese_position = index.find('src="/src/battle-text-ja.js?"')
+    battle_position = index.find('src="/js/battle.js?"')
+    if not (0 <= text_position < japanese_position < battle_position):
+        raise AssertionError(
+            "Japanese battle-log templates must load after text.js and before battle.js"
+        )
+
+    battle_log_page = battle_log_page_path.read_text(encoding="utf-8")
+    battle_log_smoke = battle_log_smoke_path.read_text(encoding="utf-8")
+    for marker in (
+        "battle-text-ja.js",
+        "battle-text-ja-smoke.js",
+        "battle-log",
+    ):
+        if marker not in battle_log_page:
+            raise AssertionError(f"Battle-log smoke page is missing marker: {marker}")
+    for marker in (
+        "battle-log-smoke.txt",
+        "battle-log-smoke.json",
+        "BattleTextParser",
+        "効果はばつぐんだ！",
+        "急所に当たった！",
+        "まひして技が出にくくなった！",
+        "data-verified",
+    ):
+        if marker not in battle_log_smoke:
+            raise AssertionError(f"Battle-log smoke renderer is missing marker: {marker}")
 
     compiled = compiled_path.read_text(encoding="utf-8")
     missing_markers = [
@@ -232,6 +324,7 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
         "language_id": metadata["language_id"],
         "counts": counts,
         "battle_controls": contract["battle_controls"],
+        "battle_log": contract["battle_log"],
         "mutates_ids": contract["mutates_ids"],
         "protocol_safe": contract["protocol_safe"],
         "generated_map_present": True,
