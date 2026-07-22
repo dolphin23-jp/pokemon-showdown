@@ -192,7 +192,7 @@ async function resetAndOpenTeam() {
 }
 
 async function selectSearchResult(options) {
-	const { click, delay, setInputValue, waitFor } = window.__teambuilderSmoke;
+	const { delay, setInputValue, waitFor } = window.__teambuilderSmoke;
 	const { focus, query, canonicalName, entrySelector, expectedJapanese } = options;
 	const expectedType = focus.split('-')[2];
 	let input = await waitFor(
@@ -214,8 +214,17 @@ async function selectSearchResult(options) {
 	if (!dataEntry.includes(canonicalName)) {
 		throw new Error(`Search data-entry lost canonical English: ${dataEntry}`);
 	}
-	result.addEventListener('click', event => event.preventDefault(), { once: true });
-	click(result);
+	const enterEvent = new KeyboardEvent('keydown', {
+		key: 'Enter',
+		code: 'Enter',
+		bubbles: true,
+		cancelable: true,
+	});
+	Object.defineProperties(enterEvent, {
+		keyCode: { get: () => 13 },
+		which: { get: () => 13 },
+	});
+	input.dispatchEvent(enterEvent);
 	await waitFor(() => {
 		const set = window.PS?.room?.editor?.sets?.[0];
 		if (!set) return false;
