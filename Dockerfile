@@ -21,7 +21,7 @@ RUN set -eux; \
     git -C /client checkout --detach "${CLIENT_SHA}"; \
     test "$(git -C /client rev-parse HEAD)" = "${CLIENT_SHA}"; \
     npm --prefix /client ci; \
-    npm --prefix /client run build; \
+    npm --prefix /client run build-full; \
     python3 scripts/check-built-client.py \
         --client-root /client \
         --pin-file config/pokemon-showdown-client.json \
