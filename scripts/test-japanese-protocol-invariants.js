@@ -24,7 +24,7 @@ function namedEntry(id, name) {
 }
 
 function fakeButton(kind, text, command, tooltip) {
-	const textNode = { nodeType: 3, nodeValue: text, parentElement: null };
+	const textNode = { nodeType: 3, nodeValue: text, parentElement: null, childNodes: [] };
 	const button = {
 		nodeType: 1,
 		tagName: 'BUTTON',
@@ -145,12 +145,7 @@ function main() {
 			return null;
 		},
 		querySelectorAll(selector) {
-			if (
-				selector.includes('button.movebutton') ||
-				selector.includes('switchpokemon|') ||
-				selector.includes('allypokemon|') ||
-				selector.includes('activepokemon|')
-			) {
+			if (selector.includes('button.movebutton') && selector.includes('switchpokemon|')) {
 				return buttons;
 			}
 			return [];
