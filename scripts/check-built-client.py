@@ -256,7 +256,7 @@ def validate_display_name_api(client_root: pathlib.Path, testclient: str) -> dic
         "効果はばつぐんだ！",
         "急所に当たった！",
         "まひして技が出にくくなった！",
-        "data-verified",
+        "dataset.verified",
     ):
         if marker not in battle_log_smoke:
             raise AssertionError(f"Battle-log smoke renderer is missing marker: {marker}")
