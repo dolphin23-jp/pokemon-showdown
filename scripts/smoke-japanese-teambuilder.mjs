@@ -207,7 +207,7 @@ try {
 			setter.call(input, value);
 			input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
 		};
-		const choose = async (focus, query, expectedCanonical, entrySelector) => {
+		const choose = async (focus, query, expectedCanonical) => {
 			let input = await waitFor(
 				() => document.querySelector('.team-focus-editor input.set-field[data-focus="' + focus + '"]') ||
 					document.querySelector('.teameditor input.set-field[data-focus="' + focus + '"]'),
@@ -217,8 +217,8 @@ try {
 			await delay(120);
 			input = document.querySelector('.team-focus-editor input.set-field[data-focus="' + focus + '"]') || input;
 			setInputValue(input, query);
-			const result = await waitFor(() => document.querySelector(entrySelector), entrySelector + ' result');
-			click(result);
+			await delay(120);
+			input.blur();
 			await waitFor(() => {
 				const set = window.PS?.room?.editor?.sets?.[0];
 				if (!set) return false;
@@ -228,7 +228,7 @@ try {
 				if (focus.endsWith('-move-0')) return set.moves?.[0] === expectedCanonical;
 				return false;
 			}, focus + ' canonical model value');
-			await delay(120);
+			await delay(200);
 		};
 
 		click(document.querySelector('#room-teambuilder button[data-cmd="/newteam"]'));
@@ -239,10 +239,10 @@ try {
 		click(teamLink);
 		await waitFor(() => window.PS?.room?.editor && document.querySelector('.teameditor'), 'new team editor');
 		click(await waitFor(() => document.querySelector('.teameditor button[name="addpokemon"]'), 'Add Pokemon button'));
-		await choose('set-0-pokemon', 'Pikachu', 'Pikachu', 'a[data-entry^="pokemon|Pikachu"]');
-		await choose('set-0-ability', 'Static', 'Static', 'a[data-entry^="ability|Static"]');
-		await choose('set-0-item', 'Light Ball', 'Light Ball', 'a[data-entry^="item|Light Ball"]');
-		await choose('set-0-move-0', 'Thunderbolt', 'Thunderbolt', 'a[data-entry^="move|Thunderbolt"]');
+		await choose('set-0-pokemon', 'Pikachu', 'Pikachu');
+		await choose('set-0-ability', 'Static', 'Static');
+		await choose('set-0-item', 'Light Ball', 'Light Ball');
+		await choose('set-0-move-0', 'Thunderbolt', 'Thunderbolt');
 
 		const backButton = document.querySelector('.team-focus-editor .tabbar .home-li button');
 		if (backButton) click(backButton);
