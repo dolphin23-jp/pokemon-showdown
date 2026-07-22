@@ -10,7 +10,7 @@ import time
 
 import websockets
 
-PLAYER = "JapaneseDictionarySmoke"
+PLAYER = "JpDictSmoke"
 ROOM = "lobby"
 JAPANESE_LANGUAGE_CONFIRMATION = "Pokémon Showdownは言語部屋以外の場所はJapaneseで表示されます。"
 FAQ_MARKERS = (
@@ -47,6 +47,8 @@ async def wait_for_login(websocket, deadline: float, history: list[str]) -> None
                 sent_name = True
                 await websocket.send(f"|/trn {PLAYER},0,")
                 continue
+            if line.startswith("|nametaken|"):
+                raise RuntimeError(f"Smoke user name was rejected: {line}")
             fields = line.split("|")
             if (
                 len(fields) >= 4
