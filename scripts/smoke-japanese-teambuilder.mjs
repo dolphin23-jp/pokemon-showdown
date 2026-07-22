@@ -230,6 +230,7 @@ try {
 				() => document.querySelector(entrySelector),
 				entrySelector + ' result'
 			);
+			result.addEventListener('click', event => event.preventDefault(), { once: true });
 			click(result);
 			await waitFor(
 				() => canonicalModelMatches(focus, expectedCanonical),
