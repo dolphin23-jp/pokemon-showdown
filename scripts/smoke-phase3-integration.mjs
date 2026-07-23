@@ -60,6 +60,7 @@ class CDPClient {
 				const pending = this.pending.get(message.id);
 				if (!pending) return;
 				this.pending.delete(message.id);
+				clearTimeout(pending.timer);
 				if (message.error) pending.reject(new Error(`${pending.method}: ${message.error.message}`));
 				else pending.resolve(message.result || {});
 			});
@@ -71,11 +72,17 @@ class CDPClient {
 		}
 		const id = this.nextId++;
 		return new Promise((resolve, reject) => {
-			this.pending.set(id, {method, resolve, reject});
+			const timer = setTimeout(() => {
+				this.pending.delete(id);
+				reject(new Error(`${method} timed out after 30 seconds`));
+			}, 30_000);
+			this.pending.set(id, {method, resolve, reject, timer});
 			this.socket.send(JSON.stringify({id, method, params}));
 		});
 	}
 	close() {
+		for (const pending of this.pending.values()) clearTimeout(pending.timer);
+		this.pending.clear();
 		this.socket?.close();
 	}
 }
@@ -190,8 +197,8 @@ function deliverInitialRequest(roomid) {
 		], canTerastallize: 'Electric'}],
 		side: {name: 'Alice', id: 'p1', pokemon: window.__phase3InitialPokemon}, rqid: 1,
 	};
-	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
 	const room = window.PS.rooms[roomid];
+	room.receiveLine(['request', JSON.stringify(request)]);
 	room.battle.seekTurn(Infinity);
 	room.update(null);
 	window.PS.update();
@@ -247,7 +254,8 @@ async function applySwitchResult(roomid) {
 			{move: 'Flamethrower', id: 'flamethrower', pp: 24, maxpp: 24, target: 'normal', disabled: false},
 		]}], side: {name: 'Alice', id: 'p1', pokemon}, rqid: 2,
 	};
-	window.PS.receive(`>${roomid}\n|switch|p1a: Charizard|Charizard, L50|100/100\n|turn|2\n|request|${JSON.stringify(request)}`);
+	window.PS.receive(`>${roomid}\n|switch|p1a: Charizard|Charizard, L50|100/100\n|turn|2`);
+	room.receiveLine(['request', JSON.stringify(request)]);
 	room.battle.seekTurn(Infinity);
 	room.update(null);
 	window.PS.update();
@@ -365,11 +373,18 @@ const report = {
 	verified: false,
 	url: args.url,
 	screenshots: [],
+	stages: [],
 };
+function stage(name) {
+	report.stages.push(name);
+	console.log(`[phase3-browser] ${name}`);
+	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+}
 const target = await findPageTarget();
 const client = new CDPClient(target.webSocketDebuggerUrl);
 await client.connect();
 try {
+	stage('enable-cdp');
 	await client.send('Page.enable');
 	await client.send('Runtime.enable');
 	await client.send('Emulation.setDeviceMetricsOverride', {
@@ -378,39 +393,54 @@ try {
 		deviceScaleFactor: 1,
 		mobile: false,
 	});
+	stage('navigate');
 	await client.send('Page.navigate', {url: args.url});
 	await waitForPage(client, 'Boolean(window.PS && window.PS.roomTypes && window.PS.roomTypes.battle)', 'client battle modules');
+	stage('install-helpers');
 	await browserCall(client, installBrowserHelpers);
+	stage('seed-battle');
 	const roomid = await browserCall(client, seedBattle);
+	report.roomid = roomid;
 	await waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');
+	stage('deliver-initial-request');
 	await browserCall(client, deliverInitialRequest, roomid);
 	await waitForPage(client, `Boolean(document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]'))`, 'battle overlay controls');
 
+	stage('capture-start');
 	report.start = await browserCall(client, inspectBattleStart, roomid);
 	await captureScreenshot(client, 'phase3-battle-start.png');
 	report.screenshots.push('phase3-battle-start.png');
 
+	stage('perform-switch');
 	report.switch = await browserCall(client, performSwitch, roomid);
+	stage('apply-switch-result');
 	report.switchResult = await browserCall(client, applySwitchResult, roomid);
 	await captureScreenshot(client, 'phase3-battle-switch.png');
 	report.screenshots.push('phase3-battle-switch.png');
 
+	stage('perform-move');
 	report.move = await browserCall(client, performMove, roomid);
+	stage('apply-move-and-item');
 	report.battleText = await browserCall(client, applyMoveAndItemResult, roomid);
 	await captureScreenshot(client, 'phase3-battle-leftovers.png');
 	report.screenshots.push('phase3-battle-leftovers.png');
 
+	stage('open-forfeit');
 	report.forfeitDialog = await browserCall(client, openForfeitDialog, roomid);
 	await captureScreenshot(client, 'phase3-forfeit-dialog.png');
 	report.screenshots.push('phase3-forfeit-dialog.png');
+	stage('submit-forfeit');
 	report.forfeitCommand = await browserCall(client, submitForfeit, roomid);
 
+	stage('finish-battle');
 	report.result = await browserCall(client, finishBattle, roomid);
 	await captureScreenshot(client, 'phase3-battle-result.png');
 	report.screenshots.push('phase3-battle-result.png');
 
+	stage('collect-outbound');
 	report.outbound = await evaluate(client, 'window.__phase3Sent');
 	report.verified = true;
+	stage('verified');
 	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
 	console.log(JSON.stringify(report, null, 2));
 } catch (error) {
