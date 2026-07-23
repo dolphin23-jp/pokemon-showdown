@@ -9,7 +9,10 @@ import ts from 'typescript';
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const DEFAULT_SERVER_ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
 const TARGETS = [
-	{file: 'play.pokemonshowdown.com/src/panel-battle.tsx'},
+	{
+		file: 'play.pokemonshowdown.com/src/panel-battle.tsx',
+		appliedGroups: ['BattleChromeSources', 'SharedChromeSources'],
+	},
 	{
 		file: 'play.pokemonshowdown.com/src/panel-popups.tsx',
 		classes: ['BattleForfeitPanel', 'ReplacePlayerPanel'],
@@ -172,7 +175,7 @@ function collectNotify(call, sourceFile, addEntry) {
 	if (first && ts.isObjectLiteralExpression(first)) {
 		for (const property of first.properties) {
 			if (!ts.isPropertyAssignment(property)) continue;
-			const key = property.name.getText(sourceFile).replace(/^['"]|['"]$/g, '');
+			const key = property.name.getText(sourceFile).replace(/^[ '"]|['"]$/g, '');
 			if (!['title', 'body'].includes(key)) continue;
 			const text = staticText(property.initializer);
 			if (text !== null) addEntry(property.initializer, 'notify', text);
@@ -203,7 +206,34 @@ function targetRoots(sourceFile, target) {
 	return roots;
 }
 
-function collectFile(clientRoot, target, fileIndex) {
+function readFrameworkSources(clientRoot) {
+	const filePath = path.join(clientRoot, 'play.pokemonshowdown.com/src/client-ui-ja-strings.ts');
+	const source = fs.readFileSync(filePath, 'utf8');
+	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+	const groups = new Map();
+	for (const statement of sourceFile.statements) {
+		if (!ts.isVariableStatement(statement)) continue;
+		for (const declaration of statement.declarationList.declarations) {
+			if (!ts.isIdentifier(declaration.name) || !declaration.name.text.endsWith('Sources')) continue;
+			let initializer = declaration.initializer;
+			if (initializer && ts.isAsExpression(initializer)) initializer = initializer.expression;
+			if (!initializer || !ts.isObjectLiteralExpression(initializer)) {
+				throw new Error(`${declaration.name.text} must be an object literal`);
+			}
+			const entries = new Map();
+			for (const property of initializer.properties) {
+				if (!ts.isPropertyAssignment(property) || !ts.isArrayLiteralExpression(property.initializer)) continue;
+				const [englishNode] = property.initializer.elements;
+				if (!englishNode || !ts.isStringLiteral(englishNode)) continue;
+				entries.set(property.name.getText(sourceFile), englishNode.text);
+			}
+			groups.set(declaration.name.text, entries);
+		}
+	}
+	return groups;
+}
+
+function collectFile(clientRoot, target, fileIndex, groups) {
 	const filePath = path.join(clientRoot, target.file);
 	const source = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -217,6 +247,32 @@ function collectFile(clientRoot, target, fileIndex) {
 		if (seen.has(fingerprint)) return;
 		seen.add(fingerprint);
 		entries.push({file: target.file, fileIndex, line, type, text});
+	}
+	function addAppliedReference(node) {
+		if (!target.appliedGroups || !ts.isPropertyAccessExpression(node) || !ts.isIdentifier(node.expression)) return;
+		const groupName = node.expression.text.replace(/JA$/, 'Sources');
+		if (!target.appliedGroups.includes(groupName)) return;
+		const group = groups.get(groupName);
+		if (!group) throw new Error(`Missing ${groupName} for ${target.file}`);
+		const english = group.get(node.name.text);
+		if (!english) throw new Error(`Unknown ${node.expression.text}.${node.name.text} in ${target.file}`);
+		let type = 'label';
+		if (ts.isJsxExpression(node.parent) && ts.isJsxAttribute(node.parent.parent)) {
+			type = jsxAttributeName(node.parent.parent);
+		} else {
+			let current = node.parent;
+			while (current && current !== sourceFile) {
+				if (ts.isPropertyAssignment(current)) {
+					const key = current.name.getText(sourceFile).replace(/^['\"]|['\"]$/g, '');
+					if (key === 'title' || key === 'body') {
+						type = 'notify';
+						break;
+					}
+				}
+				current = current.parent;
+			}
+		}
+		addEntry(node, type, english);
 	}
 	function visit(node) {
 		if (ts.isJsxText(node)) {
@@ -244,6 +300,7 @@ function collectFile(clientRoot, target, fileIndex) {
 		} else if (ts.isCallExpression(node)) {
 			collectNotify(node, sourceFile, addEntry);
 		}
+		addAppliedReference(node);
 		ts.forEachChild(node, visit);
 	}
 	for (const root of targetRoots(sourceFile, target)) visit(root);
@@ -282,7 +339,8 @@ function assertRequiredStrings(entries) {
 function main() {
 	const args = parseArgs(process.argv.slice(2));
 	const clientRoot = resolveClientRoot(args.serverRoot, args.clientRoot);
-	const entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index));
+	const groups = readFrameworkSources(clientRoot);
+	const entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index, groups));
 	entries.sort((a, b) =>
 		a.fileIndex - b.fileIndex || a.line - b.line || a.type.localeCompare(b.type) || a.text.localeCompare(b.text)
 	);
