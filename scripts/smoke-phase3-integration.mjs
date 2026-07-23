@@ -94,9 +94,14 @@ async function evaluate(client, expression) {
 	return response.result?.value;
 }
 
-const browserCall = (client, callback, argument = null) => (
-	evaluate(client, `(${callback.toString()})(${JSON.stringify(argument)})`)
-);
+function browserCall(client, callback, argument = null) {
+	const callbackSource = JSON.stringify(`(${callback.toString()})`);
+	const argumentSource = JSON.stringify(argument);
+	return evaluate(client, `(async () => {
+		const callback = (0, eval)(${callbackSource});
+		return await callback(${argumentSource});
+	})()`);
+}
 
 async function waitForPage(client, expression, label, timeout = 45_000) {
 	const deadline = Date.now() + timeout;
@@ -130,7 +135,7 @@ function installBrowserHelpers() {
 	return true;
 }
 
-async function seedBattle() {
+function seedBattle() {
 	const roomid = 'battle-t308-integration';
 	window.PS.prefs.onepanel = true;
 	window.PS.prefs.battlelayout = 'side-by-side-overlay';
@@ -139,7 +144,7 @@ async function seedBattle() {
 	window.PS.user.named = true;
 	window.__phase3Sent = [];
 	window.PS.send = (message, targetRoom) => window.__phase3Sent.push({message, room: targetRoom || ''});
-	const pokemon = [
+	window.__phase3InitialPokemon = [
 		{
 			ident: 'p1: Pikachu', details: 'Pikachu, L50', condition: '75/100', active: true,
 			stats: {atk: 100, def: 100, spa: 120, spd: 100, spe: 120},
@@ -152,14 +157,7 @@ async function seedBattle() {
 			moves: ['flamethrower'], baseAbility: 'blaze', ability: 'blaze', item: '', pokeball: 'pokeball',
 		},
 	];
-	const request = {
-		active: [{moves: [
-			{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
-			{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
-		], canTerastallize: 'Electric'}],
-		side: {name: 'Alice', id: 'p1', pokemon}, rqid: 1,
-	};
-	const protocol = [
+	window.PS.receive([
 		`>${roomid}`,
 		'|init|battle',
 		'|title|Alice vs. Bob',
@@ -174,9 +172,7 @@ async function seedBattle() {
 		'|switch|p1a: Pikachu|Pikachu, L50|75/100',
 		'|switch|p2a: Eevee|Eevee, L50|100/100',
 		'|turn|1',
-		`|request|${JSON.stringify(request)}`,
-	].join('\n');
-	window.PS.receive(protocol);
+	].join('\n'));
 	window.PS.focusRoom(roomid);
 	const room = window.PS.rooms[roomid];
 	room.width = 1000;
@@ -186,27 +182,45 @@ async function seedBattle() {
 	return roomid;
 }
 
-async function inspectBattleStart(roomid) {
+function deliverInitialRequest(roomid) {
+	const request = {
+		active: [{moves: [
+			{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
+			{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
+		], canTerastallize: 'Electric'}],
+		side: {name: 'Alice', id: 'p1', pokemon: window.__phase3InitialPokemon}, rqid: 1,
+	};
+	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
+	const room = window.PS.rooms[roomid];
+	room.battle.seekTurn(Infinity);
+	room.update(null);
+	window.PS.update();
+	return true;
+}
+
+function inspectBattleStart(roomid) {
 	const root = document.querySelector(`#room-${roomid}`);
 	if (!root) throw new Error(`Battle root missing: ${roomid}`);
-	const text = root.textContent || '';
-	const required = ['対戦', '交代', 'タイマー'];
-	const missing = required.filter(label => !text.includes(label));
-	if (missing.length) throw new Error(`Japanese battle-start labels missing: ${missing.join(', ')} / ${text}`);
-	const forbidden = ['Battle', 'Switch', 'Timer'];
-	const residues = forbidden.filter(label => text.includes(label));
-	if (residues.length) throw new Error(`English battle-start chrome remains: ${residues.join(', ')}`);
-	return {required, residues, text: text.trim()};
+	const controls = {
+		battle: root.querySelector('button[data-cmd="/movemenu"]')?.textContent?.trim() || '',
+		switch: root.querySelector('button[data-cmd="/switchmenu"]')?.textContent?.trim() || '',
+		timer: root.querySelector('button[role="timer"]')?.textContent?.trim() || '',
+	};
+	if (controls.battle !== '対戦') throw new Error(`Battle label mismatch: ${JSON.stringify(controls)}`);
+	if (controls.switch !== '交代') throw new Error(`Switch label mismatch: ${JSON.stringify(controls)}`);
+	if (!controls.timer.includes('タイマー')) throw new Error(`Timer label mismatch: ${JSON.stringify(controls)}`);
+	const residues = Object.values(controls).filter(value => ['Battle', 'Switch', 'Timer'].includes(value));
+	if (residues.length) throw new Error(`English battle controls remain: ${residues.join(', ')}`);
+	return {controls, residues, text: (root.textContent || '').trim()};
 }
 
 async function performSwitch(roomid) {
-	const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 	const root = document.querySelector(`#room-${roomid}`);
 	window.__phase3Click(root?.querySelector('button[data-cmd="/switchmenu"]'));
-	await delay(150);
+	await new Promise(resolve => setTimeout(resolve, 150));
 	const button = root?.querySelector('button[data-cmd="/switch 2"]');
 	const label = window.__phase3Click(button);
-	await delay(200);
+	await new Promise(resolve => setTimeout(resolve, 200));
 	const sent = [...window.__phase3Sent];
 	const choice = sent.find(entry => /(?:^|\s)\/choose\s+switch\s+2(?:\s|$)/.test(entry.message));
 	if (!choice) throw new Error(`Switch control did not send /choose switch 2: ${JSON.stringify(sent)}`);
@@ -244,14 +258,13 @@ async function applySwitchResult(roomid) {
 }
 
 async function performMove(roomid) {
-	const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 	const root = document.querySelector(`#room-${roomid}`);
 	const moveMenu = root?.querySelector('button[data-cmd="/movemenu"]');
 	if (moveMenu) window.__phase3Click(moveMenu);
-	await delay(150);
+	await new Promise(resolve => setTimeout(resolve, 150));
 	const button = root?.querySelector('button[data-cmd^="/move 1"]');
 	const label = window.__phase3Click(button);
-	await delay(200);
+	await new Promise(resolve => setTimeout(resolve, 200));
 	const sent = [...window.__phase3Sent];
 	const choice = [...sent].reverse().find(entry => /(?:^|\s)\/choose\s+move\s+1(?:\s|$)/.test(entry.message));
 	if (!choice) throw new Error(`Move control did not send /choose move 1: ${JSON.stringify(sent)}`);
@@ -370,13 +383,7 @@ try {
 	await browserCall(client, installBrowserHelpers);
 	const roomid = await browserCall(client, seedBattle);
 	await waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');
-	await evaluate(client, `(() => {
-		const room = window.PS.rooms['${roomid}'];
-		room.battle.seekTurn(Infinity);
-		room.update(null);
-		window.PS.update();
-		return true;
-	})()`);
+	await browserCall(client, deliverInitialRequest, roomid);
 	await waitForPage(client, `Boolean(document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]'))`, 'battle overlay controls');
 
 	report.start = await browserCall(client, inspectBattleStart, roomid);
