@@ -43,7 +43,10 @@ jobs:
           for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:9222/json/version >/tmp/japanese-battle-chrome-version.json && exit 0; sleep 1; done
           exit 1
       - name: Operate battle controls and capture evidence
-        run: node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome 2>&1 | tee /tmp/japanese-battle-chrome-run.log
       - name: Require verified Japanese controls
         run: |
           python3 - <<'PY'
@@ -74,6 +77,7 @@ jobs:
             /tmp/japanese-battle-chrome-index.html
             /tmp/japanese-battle-chrome-chrome.log
             /tmp/japanese-battle-chrome-version.json
+            /tmp/japanese-battle-chrome-run.log
             /tmp/japanese-battle-chrome/japanese-battle-chrome-report.json
             /tmp/japanese-battle-chrome/japanese-battle-move-controls.png
             /tmp/japanese-battle-chrome/japanese-battle-team-preview.png
