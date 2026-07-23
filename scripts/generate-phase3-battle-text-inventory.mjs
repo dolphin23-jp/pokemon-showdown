@@ -184,7 +184,7 @@ function assignData(text, id, entry) {
 				if (['desc', 'shortDesc'].includes(key)) continue;
 				textEntry.add(`${modKey}Gen${key.charAt(3)}`);
 			}
-		} else {
+		} else if (!(nested instanceof Map)) {
 			textEntry.add(key);
 		}
 	}
