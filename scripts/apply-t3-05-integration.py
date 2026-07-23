@@ -1,0 +1,391 @@
+#!/usr/bin/env python3
+import json
+from pathlib import Path
+
+CLIENT_SHA = 'e6e7b0fb18531d53db583a28850cc52a537d166b'
+CLIENT_DATE = '2026-07-23T03:48:24Z'
+
+pin_path = Path('config/pokemon-showdown-client.json')
+pin = json.loads(pin_path.read_text())
+pin['commit'] = CLIENT_SHA
+pin['commit_date'] = CLIENT_DATE
+pin_path.write_text(json.dumps(pin, indent=2) + '\n')
+
+battle_path = Path('docs/localization/phase-3-battle-text-inventory.json')
+battle = json.loads(battle_path.read_text())
+battle['generatedFromClientSha'] = CLIENT_SHA
+battle_path.write_text(json.dumps(battle, indent=2) + '\n')
+
+generator = Path('scripts/generate-phase3-ui-chrome-inventory.mjs')
+source = generator.read_text()
+old_target = "\t{file: 'play.pokemonshowdown.com/src/panel-battle.tsx'},"
+new_target = "\t{\n\t\tfile: 'play.pokemonshowdown.com/src/panel-battle.tsx',\n\t\tappliedGroups: ['BattleChromeSources', 'SharedChromeSources'],\n\t},"
+if source.count(old_target) != 1:
+    raise SystemExit('panel-battle target marker changed')
+source = source.replace(old_target, new_target)
+
+marker = 'function collectFile(clientRoot, target, fileIndex) {'
+framework_reader = r'''function readFrameworkSources(clientRoot) {
+	const filePath = path.join(clientRoot, 'play.pokemonshowdown.com/src/client-ui-ja-strings.ts');
+	const source = fs.readFileSync(filePath, 'utf8');
+	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+	const groups = new Map();
+	for (const statement of sourceFile.statements) {
+		if (!ts.isVariableStatement(statement)) continue;
+		for (const declaration of statement.declarationList.declarations) {
+			if (!ts.isIdentifier(declaration.name) || !declaration.name.text.endsWith('Sources')) continue;
+			let initializer = declaration.initializer;
+			if (initializer && ts.isAsExpression(initializer)) initializer = initializer.expression;
+			if (!initializer || !ts.isObjectLiteralExpression(initializer)) {
+				throw new Error(`${declaration.name.text} must be an object literal`);
+			}
+			const entries = new Map();
+			for (const property of initializer.properties) {
+				if (!ts.isPropertyAssignment(property) || !ts.isArrayLiteralExpression(property.initializer)) continue;
+				const [englishNode] = property.initializer.elements;
+				if (!englishNode || !ts.isStringLiteral(englishNode)) continue;
+				entries.set(property.name.getText(sourceFile), englishNode.text);
+			}
+			groups.set(declaration.name.text, entries);
+		}
+	}
+	return groups;
+}
+
+'''
+if source.count(marker) != 1:
+    raise SystemExit('collectFile marker changed')
+source = source.replace(marker, framework_reader + 'function collectFile(clientRoot, target, fileIndex, groups) {')
+
+visit_marker = '\tfunction visit(node) {'
+add_reference = r'''	function addAppliedReference(node) {
+		if (!target.appliedGroups || !ts.isPropertyAccessExpression(node) || !ts.isIdentifier(node.expression)) return;
+		const groupName = node.expression.text.replace(/JA$/, 'Sources');
+		if (!target.appliedGroups.includes(groupName)) return;
+		const group = groups.get(groupName);
+		if (!group) throw new Error(`Missing ${groupName} for ${target.file}`);
+		const english = group.get(node.name.text);
+		if (!english) throw new Error(`Unknown ${node.expression.text}.${node.name.text} in ${target.file}`);
+		let type = 'label';
+		if (ts.isJsxExpression(node.parent) && ts.isJsxAttribute(node.parent.parent)) {
+			type = jsxAttributeName(node.parent.parent);
+		} else {
+			let current = node.parent;
+			while (current && current !== sourceFile) {
+				if (ts.isPropertyAssignment(current)) {
+					const key = current.name.getText(sourceFile).replace(/^['\"]|['\"]$/g, '');
+					if (key === 'title' || key === 'body') {
+						type = 'notify';
+						break;
+					}
+				}
+				current = current.parent;
+			}
+		}
+		addEntry(node, type, english);
+	}
+'''
+if source.count(visit_marker) != 1:
+    raise SystemExit('visit marker changed')
+source = source.replace(visit_marker, add_reference + visit_marker)
+child_marker = '\t\tts.forEachChild(node, visit);'
+if source.count(child_marker) != 1:
+    raise SystemExit('visit child marker changed')
+source = source.replace(child_marker, '\t\taddAppliedReference(node);\n' + child_marker)
+main_old = '\tconst entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index));'
+main_new = '\tconst groups = readFrameworkSources(clientRoot);\n\tconst entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index, groups));'
+if source.count(main_old) != 1:
+    raise SystemExit('main inventory marker changed')
+source = source.replace(main_old, main_new)
+generator.write_text(source)
+
+Path('docs/localization/phase-3-t3-05-battle-chrome-apply.md').write_text(f'''# Phase 3 T3-05: 対戦画面クロームへの適用
+
+T3-05 applies the T3-04 `BattleChromeJA` and `SharedChromeJA` framework directly to `play.pokemonshowdown.com/src/panel-battle.tsx` in client merge `{CLIENT_SHA}` (client PR #13).
+
+## Applied scope
+
+The battle list, spectator filters, replay controls, player move and switch controls, team preview, post-battle actions, and request notifications now render through the typed Japanese constants. The implementation includes `対戦`, `交代`, `チーム`, `キャンセル`, `アニメーションをスキップ`, `メインメニュー`, `再戦`, `中央へ移動`, `現在の選出`, the spectator username placeholder and search button, and the request-notification titles and bodies.
+
+Six source strings discovered while applying dynamic notification and team-preview text were added to `BattleChromeSources`: the three notification bodies, the opponent label, the lead label, and the numbered-slot template.
+
+## Protected boundaries
+
+The client application pass compared the complete ordered `data-cmd` and `data-tooltip` attribute lists before and after substitution. No component state, event handlers, protocol values, normalized IDs, `/choose`, `/team`, Team Import/Export, `data/`, or `sim/` behavior changed.
+
+## Regression coverage
+
+The client AST test now follows `BattleChromeJA` and `SharedChromeJA` references in the applied file while continuing to compare them with the complete framework. It verifies 325 UI occurrences and 233 unique English source strings. The full client build, TypeScript, ESLint, and Node.js suite passed on the merged client head.
+
+The server inventory generator now resolves the same applied references from `client-ui-ja-strings.ts`, so the committed Phase 3 inventory remains reproducible after direct JSX substitution.
+
+## Browser evidence
+
+The dedicated `Japanese battle chrome live smoke` workflow serves the clean pinned client, feeds raw canonical battle protocol and real request JSON into the real `BattlePanel`, operates the battle/switch/team/cancel controls, verifies Japanese visible text with unchanged command attributes, and captures 1280×900 PNG evidence for move choice, team preview, and post-battle controls.
+''')
+
+smoke = r'''#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const args = {debugUrl: 'http://127.0.0.1:9222', outputDir: '/tmp/japanese-battle-chrome', url: 'http://127.0.0.1:10005/index-new.html'};
+for (let i = 2; i < process.argv.length; i++) {
+	const arg = process.argv[i];
+	if (arg === '--debug-url') args.debugUrl = process.argv[++i];
+	else if (arg === '--output-dir') args.outputDir = process.argv[++i];
+	else if (arg === '--url') args.url = process.argv[++i];
+	else throw new Error(`Unknown argument: ${arg}`);
+}
+async function findPageTarget() {
+	const deadline = Date.now() + 30000;
+	while (Date.now() < deadline) {
+		try {
+			const targets = await (await fetch(`${args.debugUrl}/json`)).json();
+			const page = targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl);
+			if (page) return page;
+		} catch {}
+		await sleep(200);
+	}
+	throw new Error('Chrome DevTools page target unavailable');
+}
+class CDP {
+	constructor(url) { this.url = url; this.id = 1; this.pending = new Map(); }
+	async connect() {
+		await new Promise((resolve, reject) => {
+			this.ws = new WebSocket(this.url);
+			this.ws.addEventListener('open', resolve, {once: true});
+			this.ws.addEventListener('error', reject, {once: true});
+			this.ws.addEventListener('message', event => {
+				const msg = JSON.parse(String(event.data));
+				if (!msg.id) return;
+				const pending = this.pending.get(msg.id);
+				if (!pending) return;
+				this.pending.delete(msg.id);
+				if (msg.error) pending.reject(new Error(`${pending.method}: ${msg.error.message}`));
+				else pending.resolve(msg.result || {});
+			});
+		});
+	}
+	send(method, params = {}) {
+		const id = this.id++;
+		return new Promise((resolve, reject) => {
+			this.pending.set(id, {method, resolve, reject});
+			this.ws.send(JSON.stringify({id, method, params}));
+		});
+	}
+	close() { this.ws?.close(); }
+}
+async function evaluate(client, expression) {
+	const result = await client.send('Runtime.evaluate', {expression, awaitPromise: true, returnByValue: true, userGesture: true});
+	if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
+	return result.result?.value;
+}
+const call = (client, fn, value = null) => evaluate(client, `(${fn.toString()})(${JSON.stringify(value)})`);
+async function wait(client, expression, label, timeout = 45000) {
+	const deadline = Date.now() + timeout;
+	while (Date.now() < deadline) {
+		if (await evaluate(client, expression)) return;
+		await sleep(120);
+	}
+	throw new Error(`Timed out waiting for ${label}`);
+}
+async function screenshot(client, filename) {
+	const {data} = await client.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false, fromSurface: true});
+	fs.writeFileSync(path.join(args.outputDir, filename), Buffer.from(data, 'base64'));
+}
+async function clickSelector(selector) {
+	const element = document.querySelector(selector);
+	if (!element) throw new Error(`Missing element: ${selector}`);
+	element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true, button: 0}));
+	element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, cancelable: true, button: 0}));
+	element.click();
+	return element.textContent.trim();
+}
+async function seedBattle() {
+	const roomid = 'battle-t305-smoke';
+	window.PS.prefs.onepanel = true;
+	window.PS.prefs.battlelayout = 'side-by-side-overlay';
+	window.PS.user.name = 'Alice';
+	window.PS.user.userid = 'alice';
+	window.PS.user.named = true;
+	window.__battleChromeSent = [];
+	window.PS.send = (message, targetRoom) => window.__battleChromeSent.push({message, room: targetRoom || ''});
+	const pokemon = [
+		{ident: 'p1: Pikachu', details: 'Pikachu, L50', condition: '100/100', active: true, stats: {atk: 100, def: 100, spa: 120, spd: 100, spe: 120}, moves: ['thunderbolt', 'quickattack'], baseAbility: 'static', ability: 'static', item: 'lightball', pokeball: 'pokeball'},
+		{ident: 'p1: Charizard', details: 'Charizard, L50', condition: '100/100', active: false, stats: {atk: 100, def: 100, spa: 120, spd: 100, spe: 100}, moves: ['flamethrower'], baseAbility: 'blaze', ability: 'blaze', item: '', pokeball: 'pokeball'},
+	];
+	const request = {active: [{moves: [
+		{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
+		{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
+	], canTerastallize: 'Electric'}], side: {name: 'Alice', id: 'p1', pokemon}, rqid: 1};
+	const protocol = [`>${roomid}`, '|init|battle', '|title|Alice vs. Bob', '|gametype|singles', '|player|p1|Alice|1|', '|player|p2|Bob|2|', '|teamsize|p1|2', '|teamsize|p2|2', '|gen|9', '|tier|[Gen 9] Custom Game', '|start', '|switch|p1a: Pikachu|Pikachu, L50|100/100', '|switch|p2a: Eevee|Eevee, L50|100/100', '|turn|1', `|request|${JSON.stringify(request)}`].join('\n');
+	window.PS.receive(protocol);
+	window.PS.focusRoom(roomid);
+	const room = window.PS.rooms[roomid];
+	room.width = 1000;
+	room.height = 800;
+	room.update(null);
+	window.PS.update();
+	return roomid;
+}
+async function inspectMove(roomid) {
+	const root = document.querySelector(`#room-${roomid}`);
+	const move = root?.querySelector('button[data-cmd="/movemenu"]');
+	const sw = root?.querySelector('button[data-cmd="/switchmenu"]');
+	if (!move || !sw) throw new Error('Battle/Switch overlay buttons missing');
+	if (!root.textContent.includes('対戦') || !root.textContent.includes('交代')) throw new Error(`Japanese battle tabs missing: ${root.textContent}`);
+	await clickSelector(`#room-${roomid} button[data-cmd="/movemenu"]`);
+	if (window.PS.rooms[roomid].overlayActive !== 'move') throw new Error('Move menu command did not activate');
+	await clickSelector(`#room-${roomid} button[data-cmd="/switchmenu"]`);
+	if (window.PS.rooms[roomid].overlayActive !== 'switch') throw new Error('Switch menu command did not activate');
+	return {battle: move.textContent.trim(), switch: sw.textContent.trim(), commands: [move.dataset.cmd, sw.dataset.cmd]};
+}
+async function showTeamPreview(roomid) {
+	const room = window.PS.rooms[roomid];
+	const request = {teamPreview: true, maxTeamSize: 2, side: room.request.side, rqid: 2};
+	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
+	await new Promise(resolve => setTimeout(resolve, 250));
+	const root = document.querySelector(`#room-${roomid}`);
+	if (!root.textContent.includes('チーム') || !root.textContent.includes('先発を選択')) throw new Error(`Japanese team preview missing: ${root.textContent}`);
+	await clickSelector(`#room-${roomid} button[data-cmd="/switch 1"]`);
+	await new Promise(resolve => setTimeout(resolve, 250));
+	if (!root.textContent.includes('現在の選出')) throw new Error(`Chosen-team heading missing: ${root.textContent}`);
+	const beforeCancel = room.choices.alreadySwitchingIn.length;
+	await clickSelector(`#room-${roomid} button[data-cmd="/cancel"]`);
+	return {beforeCancel, afterCancel: room.choices.alreadySwitchingIn.length, text: root.textContent.trim()};
+}
+async function finishBattle(roomid) {
+	window.PS.receive(`>${roomid}\n|win|Alice`);
+	const room = window.PS.rooms[roomid];
+	room.battle.seekTurn(Infinity);
+	room.update(null);
+	await new Promise(resolve => setTimeout(resolve, 250));
+	const root = document.querySelector(`#room-${roomid}`);
+	if (!root.textContent.includes('メインメニュー') || !root.textContent.includes('再戦')) throw new Error(`Japanese post-battle controls missing: ${root.textContent}`);
+	return root.textContent.trim();
+}
+async function inspectBattleList() {
+	window.PS.join('battles');
+	window.PS.focusRoom('battles');
+	await new Promise(resolve => setTimeout(resolve, 250));
+	const root = document.querySelector('#room-battles');
+	const input = root?.querySelector('input[name="prefixsearch"]');
+	const search = root?.querySelector('button[type="submit"]');
+	if (input?.placeholder !== 'ユーザー名（前方一致）' || search?.textContent.trim() !== '検索') throw new Error(`Japanese spectator search missing: ${input?.placeholder} / ${search?.textContent}`);
+	return {placeholder: input.placeholder, button: search.textContent.trim()};
+}
+fs.mkdirSync(args.outputDir, {recursive: true});
+const client = new CDP((await findPageTarget()).webSocketDebuggerUrl);
+await client.connect();
+try {
+	await client.send('Page.enable');
+	await client.send('Runtime.enable');
+	await client.send('Emulation.setDeviceMetricsOverride', {width: 1280, height: 900, deviceScaleFactor: 1, mobile: false});
+	await client.send('Page.navigate', {url: args.url});
+	await wait(client, 'window.PS && window.PS.roomTypes && window.PS.roomTypes.battle', 'client battle modules');
+	const roomid = await call(client, seedBattle);
+	await wait(client, `document.querySelector('#room-${roomid} .battle-controls')`, 'battle controls');
+	const move = await call(client, inspectMove, roomid);
+	await screenshot(client, 'japanese-battle-move-controls.png');
+	const team = await call(client, showTeamPreview, roomid);
+	await screenshot(client, 'japanese-battle-team-preview.png');
+	const postBattle = await call(client, finishBattle, roomid);
+	await screenshot(client, 'japanese-battle-post-battle.png');
+	const battleList = await call(client, inspectBattleList);
+	const report = {verified: true, roomid, move, team, postBattle, battleList, sent: await evaluate(client, 'window.__battleChromeSent')};
+	fs.writeFileSync(path.join(args.outputDir, 'japanese-battle-chrome-report.json'), JSON.stringify(report, null, 2) + '\n');
+} finally {
+	client.close();
+}
+'''
+Path('scripts/smoke-japanese-battle-chrome.mjs').write_text(smoke)
+Path('scripts/smoke-japanese-battle-chrome.mjs').chmod(0o755)
+
+workflow = r'''name: Japanese battle chrome live smoke
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - config/pokemon-showdown-client.json
+      - scripts/smoke-japanese-battle-chrome.mjs
+      - .github/workflows/japanese-battle-chrome.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pinned client and script syntax
+        run: |
+          python3 scripts/check-pinned-client.py --verify-remote --output /tmp/japanese-battle-chrome-pin.json
+          node --check scripts/smoke-japanese-battle-chrome.mjs
+      - name: Build clean image
+        run: docker build --progress=plain --tag pokemon-showdown-japanese-battle-chrome:smoke .
+      - name: Serve pinned client
+        run: |
+          docker run --detach --name showdown-japanese-battle-chrome -p 10005:10005 pokemon-showdown-japanese-battle-chrome:smoke sh -c 'cd /opt/pokemon-showdown-client/play.pokemonshowdown.com && python3 -m http.server 10005 --bind 0.0.0.0'
+          for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:10005/index-new.html >/tmp/japanese-battle-chrome-index.html && exit 0; sleep 1; done
+          docker logs showdown-japanese-battle-chrome
+          exit 1
+      - name: Install Japanese fonts
+        run: |
+          fc-cache -f
+          if ! fc-list :lang=ja family | grep -q .; then sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-noto-cjk; fi
+          fc-cache -f
+      - name: Start Chrome
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          "$browser" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --no-proxy-server --remote-allow-origins='*' --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-japanese-battle-chrome about:blank >/tmp/japanese-battle-chrome-chrome.log 2>&1 &
+          echo $! >/tmp/japanese-battle-chrome-chrome.pid
+          for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:9222/json/version >/tmp/japanese-battle-chrome-version.json && exit 0; sleep 1; done
+          exit 1
+      - name: Operate battle controls and capture evidence
+        run: node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome
+      - name: Require verified Japanese controls
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, struct
+          root = pathlib.Path('/tmp/japanese-battle-chrome')
+          report = json.loads((root / 'japanese-battle-chrome-report.json').read_text())
+          assert report['verified'] is True
+          assert report['move']['battle'] == '対戦'
+          assert report['move']['switch'] == '交代'
+          assert report['move']['commands'] == ['/movemenu', '/switchmenu']
+          assert report['team']['beforeCancel'] == 1
+          assert report['team']['afterCancel'] == 0
+          assert report['battleList'] == {'placeholder': 'ユーザー名（前方一致）', 'button': '検索'}
+          for filename in ('japanese-battle-move-controls.png', 'japanese-battle-team-preview.png', 'japanese-battle-post-battle.png'):
+              data = (root / filename).read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II', data[16:24]) == (1280, 900)
+          PY
+      - name: Upload battle chrome evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-battle-chrome-live-evidence
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/japanese-battle-chrome-pin.json
+            /tmp/japanese-battle-chrome-index.html
+            /tmp/japanese-battle-chrome-chrome.log
+            /tmp/japanese-battle-chrome-version.json
+            /tmp/japanese-battle-chrome/japanese-battle-chrome-report.json
+            /tmp/japanese-battle-chrome/japanese-battle-move-controls.png
+            /tmp/japanese-battle-chrome/japanese-battle-team-preview.png
+            /tmp/japanese-battle-chrome/japanese-battle-post-battle.png
+      - name: Cleanup
+        if: always()
+        run: |
+          test ! -s /tmp/japanese-battle-chrome-chrome.pid || kill "$(cat /tmp/japanese-battle-chrome-chrome.pid)" || true
+          docker rm --force showdown-japanese-battle-chrome || true
+'''
+Path('.github/workflows/japanese-battle-chrome.yml').write_text(workflow)
