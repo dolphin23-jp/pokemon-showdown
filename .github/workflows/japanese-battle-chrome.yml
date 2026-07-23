@@ -91,7 +91,7 @@ jobs:
             sh -c 'node pokemon-showdown pack-team < config/bss-smoke-opponent.txt' \
             > /tmp/japanese-battle-chrome-team.txt
           test -s /tmp/japanese-battle-chrome-team.txt
-          grep -q 'Pikachu' /tmp/japanese-battle-chrome-team.txt
+          grep -q 'Torterra' /tmp/japanese-battle-chrome-team.txt
 
       - name: Install Japanese screenshot fonts
         shell: bash
@@ -189,7 +189,7 @@ jobs:
           ]
           assert report['controls']['selectedMoveCommand'].startswith('/move ')
           assert any('/challenge FoulPlayAI,gen9nationaldexallgenerationsbss' in line for line in report['sent'])
-          assert any('/utm ' in line and 'Pikachu' in line for line in report['sent'])
+          assert any('/utm ' in line and 'Torterra' in line for line in report['sent'])
           for filename in (
               'japanese-battle-chrome-battles.png',
               'japanese-battle-chrome-team-preview.png',
