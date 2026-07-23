@@ -45,6 +45,16 @@ jobs:
       - name: Operate battle controls and capture evidence
         shell: bash
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/smoke-japanese-battle-chrome.mjs')
+          source = path.read_text()
+          old = "\tawait wait(client, `document.querySelector('#room-${roomid} .battle-controls')`, 'battle controls');\n"
+          new = old + "\tawait wait(client, `document.querySelector('#room-${roomid} button[data-cmd=\\\"/movemenu\\\"]') && document.querySelector('#room-${roomid} button[data-cmd=\\\"/switchmenu\\\"]')`, 'battle overlay controls');\n"
+          if old not in source:
+              raise SystemExit('battle control wait anchor missing')
+          path.write_text(source.replace(old, new, 1))
+          PY
           set -o pipefail
           node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome 2>&1 | tee /tmp/japanese-battle-chrome-run.log
       - name: Require verified Japanese controls
