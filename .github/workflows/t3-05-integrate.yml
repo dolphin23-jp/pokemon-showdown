@@ -36,8 +36,8 @@ jobs:
           from pathlib import Path
           path = Path('scripts/apply-t3-05-integration.py')
           source = path.read_text()
-          old = "if source.count(child_marker) != 1:\n    raise SystemExit('visit child marker changed')\nsource = source.replace(child_marker, '\\t\\taddAppliedReference(node);\\n' + child_marker)"
-          new = "if source.count(child_marker) != 2:\n    raise SystemExit('visit child marker changed')\nhead, tail = source.rsplit(child_marker, 1)\nsource = head + '\\t\\taddAppliedReference(node);\\n' + child_marker + tail"
+          old = "if source.count(child_marker) != 1:\n    raise SystemExit('visit child marker changed')\nsource = source.replace(child_marker, '\t\taddAppliedReference(node);\n' + child_marker)"
+          new = "if source.count(child_marker) != 2:\n    raise SystemExit('visit child marker changed')\nhead, tail = source.rsplit(child_marker, 1)\nsource = head + '\t\taddAppliedReference(node);\n' + child_marker + tail"
           if source.count(old) != 1:
               raise SystemExit('application script child marker patch changed')
           path.write_text(source.replace(old, new))
@@ -50,16 +50,35 @@ jobs:
           node --check scripts/generate-phase3-ui-chrome-inventory.mjs
           node --check scripts/smoke-japanese-battle-chrome.mjs
           python3 scripts/check-pinned-client.py --verify-remote --output /tmp/t3-05-pin.json
+      - name: Format integration scripts
+        run: npx eslint --fix scripts/generate-phase3-ui-chrome-inventory.mjs scripts/smoke-japanese-battle-chrome.mjs
       - name: Run server tests
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test > /tmp/t3-05-server-test.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            cp /tmp/t3-05-server-test.log t3-05-server-test-error.log
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -f t3-05-server-test-error.log
+            git commit -m "Record T3-05 server test failure"
+            git push origin HEAD:${{ github.head_ref }}
+            cat /tmp/t3-05-server-test.log
+            exit "$status"
+          fi
+          cat /tmp/t3-05-server-test.log
       - name: Commit verified integration
         shell: bash
         run: |
           rm .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt
+          rm -f t3-05-server-test-error.log
           rm -rf caches/pokemon-showdown-client
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add config/pokemon-showdown-client.json docs/localization/phase-3-battle-text-inventory.json docs/localization/phase-3-ui-chrome-inventory.md docs/localization/phase-3-t3-05-battle-chrome-apply.md scripts/generate-phase3-ui-chrome-inventory.mjs scripts/smoke-japanese-battle-chrome.mjs .github/workflows/japanese-battle-chrome.yml
-          git add -u .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt
+          git add -u .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt t3-05-server-test-error.log
           git commit -m "Integrate Phase 3 T3-05 battle chrome"
           git push origin HEAD:${{ github.head_ref }}
