@@ -99,6 +99,7 @@ async function seedBattle() {
 	const room = window.PS.rooms[roomid];
 	room.width = 1000;
 	room.height = 800;
+	room.battle.seekTurn(Infinity);
 	room.update(null);
 	window.PS.update();
 	return roomid;
