@@ -30,7 +30,19 @@ jobs:
           git clone https://github.com/dolphin23-jp/pokemon-showdown-client.git caches/pokemon-showdown-client
           git -C caches/pokemon-showdown-client checkout e6e7b0fb18531d53db583a28850cc52a537d166b
       - name: Apply integration
-        run: python3 scripts/apply-t3-05-integration.py
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/apply-t3-05-integration.py')
+          source = path.read_text()
+          old = "if source.count(child_marker) != 1:\n    raise SystemExit('visit child marker changed')\nsource = source.replace(child_marker, '\\t\\taddAppliedReference(node);\\n' + child_marker)"
+          new = "if source.count(child_marker) != 2:\n    raise SystemExit('visit child marker changed')\nhead, tail = source.rsplit(child_marker, 1)\nsource = head + '\\t\\taddAppliedReference(node);\\n' + child_marker + tail"
+          if source.count(old) != 1:
+              raise SystemExit('application script child marker patch changed')
+          path.write_text(source.replace(old, new))
+          PY
+          python3 scripts/apply-t3-05-integration.py
       - name: Regenerate and check inventories
         run: |
           node scripts/generate-phase3-ui-chrome-inventory.mjs --client-root caches/pokemon-showdown-client
