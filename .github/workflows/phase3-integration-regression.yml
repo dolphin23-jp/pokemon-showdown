@@ -193,6 +193,39 @@ jobs:
           cat "$ARTIFACT_ROOT/chrome.log"
           exit 1
 
+      - name: Deliver seeded request to mounted battle panel
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/smoke-phase3-integration.mjs')
+          source = path.read_text()
+          request_anchor = "\tconst protocol = ["
+          if 'window.__phase3Request = request;' not in source:
+              if request_anchor not in source:
+                  raise SystemExit('seed request anchor missing')
+              source = source.replace(
+                  request_anchor,
+                  "\twindow.__phase3Request = request;\n" + request_anchor,
+                  1,
+              )
+
+          model_anchor = "\tawait waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');\n"
+          delivery = model_anchor + """\tawait evaluate(client, `(() => {
+          window.PS.receive('>${roomid}\\n|request|' + JSON.stringify(window.__phase3Request));
+          return true;
+          })()`);
+          \tawait waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.request && window.PS.rooms['${roomid}']?.choices)`, 'battle request controls');
+          """
+          if 'battle request controls' not in source:
+              if model_anchor not in source:
+                  raise SystemExit('mounted battle model anchor missing')
+              source = source.replace(model_anchor, delivery, 1)
+          path.write_text(source)
+          PY
+          node --check scripts/smoke-phase3-integration.mjs
+
       - name: Run battle integration browser flow
         if: steps.state.outputs.finalized != 'true'
         shell: bash
