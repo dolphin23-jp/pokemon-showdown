@@ -36,11 +36,14 @@ jobs:
           from pathlib import Path
           path = Path('scripts/apply-t3-05-integration.py')
           source = path.read_text()
-          old = "if source.count(child_marker) != 1:\n    raise SystemExit('visit child marker changed')\nsource = source.replace(child_marker, '\t\taddAppliedReference(node);\n' + child_marker)"
-          new = "if source.count(child_marker) != 2:\n    raise SystemExit('visit child marker changed')\nhead, tail = source.rsplit(child_marker, 1)\nsource = head + '\t\taddAppliedReference(node);\n' + child_marker + tail"
-          if source.count(old) != 1:
-              raise SystemExit('application script child marker patch changed')
-          path.write_text(source.replace(old, new))
+          count_old = "if source.count(child_marker) != 1:"
+          count_new = "if source.count(child_marker) != 2:"
+          replace_old = "source = source.replace(child_marker, '\\t\\taddAppliedReference(node);\\n' + child_marker)"
+          replace_new = "head, tail = source.rsplit(child_marker, 1)\nsource = head + '\\t\\taddAppliedReference(node);\\n' + child_marker + tail"
+          if source.count(count_old) != 1 or source.count(replace_old) != 1:
+              raise SystemExit('application script traversal patch changed')
+          source = source.replace(count_old, count_new).replace(replace_old, replace_new)
+          path.write_text(source)
           PY
           python3 scripts/apply-t3-05-integration.py
       - name: Regenerate and check inventories
