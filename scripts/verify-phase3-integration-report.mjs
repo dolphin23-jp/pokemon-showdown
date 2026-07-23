@@ -8,6 +8,12 @@ if (report.phase3_complete !== true) throw new Error('Phase 3 is not complete');
 if (!report.completion_criteria || !Object.values(report.completion_criteria).every(Boolean)) {
 	throw new Error('One or more completion criteria are false');
 }
+if (report.coverage?.totalMissing !== 0 || Object.keys(report.coverage?.byNamespace || {}).length !== 0) {
+	throw new Error('Final BattleText coverage is incomplete');
+}
+if (report.browser?.teambuilder?.importExport?.containsJapanese !== false) {
+	throw new Error('Team Import/Export did not remain canonical English');
+}
 if (!Array.isArray(report.screenshots) || report.screenshots.length < 7) throw new Error('Screenshot evidence is incomplete');
 for (const screenshot of report.screenshots) {
 	if (screenshot.width !== 1280 || screenshot.height !== 900 || !/^[0-9a-f]{64}$/.test(screenshot.sha256)) {
