@@ -58,6 +58,7 @@ jobs:
       - name: Run server tests
         shell: bash
         run: |
+          rm -f .eslintcache
           set +e
           npm test > /tmp/t3-05-server-test.log 2>&1
           status=$?
@@ -77,7 +78,7 @@ jobs:
         shell: bash
         run: |
           rm .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt
-          rm -f t3-05-server-test-error.log
+          rm -f t3-05-server-test-error.log .eslintcache
           rm -rf caches/pokemon-showdown-client
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
