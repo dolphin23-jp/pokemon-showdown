@@ -163,7 +163,7 @@ try {
 	await wait(client, 'window.PS && window.PS.roomTypes && window.PS.roomTypes.battle', 'client battle modules');
 	await call(client, installBrowserHelpers);
 	const roomid = await call(client, seedBattle);
-	await wait(client, `window.PS.rooms['${roomid}']?.battle`, 'battle model');
+	await wait(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');
 	await evaluate(client, `(() => {
 		const room = window.PS.rooms['${roomid}'];
 		room.battle.seekTurn(Infinity);
