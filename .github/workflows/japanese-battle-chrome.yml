@@ -154,37 +154,40 @@ jobs:
           path = Path('scripts/smoke-japanese-battle-chrome.mjs')
           source = path.read_text(encoding='utf-8')
           old = "\tawait waitFor(() => window.PS?.connection?.connected, 'Showdown connection');"
-          new = '''\tawait waitFor(() => window.PS, 'Showdown client');
-\tconst existingConnection = window.PS.connection;
-\tif (!existingConnection?.connected) {
-\t\texistingConnection?.worker?.terminate();
-\t\texistingConnection?.socket?.close();
-\t\tconst protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-\t\tconst socket = new WebSocket(`${protocol}//${location.host}/showdown/websocket`);
-\t\tconst queued = [];
-\t\tconst bridge = {
-\t\t\tconnected: false,
-\t\t\tsend(message) {
-\t\t\t\tif (socket.readyState === WebSocket.OPEN) socket.send(message);
-\t\t\t\telse queued.push(message);
-\t\t\t},
-\t\t};
-\t\twindow.PS.connection = bridge;
-\t\tsocket.addEventListener('message', event => window.PS.receive(String(event.data)));
-\t\tawait new Promise((resolve, reject) => {
-\t\t\tconst timer = setTimeout(() => reject(new Error('Timed out opening local Showdown WebSocket')), 15_000);
-\t\t\tsocket.addEventListener('open', () => {
-\t\t\t\tclearTimeout(timer);
-\t\t\t\tbridge.connected = true;
-\t\t\t\tfor (const message of queued.splice(0)) socket.send(message);
-\t\t\t\tresolve();
-\t\t\t}, { once: true });
-\t\t\tsocket.addEventListener('error', () => {
-\t\t\t\tclearTimeout(timer);
-\t\t\t\treject(new Error('Local Showdown WebSocket failed'));
-\t\t\t}, { once: true });
-\t\t});
-\t}'''
+          lines = [
+              "\tawait waitFor(() => window.PS, 'Showdown client');",
+              "\tconst existingConnection = window.PS.connection;",
+              "\tif (!existingConnection?.connected) {",
+              "\t\texistingConnection?.worker?.terminate();",
+              "\t\texistingConnection?.socket?.close();",
+              "\t\tconst protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';",
+              "\t\tconst socket = new WebSocket(`${protocol}//${location.host}/showdown/websocket`);",
+              "\t\tconst queued = [];",
+              "\t\tconst bridge = {",
+              "\t\t\tconnected: false,",
+              "\t\t\tsend(message) {",
+              "\t\t\t\tif (socket.readyState === WebSocket.OPEN) socket.send(message);",
+              "\t\t\t\telse queued.push(message);",
+              "\t\t\t},",
+              "\t\t};",
+              "\t\twindow.PS.connection = bridge;",
+              "\t\tsocket.addEventListener('message', event => window.PS.receive(String(event.data)));",
+              "\t\tawait new Promise((resolve, reject) => {",
+              "\t\t\tconst timer = setTimeout(() => reject(new Error('Timed out opening local Showdown WebSocket')), 15_000);",
+              "\t\t\tsocket.addEventListener('open', () => {",
+              "\t\t\t\tclearTimeout(timer);",
+              "\t\t\t\tbridge.connected = true;",
+              "\t\t\t\tfor (const message of queued.splice(0)) socket.send(message);",
+              "\t\t\t\tresolve();",
+              "\t\t\t}, { once: true });",
+              "\t\t\tsocket.addEventListener('error', () => {",
+              "\t\t\t\tclearTimeout(timer);",
+              "\t\t\t\treject(new Error('Local Showdown WebSocket failed'));",
+              "\t\t\t}, { once: true });",
+              "\t\t});",
+              "\t}",
+          ]
+          new = "\n".join(lines)
           if source.count(old) != 1:
               raise SystemExit(f'connection replacement count: {source.count(old)}')
           path.write_text(source.replace(old, new), encoding='utf-8')
