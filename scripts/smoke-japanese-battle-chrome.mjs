@@ -68,13 +68,16 @@ async function screenshot(client, filename) {
 	const {data} = await client.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false, fromSurface: true});
 	fs.writeFileSync(path.join(args.outputDir, filename), Buffer.from(data, 'base64'));
 }
-async function clickSelector(selector) {
-	const element = document.querySelector(selector);
-	if (!element) throw new Error(`Missing element: ${selector}`);
-	element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true, button: 0}));
-	element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, cancelable: true, button: 0}));
-	element.click();
-	return element.textContent.trim();
+function installBrowserHelpers() {
+	window.__battleChromeClick = selector => {
+		const element = document.querySelector(selector);
+		if (!element) throw new Error(`Missing element: ${selector}`);
+		element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true, button: 0}));
+		element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, cancelable: true, button: 0}));
+		element.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, button: 0}));
+		return element.textContent.trim();
+	};
+	return true;
 }
 async function seedBattle() {
 	const roomid = 'battle-t305-smoke';
@@ -109,9 +112,9 @@ async function inspectMove(roomid) {
 	const sw = root?.querySelector('button[data-cmd="/switchmenu"]');
 	if (!move || !sw) throw new Error('Battle/Switch overlay buttons missing');
 	if (!root.textContent.includes('対戦') || !root.textContent.includes('交代')) throw new Error(`Japanese battle tabs missing: ${root.textContent}`);
-	await clickSelector(`#room-${roomid} button[data-cmd="/movemenu"]`);
+	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/movemenu"]`);
 	if (window.PS.rooms[roomid].overlayActive !== 'move') throw new Error('Move menu command did not activate');
-	await clickSelector(`#room-${roomid} button[data-cmd="/switchmenu"]`);
+	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/switchmenu"]`);
 	if (window.PS.rooms[roomid].overlayActive !== 'switch') throw new Error('Switch menu command did not activate');
 	return {battle: move.textContent.trim(), switch: sw.textContent.trim(), commands: [move.dataset.cmd, sw.dataset.cmd]};
 }
@@ -122,11 +125,11 @@ async function showTeamPreview(roomid) {
 	await new Promise(resolve => setTimeout(resolve, 250));
 	const root = document.querySelector(`#room-${roomid}`);
 	if (!root.textContent.includes('チーム') || !root.textContent.includes('先発を選択')) throw new Error(`Japanese team preview missing: ${root.textContent}`);
-	await clickSelector(`#room-${roomid} button[data-cmd="/switch 1"]`);
+	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/switch 1"]`);
 	await new Promise(resolve => setTimeout(resolve, 250));
 	if (!root.textContent.includes('現在の選出')) throw new Error(`Chosen-team heading missing: ${root.textContent}`);
 	const beforeCancel = room.choices.alreadySwitchingIn.length;
-	await clickSelector(`#room-${roomid} button[data-cmd="/cancel"]`);
+	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/cancel"]`);
 	return {beforeCancel, afterCancel: room.choices.alreadySwitchingIn.length, text: root.textContent.trim()};
 }
 async function finishBattle(roomid) {
@@ -158,8 +161,17 @@ try {
 	await client.send('Emulation.setDeviceMetricsOverride', {width: 1280, height: 900, deviceScaleFactor: 1, mobile: false});
 	await client.send('Page.navigate', {url: args.url});
 	await wait(client, 'window.PS && window.PS.roomTypes && window.PS.roomTypes.battle', 'client battle modules');
+	await call(client, installBrowserHelpers);
 	const roomid = await call(client, seedBattle);
-	await wait(client, `document.querySelector('#room-${roomid} .battle-controls')`, 'battle controls');
+	await wait(client, `window.PS.rooms['${roomid}']?.battle`, 'battle model');
+	await evaluate(client, `(() => {
+		const room = window.PS.rooms['${roomid}'];
+		room.battle.seekTurn(Infinity);
+		room.update(null);
+		window.PS.update();
+		return true;
+	})()`);
+	await wait(client, `document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]')`, 'battle overlay controls');
 	const move = await call(client, inspectMove, roomid);
 	await screenshot(client, 'japanese-battle-move-controls.png');
 	const team = await call(client, showTeamPreview, roomid);
