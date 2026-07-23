@@ -11,9 +11,11 @@ on:
       - scripts/create-phase3-integration-report.mjs
       - scripts/verify-phase3-integration-report.mjs
       - scripts/wait-phase3-workflows.py
+      - scripts/smoke-japanese-battle-chrome.mjs
       - scripts/smoke-japanese-teambuilder.mjs
       - scripts/check-phase3-battle-text-coverage.mjs
       - scripts/test-japanese-protocol-invariants.js
+      - .github/workflows/japanese-battle-chrome.yml
       - .github/workflows/phase3-integration-regression.yml
   workflow_dispatch:
 
