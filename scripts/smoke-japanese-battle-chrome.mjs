@@ -113,8 +113,8 @@ function deliverRequest(roomid) {
 		{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
 		{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
 	], canTerastallize: 'Electric'}], side: {name: 'Alice', id: 'p1', pokemon: window.__battleChromePokemon}, rqid: 1};
-	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
 	const room = window.PS.rooms[roomid];
+	room.receiveLine(['request', JSON.stringify(request)]);
 	room.battle.seekTurn(Infinity);
 	room.update(null);
 	window.PS.update();
@@ -135,7 +135,7 @@ function inspectMove(roomid) {
 async function showTeamPreview(roomid) {
 	const room = window.PS.rooms[roomid];
 	const request = {teamPreview: true, maxTeamSize: 2, side: room.request.side, rqid: 2};
-	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
+	room.receiveLine(['request', JSON.stringify(request)]);
 	await new Promise(resolve => setTimeout(resolve, 250));
 	const root = document.querySelector(`#room-${roomid}`);
 	if (!root.textContent.includes('チーム') || !root.textContent.includes('先発を選択')) throw new Error(`Japanese team preview missing: ${root.textContent}`);
