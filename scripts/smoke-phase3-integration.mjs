@@ -118,6 +118,18 @@ async function captureScreenshot(client, filename) {
 	if (!fs.statSync(filePath).size) throw new Error(`Screenshot was empty: ${filePath}`);
 }
 
+function installBrowserHelpers() {
+	window.__phase3Click = element => {
+		if (!element) throw new Error('Attempted to click a missing element');
+		element.scrollIntoView({block: 'center', inline: 'center'});
+		element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true, button: 0}));
+		element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, cancelable: true, button: 0}));
+		element.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, button: 0}));
+		return element.textContent?.trim() || '';
+	};
+	return true;
+}
+
 async function seedBattle() {
 	const roomid = 'battle-t308-integration';
 	window.PS.prefs.onepanel = true;
@@ -169,19 +181,9 @@ async function seedBattle() {
 	const room = window.PS.rooms[roomid];
 	room.width = 1000;
 	room.height = 800;
-	room.battle.seekTurn(Infinity);
 	room.update(null);
 	window.PS.update();
 	return roomid;
-}
-
-function clickElement(element) {
-	if (!element) throw new Error('Attempted to click a missing element');
-	element.scrollIntoView({block: 'center', inline: 'center'});
-	element.dispatchEvent(new MouseEvent('mousedown', {bubbles: true, cancelable: true, button: 0}));
-	element.dispatchEvent(new MouseEvent('mouseup', {bubbles: true, cancelable: true, button: 0}));
-	element.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, button: 0}));
-	return element.textContent?.trim() || '';
 }
 
 async function inspectBattleStart(roomid) {
@@ -200,10 +202,10 @@ async function inspectBattleStart(roomid) {
 async function performSwitch(roomid) {
 	const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 	const root = document.querySelector(`#room-${roomid}`);
-	clickElement(root?.querySelector('button[data-cmd="/switchmenu"]'));
+	window.__phase3Click(root?.querySelector('button[data-cmd="/switchmenu"]'));
 	await delay(150);
 	const button = root?.querySelector('button[data-cmd="/switch 2"]');
-	const label = clickElement(button);
+	const label = window.__phase3Click(button);
 	await delay(200);
 	const sent = [...window.__phase3Sent];
 	const choice = sent.find(entry => /(?:^|\s)\/choose\s+switch\s+2(?:\s|$)/.test(entry.message));
@@ -245,10 +247,10 @@ async function performMove(roomid) {
 	const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 	const root = document.querySelector(`#room-${roomid}`);
 	const moveMenu = root?.querySelector('button[data-cmd="/movemenu"]');
-	if (moveMenu) clickElement(moveMenu);
+	if (moveMenu) window.__phase3Click(moveMenu);
 	await delay(150);
 	const button = root?.querySelector('button[data-cmd^="/move 1"]');
-	const label = clickElement(button);
+	const label = window.__phase3Click(button);
 	await delay(200);
 	const sent = [...window.__phase3Sent];
 	const choice = [...sent].reverse().find(entry => /(?:^|\s)\/choose\s+move\s+1(?:\s|$)/.test(entry.message));
@@ -316,7 +318,7 @@ async function openForfeitDialog(roomid) {
 async function submitForfeit(roomid) {
 	const root = document.querySelector('#room-forfeitbattle');
 	const button = root?.querySelector('button[data-cmd="/closeand /inopener /forfeit"]');
-	clickElement(button);
+	window.__phase3Click(button);
 	await new Promise(resolve => setTimeout(resolve, 200));
 	const sent = [...window.__phase3Sent];
 	const command = [...sent].reverse().find(entry => entry.message === '/forfeit' && entry.room === roomid);
@@ -365,7 +367,16 @@ try {
 	});
 	await client.send('Page.navigate', {url: args.url});
 	await waitForPage(client, 'Boolean(window.PS && window.PS.roomTypes && window.PS.roomTypes.battle)', 'client battle modules');
+	await browserCall(client, installBrowserHelpers);
 	const roomid = await browserCall(client, seedBattle);
+	await waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');
+	await evaluate(client, `(() => {
+		const room = window.PS.rooms['${roomid}'];
+		room.battle.seekTurn(Infinity);
+		room.update(null);
+		window.PS.update();
+		return true;
+	})()`);
 	await waitForPage(client, `Boolean(document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]'))`, 'battle overlay controls');
 
 	report.start = await browserCall(client, inspectBattleStart, roomid);
