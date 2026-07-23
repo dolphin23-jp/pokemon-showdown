@@ -222,6 +222,30 @@ jobs:
               if model_anchor not in source:
                   raise SystemExit('mounted battle model anchor missing')
               source = source.replace(model_anchor, delivery, 1)
+
+          old_controls = (
+              "\tconst forbidden = ['Battle', 'Switch', 'Timer'];\n"
+              "\tconst residues = forbidden.filter(label => text.includes(label));\n"
+              "\tif (residues.length) throw new Error(`English battle-start chrome remains: ${residues.join(', ')}`);\n"
+              "\treturn {required, residues, text: text.trim()};\n"
+          )
+          new_controls = (
+              "\tconst controls = {\n"
+              "\t\tbattle: root.querySelector('button[data-cmd=\"/movemenu\"]')?.textContent?.trim() || '',\n"
+              "\t\tswitch: root.querySelector('button[data-cmd=\"/switchmenu\"]')?.textContent?.trim() || '',\n"
+              "\t\ttimer: root.querySelector('button[data-href=\"battletimer\"]')?.textContent?.trim() || '',\n"
+              "\t};\n"
+              "\tconst expectedControls = {battle: '対戦', switch: '交代', timer: 'タイマー'};\n"
+              "\tif (JSON.stringify(controls) !== JSON.stringify(expectedControls)) {\n"
+              "\t\tthrow new Error(`Battle-start control mismatch: ${JSON.stringify(controls)}`);\n"
+              "\t}\n"
+              "\treturn {required, controls, text: text.trim()};\n"
+          )
+          if old_controls in source:
+              source = source.replace(old_controls, new_controls, 1)
+          elif 'const expectedControls' not in source:
+              raise SystemExit('battle-start control assertion anchor missing')
+
           path.write_text(source)
           PY
           node --check scripts/smoke-phase3-integration.mjs
