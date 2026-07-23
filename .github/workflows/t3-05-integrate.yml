@@ -58,8 +58,10 @@ jobs:
       - name: Run server tests
         shell: bash
         run: |
+          : > /tmp/t3-05-server-test.log
+          echo 99 > /tmp/t3-05-server-test.status
           rm -rf caches/pokemon-showdown-client
-          find . -path './node_modules' -prune -o -type f \( -name '.eslintcache' -o -name 'eslintcache.json' \) -delete
+          rm -f .eslintcache caches/eslintcache.json
           set +e
           npm run full-test-ci > /tmp/t3-05-server-test.log 2>&1
           status=$?
