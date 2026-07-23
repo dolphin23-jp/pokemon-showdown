@@ -1,0 +1,51 @@
+name: Phase 3 T3-03 materialize
+
+on:
+  pull_request:
+    paths:
+      - config/pokemon-showdown-client.json
+      - docs/localization/phase-3-ui-chrome-inventory.md
+      - .github/workflows/phase3-t3-03-materialize.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out server branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Refresh pinned-client metadata in UI inventory
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          CLIENT_SHA="$(node -p "require('./config/pokemon-showdown-client.json').commit")"
+          CLIENT_SHA="$CLIENT_SHA" node <<'NODE'
+          const fs = require('fs');
+          const file = 'docs/localization/phase-3-ui-chrome-inventory.md';
+          const source = fs.readFileSync(file, 'utf8');
+          const next = source.replace(
+            /^Generated from client SHA `[^`]+`\.$/m,
+            `Generated from client SHA \`${process.env.CLIENT_SHA}\`.`
+          );
+          if (next === source && !source.includes(process.env.CLIENT_SHA)) {
+            throw new Error('Phase 3 UI inventory client-SHA marker not found');
+          }
+          fs.writeFileSync(file, next);
+          NODE
+          git add docs/localization/phase-3-ui-chrome-inventory.md
+          if git diff --cached --quiet; then
+            echo "UI inventory already references the pinned client."
+          else
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git commit -m "Refresh Phase 3 UI inventory client SHA"
+            git push origin "HEAD:${HEAD_BRANCH}"
+          fi
