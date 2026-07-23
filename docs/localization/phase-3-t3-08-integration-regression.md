@@ -28,6 +28,8 @@ T3-08 begins only after those corrected client revisions are pinned by the serve
 10. wait for the existing Localization documentation, Node.js CI, Render smoke test, Phase 1 integration regression, and Phase 3 baseline inventory workflows on the same head;
 11. generate and validate the final Phase 3 JSON report.
 
+After the pinned client regression suite completes, its checkout is moved to the runner's temporary directory. The Docker `--no-cache` build therefore receives the same clean server-only context as a normal production build, while the relocated client Git history remains available for the later boundary and coverage audits.
+
 ## Battle browser evidence
 
 The browser flow captures 1280×900 screenshots for:
