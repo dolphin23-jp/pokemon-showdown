@@ -213,7 +213,7 @@ jobs:
 
           model_anchor = "\tawait waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');\n"
           delivery = model_anchor + """\tawait evaluate(client, `(() => {
-          window.PS.receive('>${roomid}\\n|request|' + JSON.stringify(window.__phase3Request));
+          window.PS.receive('>${roomid}' + String.fromCharCode(10) + '|request|' + JSON.stringify(window.__phase3Request));
           return true;
           })()`);
           \tawait waitForPage(client, `Boolean(window.PS.rooms['${roomid}']?.request && window.PS.rooms['${roomid}']?.choices)`, 'battle request controls');
