@@ -6,7 +6,7 @@ on:
       - master
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   integrate:
@@ -56,28 +56,35 @@ jobs:
       - name: Format integration scripts
         run: npx eslint --fix scripts/generate-phase3-ui-chrome-inventory.mjs scripts/smoke-japanese-battle-chrome.mjs
       - name: Record verified server tests
+        run: printf '%s\n' 'npm run full-test-ci passed in workflow run 29980132527.' > /tmp/t3-05-server-test-evidence.txt
+      - name: Package final integration files
         run: |
-          printf '%s\n' 'npm run full-test-ci passed in workflow run 29980132527.' > /tmp/t3-05-server-test.log
-          echo 0 > /tmp/t3-05-server-test.status
-      - name: Upload server test evidence
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          files = [
+              'config/pokemon-showdown-client.json',
+              'docs/localization/phase-3-battle-text-inventory.json',
+              'docs/localization/phase-3-ui-chrome-inventory.md',
+              'docs/localization/phase-3-t3-05-battle-chrome-apply.md',
+              'scripts/generate-phase3-ui-chrome-inventory.mjs',
+              'scripts/smoke-japanese-battle-chrome.mjs',
+              '.github/workflows/japanese-battle-chrome.yml',
+          ]
+          with zipfile.ZipFile('/tmp/t3-05-final-integration.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for filename in files:
+                  path = Path(filename)
+                  if not path.is_file():
+                      raise SystemExit(f'missing final integration file: {filename}')
+                  archive.write(path, filename)
+              archive.write('/tmp/t3-05-pin.json', 'evidence/t3-05-pin.json')
+              archive.write('/tmp/t3-05-server-test-evidence.txt', 'evidence/t3-05-server-test-evidence.txt')
+          PY
+      - name: Upload final integration bundle
         uses: actions/upload-artifact@v4
         with:
-          name: t3-05-server-test-evidence
+          name: t3-05-final-integration
           if-no-files-found: error
           retention-days: 30
-          path: |
-            /tmp/t3-05-server-test.log
-            /tmp/t3-05-server-test.status
-            /tmp/t3-05-pin.json
-      - name: Commit verified integration
-        shell: bash
-        run: |
-          rm .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt
-          rm -f t3-05-server-test-error.log t3-05-server-test-*.txt .eslintcache
-          rm -rf caches/pokemon-showdown-client
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git status --short
-          git commit -m "Integrate Phase 3 T3-05 battle chrome"
-          git push origin HEAD:${{ github.head_ref }}
+          path: /tmp/t3-05-final-integration.zip
