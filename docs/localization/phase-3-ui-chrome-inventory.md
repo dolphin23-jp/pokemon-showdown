@@ -1,112 +1,118 @@
 # Phase 3 UI chrome inventory
 
-Generated from client SHA `05135ec3cf35211799fdc68e1d142ed2a8609086`.
+Generated from client SHA `0e5715cc325796752d07e7ecd3fdd175ad8fc52b`.
 
-This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.
+This inventory contains Phase 3 battle and Teambuilder UI chrome, including applied framework references and remaining hard-coded English strings. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.
 
-| File:line | Type | Current English string |
+| File:line | Type | English source string |
 | --- | --- | --- |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:87` | `label` | vs. |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:94` | `label` | Close |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:99` | `label` | Refresh |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:103` | `title` | Meloetta is PS's mascot! The Pirouette forme is Fighting-type, and represents our battles. |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:108` | `label` | Format: |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:108` | `placeholder` | (All formats) |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:111` | `label` | Minimum Elo: |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:112` | `label` | None |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:119` | `placeholder` | Username prefix |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:120` | `label` | Search |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:124` | `label` | Loading... |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:126` | `label` | No battles are going on |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:129` | `label` | battle |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:129` | `label` | battles |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:503` | `notify` | Your move! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:506` | `notify` | Your switch! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:509` | `notify` | Team preview! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:531` | `label` | Play |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:535` | `label` | Play |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:539` | `label` | Pause |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:544` | `label` | First turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:547` | `label` | Prev turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:550` | `label` | Skip turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:553` | `label` | Skip to end |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:559` | `label` | Switch viewpoint |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:562` | `label` | Go to turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:595` | `label` | (empty slot) |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:638` | `label` | have some moves disabled, so you won't be able to cancel an attack! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:638` | `label` | might |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:638` | `label` | You |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:641` | `label` | be locked into a move. |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:641` | `label` | might |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:641` | `label` | You |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:642` | `label` | Try Fight button |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:643` | `label` | (prevents switching if you're locked) |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:649` | `label` | Dynamax |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:649` | `label` | Gigantamax |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:653` | `label` | Mega Evolution |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:657` | `label` | Mega Evolution X |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:661` | `label` | Mega Evolution Y |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:665` | `label` | Ultra Burst |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:669` | `label` | Z-Power |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:673` | `label` | Tera |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:690` | `label` | Maxed with no max moves |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:715` | `label` | No Z moves |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:811` | `label` | be trapped, so you won't be able to cancel a switch! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:811` | `label` | might |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:811` | `label` | You |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:814` | `label` | and cannot switch! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:814` | `label` | trapped |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:814` | `label` | You're |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:817` | `label` | Choose a pokemon to revive! |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:854` | `label` | Team |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:888` | `label` | Back |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:914` | `label` | Mega |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:915` | `label` | Mega |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:916` | `label` | Mega |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:917` | `label` | Ultra |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:942` | `label` | shift |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:960` | `label` | Skip |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:966` | `label` | Skip animation |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:981` | `label` | Battle |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:982` | `label` | Switch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:987` | `label` | at where? |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:987` | `label` | should use |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:998` | `label` | at where? |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:998` | `label` | should use |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1013` | `label` | Battle |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1014` | `label` | Switch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1018` | `label` | do? |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1018` | `label` | What will |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1025` | `label` | Move to center |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1034` | `label` | do? |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1034` | `label` | What will |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1037` | `label` | Battle |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1042` | `label` | Shift |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1043` | `label` | Move to center |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1045` | `label` | Switch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1055` | `label` | Switch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1060` | `label` | Who will replace |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1069` | `label` | Who will replace |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1072` | `label` | Switch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1079` | `label` | Back |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1089` | `label` | Team |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1093` | `label` | Choose |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1099` | `label` | Team so far |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1113` | `label` | Choose |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1121` | `label` | Team so far |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1145` | `label` | Team |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1159` | `label` | Cancel |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1190` | `label` | Download replay |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1194` | `label` | Upload and share replay |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1199` | `label` | Replay |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1203` | `label` | First turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1206` | `label` | Prev turn |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1213` | `label` | (closes this battle) |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1213` | `label` | Main menu |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1216` | `label` | (closes this battle) |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1216` | `label` | Rematch |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1221` | `label` | Switch viewpoint |
-| `play.pokemonshowdown.com/src/panel-battle.tsx:1223` | `label` | Go to turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:88` | `label` | vs. |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:95` | `label` | Close |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:100` | `label` | Refresh |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:104` | `title` | Meloetta is PS's mascot! The Pirouette forme is Fighting-type, and represents our battles. |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:109` | `label` | Format: |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:110` | `placeholder` | (All formats) |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:114` | `label` | Minimum Elo: |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:115` | `label` | None |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:124` | `placeholder` | Username prefix |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:126` | `label` | Search |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:130` | `label` | Loading... |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:132` | `label` | No battles are going on |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:135` | `label` | battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:135` | `label` | battles |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:506` | `label` | Opponent: |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:510` | `notify` | Your move! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:511` | `notify` | Move in your battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:516` | `notify` | Your switch! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:517` | `notify` | Switch in your battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:522` | `notify` | Team preview! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:523` | `notify` | Choose your team order in your battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:546` | `label` | Play |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:550` | `label` | Play |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:554` | `label` | Pause |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:559` | `label` | First turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:562` | `label` | Prev turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:565` | `label` | Skip turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:568` | `label` | Skip to end |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:574` | `label` | Switch viewpoint |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:577` | `label` | Go to turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:610` | `label` | (empty slot) |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:653` | `label` | have some moves disabled, so you won't be able to cancel an attack! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:653` | `label` | might |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:653` | `label` | You |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:656` | `label` | be locked into a move. |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:656` | `label` | might |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:656` | `label` | You |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:657` | `label` | Try Fight button |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:658` | `label` | (prevents switching if you're locked) |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:664` | `label` | Dynamax |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:664` | `label` | Gigantamax |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:668` | `label` | Mega Evolution |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:672` | `label` | Mega Evolution X |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:676` | `label` | Mega Evolution Y |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:680` | `label` | Ultra Burst |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:684` | `label` | Z-Power |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:688` | `label` | Tera |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:705` | `label` | Maxed with no max moves |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:730` | `label` | No Z moves |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:826` | `label` | be trapped, so you won't be able to cancel a switch! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:826` | `label` | might |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:826` | `label` | You |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:829` | `label` | and cannot switch! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:829` | `label` | trapped |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:829` | `label` | You're |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:832` | `label` | Choose a pokemon to revive! |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:869` | `label` | Team |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:904` | `label` | Back |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:931` | `label` | Mega |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:932` | `label` | Mega |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:933` | `label` | Mega |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:934` | `label` | Ultra |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:959` | `label` | shift |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:979` | `label` | Skip |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:988` | `label` | Skip animation |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1005` | `label` | Battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1008` | `label` | Switch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1014` | `label` | at where? |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1014` | `label` | should use |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1025` | `label` | at where? |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1025` | `label` | should use |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1041` | `label` | Battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1044` | `label` | Switch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1049` | `label` | do? |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1049` | `label` | What will |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1056` | `label` | Move to center |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1065` | `label` | do? |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1065` | `label` | What will |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1068` | `label` | Battle |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1073` | `label` | Shift |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1074` | `label` | Move to center |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1076` | `label` | Switch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1086` | `label` | Switch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1091` | `label` | Who will replace |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1100` | `label` | Who will replace |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1103` | `label` | Switch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1111` | `label` | Back |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1118` | `label` | lead |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1118` | `label` | slot ${…} |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1124` | `label` | Team |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1128` | `label` | Choose |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1134` | `label` | Team so far |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1148` | `label` | Choose |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1156` | `label` | Team so far |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1181` | `label` | Team |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1196` | `label` | Cancel |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1227` | `label` | Download replay |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1231` | `label` | Upload and share replay |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1236` | `label` | Replay |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1240` | `label` | First turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1243` | `label` | Prev turn |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1250` | `label` | (closes this battle) |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1250` | `label` | Main menu |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1253` | `label` | (closes this battle) |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1253` | `label` | Rematch |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1259` | `label` | Switch viewpoint |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:1262` | `label` | Go to turn |
 | `play.pokemonshowdown.com/src/panel-popups.tsx:1117` | `label` | Forfeiting makes you lose the battle. Are you sure? |
 | `play.pokemonshowdown.com/src/panel-popups.tsx:1119` | `label` | Forfeit and close |
 | `play.pokemonshowdown.com/src/panel-popups.tsx:1120` | `label` | Just forfeit |

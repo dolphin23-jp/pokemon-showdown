@@ -9,7 +9,10 @@ import ts from 'typescript';
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const DEFAULT_SERVER_ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
 const TARGETS = [
-	{file: 'play.pokemonshowdown.com/src/panel-battle.tsx'},
+	{
+		file: 'play.pokemonshowdown.com/src/panel-battle.tsx',
+		appliedGroups: ['BattleChromeSources', 'SharedChromeSources'],
+	},
 	{
 		file: 'play.pokemonshowdown.com/src/panel-popups.tsx',
 		classes: ['BattleForfeitPanel', 'ReplacePlayerPanel'],
@@ -164,6 +167,71 @@ function lineNumber(sourceFile, node) {
 	return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
 }
 
+
+function readFrameworkGroups(clientRoot) {
+	const filePath = path.join(clientRoot, 'play.pokemonshowdown.com/src/client-ui-ja-strings.ts');
+	const source = fs.readFileSync(filePath, 'utf8');
+	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+	const groups = new Map();
+	for (const statement of sourceFile.statements) {
+		if (!ts.isVariableStatement(statement)) continue;
+		for (const declaration of statement.declarationList.declarations) {
+			if (!ts.isIdentifier(declaration.name) || !declaration.name.text.endsWith('Sources')) continue;
+			let initializer = declaration.initializer;
+			if (initializer && ts.isAsExpression(initializer)) initializer = initializer.expression;
+			if (!initializer || !ts.isObjectLiteralExpression(initializer)) {
+				throw new Error(`${declaration.name.text} must be an object literal`);
+			}
+			const entries = new Map();
+			for (const property of initializer.properties) {
+				if (!ts.isPropertyAssignment(property) || !ts.isArrayLiteralExpression(property.initializer)) {
+					throw new Error(`${declaration.name.text} must contain tuple property assignments`);
+				}
+				const [englishNode] = property.initializer.elements;
+				if (!englishNode || !ts.isStringLiteral(englishNode)) {
+					throw new Error(`${property.name.getText(sourceFile)} English source must be a string`);
+				}
+				entries.set(property.name.getText(sourceFile), englishNode.text);
+			}
+			groups.set(declaration.name.text, entries);
+		}
+	}
+	return groups;
+}
+
+function appliedReference(node, target, groups) {
+	if (!target.appliedGroups || !ts.isPropertyAccessExpression(node) || !ts.isIdentifier(node.expression)) {
+		return null;
+	}
+	const groupName = node.expression.text.replace(/JA$/, 'Sources');
+	if (!target.appliedGroups.includes(groupName)) return null;
+	const group = groups.get(groupName);
+	if (!group) throw new Error(`Missing UI chrome group ${groupName}`);
+	const english = group.get(node.name.text);
+	if (!english) throw new Error(`Unknown UI chrome reference ${node.expression.text}.${node.name.text}`);
+	return english;
+}
+
+function appliedReferenceType(node, sourceFile) {
+	let current = node.parent;
+	while (current && !ts.isSourceFile(current)) {
+		if (ts.isJsxAttribute(current)) return jsxAttributeName(current);
+		if (ts.isPropertyAssignment(current)) {
+			const key = current.name.getText(sourceFile).replace(/^['"]|['"]$/g, '');
+			if (key === 'title' || key === 'body') {
+				let ancestor = current.parent;
+				while (ancestor && !ts.isCallExpression(ancestor) && !ts.isSourceFile(ancestor)) {
+					ancestor = ancestor.parent;
+				}
+				if (ancestor && ts.isCallExpression(ancestor) && ts.isPropertyAccessExpression(ancestor.expression) &&
+					ancestor.expression.name.text === 'notify') return 'notify';
+			}
+		}
+		current = current.parent;
+	}
+	return 'label';
+}
+
 function collectNotify(call, sourceFile, addEntry) {
 	if (!ts.isPropertyAccessExpression(call.expression) || call.expression.name.text !== 'notify') return;
 	const receiver = call.expression.expression.getText(sourceFile);
@@ -203,7 +271,7 @@ function targetRoots(sourceFile, target) {
 	return roots;
 }
 
-function collectFile(clientRoot, target, fileIndex) {
+function collectFile(clientRoot, target, fileIndex, groups) {
 	const filePath = path.join(clientRoot, target.file);
 	const source = fs.readFileSync(filePath, 'utf8');
 	const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -219,6 +287,8 @@ function collectFile(clientRoot, target, fileIndex) {
 		entries.push({file: target.file, fileIndex, line, type, text});
 	}
 	function visit(node) {
+		const english = appliedReference(node, target, groups);
+		if (english !== null) addEntry(node, appliedReferenceType(node, sourceFile), english);
 		if (ts.isJsxText(node)) {
 			addEntry(node, 'label', node.getText(sourceFile));
 		} else if (ts.isJsxExpression(node) && node.expression &&
@@ -260,9 +330,9 @@ function renderMarkdown(clientSha, entries) {
 		'',
 		`Generated from client SHA \`${clientSha}\`.`,
 		'',
-		'This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.',
+		'This inventory contains Phase 3 battle and Teambuilder UI chrome, including applied framework references and remaining hard-coded English strings. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.',
 		'',
-		'| File:line | Type | Current English string |',
+		'| File:line | Type | English source string |',
 		'| --- | --- | --- |',
 	];
 	for (const entry of entries) {
@@ -282,7 +352,8 @@ function assertRequiredStrings(entries) {
 function main() {
 	const args = parseArgs(process.argv.slice(2));
 	const clientRoot = resolveClientRoot(args.serverRoot, args.clientRoot);
-	const entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index));
+	const groups = readFrameworkGroups(clientRoot);
+	const entries = TARGETS.flatMap((target, index) => collectFile(clientRoot, target, index, groups));
 	entries.sort((a, b) =>
 		a.fileIndex - b.fileIndex || a.line - b.line || a.type.localeCompare(b.type) || a.text.localeCompare(b.text)
 	);

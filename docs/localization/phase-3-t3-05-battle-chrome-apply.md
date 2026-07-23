@@ -34,7 +34,7 @@ Notification bodies place the opponent name in a natural Japanese suffix such as
 After T3-05, `panel-battle.tsx` no longer contains the original hard-coded English literals. The server and client AST inventory checks therefore resolve references such as:
 
 ```tsx
-<强>{BattleChromeJA.battleTab}</强>
+<strong>{BattleChromeJA.battleTab}</strong>
 <button data-cmd="/cancel">{SharedChromeJA.cancel}</button>
 ```
 
