@@ -32,6 +32,8 @@ The pre-existing Japanese battle chrome live smoke also runs independently on th
 
 After the pinned client regression suite completes, its checkout is moved to the runner's temporary directory. The Docker `--no-cache` build therefore receives the same clean server-only context as a normal production build, while the relocated client Git history remains available for the later boundary and coverage audits.
 
+Browser fixture requests are passed to the mounted `BattleRoom` through its existing `receiveLine(['request', json])` path. This avoids re-splitting an already serialized JSON fixture; the canonical WebSocket battle protocol itself remains covered by the independent protocol invariant test and is not changed.
+
 ## Battle browser evidence
 
 The browser flow captures 1280×900 screenshots for:
