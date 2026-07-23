@@ -1,6 +1,6 @@
 # Phase 3 UI chrome inventory
 
-Generated from client SHA `5f48c7d13402abbb3f0c63ba4cd51b29d46234b7`.
+Generated from client SHA `df2a790caa1f361221df99e55642c19ba16d6f35`.
 
 This inventory contains hard-coded English UI chrome from the Phase 3 battle and Teambuilder scope. It includes JSX labels, placeholders, general title attributes, and `room.notify(...)` title/body text. For `panel-popups.tsx`, the scan is intentionally limited to `BattleForfeitPanel` and the adjacent `ReplacePlayerPanel`. It excludes `data-cmd`, `data-tooltip`, translated species/move/ability/item names, and Team Import/Export contents.
 
@@ -20,6 +20,7 @@ This inventory contains hard-coded English UI chrome from the Phase 3 battle and
 | `play.pokemonshowdown.com/src/panel-battle.tsx:132` | `label` | No battles are going on |
 | `play.pokemonshowdown.com/src/panel-battle.tsx:135` | `label` | battle |
 | `play.pokemonshowdown.com/src/panel-battle.tsx:135` | `label` | battles |
+| `play.pokemonshowdown.com/src/panel-battle.tsx:238` | `label` | Timer |
 | `play.pokemonshowdown.com/src/panel-battle.tsx:506` | `label` | Opponent: |
 | `play.pokemonshowdown.com/src/panel-battle.tsx:510` | `notify` | Your move! |
 | `play.pokemonshowdown.com/src/panel-battle.tsx:511` | `notify` | Move in your battle |
