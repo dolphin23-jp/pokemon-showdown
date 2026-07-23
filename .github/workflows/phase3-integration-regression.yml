@@ -29,6 +29,7 @@ jobs:
       PHASE3_TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       PHASE3_HEAD_BRANCH: ${{ github.head_ref }}
       ARTIFACT_ROOT: /tmp/phase3-integration
+      PHASE3_CLIENT_ROOT: ${{ runner.temp }}/phase3-client
     steps:
       - name: Check out server head
         uses: actions/checkout@v4
@@ -99,6 +100,10 @@ jobs:
           cat "$ARTIFACT_ROOT/client-tests.log"
           exit "$status"
 
+      - name: Move pinned client outside Docker context
+        if: steps.state.outputs.finalized != 'true'
+        run: mv phase3-client "$PHASE3_CLIENT_ROOT"
+
       - name: Build clean Docker image
         if: steps.state.outputs.finalized != 'true'
         shell: bash
@@ -117,7 +122,7 @@ jobs:
           set +e
           node scripts/check-phase3-battle-text-coverage.mjs \
             --server-root . \
-            --client-root phase3-client > "$ARTIFACT_ROOT/phase3-coverage.log" 2>&1
+            --client-root "$PHASE3_CLIENT_ROOT" > "$ARTIFACT_ROOT/phase3-coverage.log" 2>&1
           status=$?
           echo "$status" > "$ARTIFACT_ROOT/phase3-coverage.status"
           cp docs/localization/phase-3-battle-text-inventory.json "$ARTIFACT_ROOT/phase-3-battle-text-inventory.json"
@@ -131,7 +136,7 @@ jobs:
           set +e
           node scripts/audit-phase3-boundaries.mjs \
             --server-root . \
-            --client-root phase3-client \
+            --client-root "$PHASE3_CLIENT_ROOT" \
             --output "$ARTIFACT_ROOT/phase3-boundary-report.json" > "$ARTIFACT_ROOT/boundary-audit.log" 2>&1
           status=$?
           echo "$status" > "$ARTIFACT_ROOT/boundary-audit.status"
@@ -144,7 +149,7 @@ jobs:
         run: |
           set +e
           node scripts/test-japanese-protocol-invariants.js \
-            --client-root phase3-client > "$ARTIFACT_ROOT/protocol-invariants.log" 2>&1
+            --client-root "$PHASE3_CLIENT_ROOT" > "$ARTIFACT_ROOT/protocol-invariants.log" 2>&1
           status=$?
           echo "$status" > "$ARTIFACT_ROOT/protocol-invariants.status"
           cat "$ARTIFACT_ROOT/protocol-invariants.log"
