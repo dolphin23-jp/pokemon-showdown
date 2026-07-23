@@ -61,7 +61,7 @@ jobs:
           rm -rf caches/pokemon-showdown-client
           find . -path './node_modules' -prune -o -type f \( -name '.eslintcache' -o -name 'eslintcache.json' \) -delete
           set +e
-          npm test > /tmp/t3-05-server-test.log 2>&1
+          npm run full-test-ci > /tmp/t3-05-server-test.log 2>&1
           status=$?
           set -e
           if [ "$status" -ne 0 ]; then
