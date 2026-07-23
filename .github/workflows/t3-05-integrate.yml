@@ -64,18 +64,22 @@ jobs:
           npm run full-test-ci > /tmp/t3-05-server-test.log 2>&1
           status=$?
           set -e
-          if [ "$status" -ne 0 ]; then
-            diagnostic="t3-05-server-test-${GITHUB_RUN_ID}.txt"
-            cp /tmp/t3-05-server-test.log "$diagnostic"
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -f "$diagnostic"
-            git commit -m "Record T3-05 server test failure ${GITHUB_RUN_ID}"
-            git push origin HEAD:${{ github.head_ref }}
-            cat /tmp/t3-05-server-test.log
-            exit "$status"
-          fi
+          echo "$status" > /tmp/t3-05-server-test.status
           cat /tmp/t3-05-server-test.log
+          exit 0
+      - name: Upload server test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: t3-05-server-test-diagnostics
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            /tmp/t3-05-server-test.log
+            /tmp/t3-05-server-test.status
+            /tmp/t3-05-pin.json
+      - name: Require server tests
+        run: test "$(cat /tmp/t3-05-server-test.status)" = 0
       - name: Commit verified integration
         shell: bash
         run: |
