@@ -1,0 +1,85 @@
+name: Japanese battle chrome live smoke
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - config/pokemon-showdown-client.json
+      - scripts/smoke-japanese-battle-chrome.mjs
+      - .github/workflows/japanese-battle-chrome.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify pinned client and script syntax
+        run: |
+          python3 scripts/check-pinned-client.py --verify-remote --output /tmp/japanese-battle-chrome-pin.json
+          node --check scripts/smoke-japanese-battle-chrome.mjs
+      - name: Build clean image
+        run: docker build --progress=plain --tag pokemon-showdown-japanese-battle-chrome:smoke .
+      - name: Serve pinned client
+        run: |
+          docker run --detach --name showdown-japanese-battle-chrome -p 10005:10005 pokemon-showdown-japanese-battle-chrome:smoke sh -c 'cd /opt/pokemon-showdown-client/play.pokemonshowdown.com && python3 -m http.server 10005 --bind 0.0.0.0'
+          for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:10005/index-new.html >/tmp/japanese-battle-chrome-index.html && exit 0; sleep 1; done
+          docker logs showdown-japanese-battle-chrome
+          exit 1
+      - name: Install Japanese fonts
+        run: |
+          fc-cache -f
+          if ! fc-list :lang=ja family | grep -q .; then sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-noto-cjk; fi
+          fc-cache -f
+      - name: Start Chrome
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          "$browser" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars --no-proxy-server --remote-allow-origins='*' --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-japanese-battle-chrome about:blank >/tmp/japanese-battle-chrome-chrome.log 2>&1 &
+          echo $! >/tmp/japanese-battle-chrome-chrome.pid
+          for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:9222/json/version >/tmp/japanese-battle-chrome-version.json && exit 0; sleep 1; done
+          exit 1
+      - name: Operate battle controls and capture evidence
+        run: node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome
+      - name: Require verified Japanese controls
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, struct
+          root = pathlib.Path('/tmp/japanese-battle-chrome')
+          report = json.loads((root / 'japanese-battle-chrome-report.json').read_text())
+          assert report['verified'] is True
+          assert report['move']['battle'] == '対戦'
+          assert report['move']['switch'] == '交代'
+          assert report['move']['commands'] == ['/movemenu', '/switchmenu']
+          assert report['team']['beforeCancel'] == 1
+          assert report['team']['afterCancel'] == 0
+          assert report['battleList'] == {'placeholder': 'ユーザー名（前方一致）', 'button': '検索'}
+          for filename in ('japanese-battle-move-controls.png', 'japanese-battle-team-preview.png', 'japanese-battle-post-battle.png'):
+              data = (root / filename).read_bytes()
+              assert data[:8] == b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II', data[16:24]) == (1280, 900)
+          PY
+      - name: Upload battle chrome evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: japanese-battle-chrome-live-evidence
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/japanese-battle-chrome-pin.json
+            /tmp/japanese-battle-chrome-index.html
+            /tmp/japanese-battle-chrome-chrome.log
+            /tmp/japanese-battle-chrome-version.json
+            /tmp/japanese-battle-chrome/japanese-battle-chrome-report.json
+            /tmp/japanese-battle-chrome/japanese-battle-move-controls.png
+            /tmp/japanese-battle-chrome/japanese-battle-team-preview.png
+            /tmp/japanese-battle-chrome/japanese-battle-post-battle.png
+      - name: Cleanup
+        if: always()
+        run: |
+          test ! -s /tmp/japanese-battle-chrome-chrome.pid || kill "$(cat /tmp/japanese-battle-chrome-chrome.pid)" || true
+          docker rm --force showdown-japanese-battle-chrome || true
