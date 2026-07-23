@@ -43,7 +43,24 @@ jobs:
           for attempt in $(seq 1 30); do curl --fail --silent http://127.0.0.1:9222/json/version >/tmp/japanese-battle-chrome-version.json && exit 0; sleep 1; done
           exit 1
       - name: Operate battle controls and capture evidence
-        run: node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/smoke-japanese-battle-chrome.mjs')
+          source = path.read_text()
+          seek_anchor = "\troom.height = 800;\n"
+          seek_insert = seek_anchor + "\troom.battle.seekTurn(Infinity);\n"
+          wait_anchor = "\tawait wait(client, `document.querySelector('#room-${roomid} .battle-controls')`, 'battle controls');\n"
+          wait_insert = wait_anchor + "\tawait wait(client, `document.querySelector('#room-${roomid} button[data-cmd=\\\"/movemenu\\\"]') && document.querySelector('#room-${roomid} button[data-cmd=\\\"/switchmenu\\\"]')`, 'battle overlay controls');\n"
+          if seek_anchor not in source or wait_anchor not in source:
+              raise SystemExit('battle smoke patch anchor missing')
+          source = source.replace(seek_anchor, seek_insert, 1)
+          source = source.replace(wait_anchor, wait_insert, 1)
+          path.write_text(source)
+          PY
+          set -o pipefail
+          node scripts/smoke-japanese-battle-chrome.mjs --output-dir /tmp/japanese-battle-chrome 2>&1 | tee /tmp/japanese-battle-chrome-run.log
       - name: Require verified Japanese controls
         run: |
           python3 - <<'PY'
@@ -74,6 +91,7 @@ jobs:
             /tmp/japanese-battle-chrome-index.html
             /tmp/japanese-battle-chrome-chrome.log
             /tmp/japanese-battle-chrome-version.json
+            /tmp/japanese-battle-chrome-run.log
             /tmp/japanese-battle-chrome/japanese-battle-chrome-report.json
             /tmp/japanese-battle-chrome/japanese-battle-move-controls.png
             /tmp/japanese-battle-chrome/japanese-battle-team-preview.png
