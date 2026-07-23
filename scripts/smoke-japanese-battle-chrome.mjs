@@ -55,7 +55,14 @@ async function evaluate(client, expression) {
 	if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
 	return result.result?.value;
 }
-const call = (client, fn, value = null) => evaluate(client, `(${fn.toString()})(${JSON.stringify(value)})`);
+function call(client, fn, value = null) {
+	const source = JSON.stringify(`(${fn.toString()})`);
+	const argument = JSON.stringify(value);
+	return evaluate(client, `(async () => {
+		const callback = (0, eval)(${source});
+		return await callback(${argument});
+	})()`);
+}
 async function wait(client, expression, label, timeout = 45000) {
 	const deadline = Date.now() + timeout;
 	while (Date.now() < deadline) {
@@ -79,7 +86,7 @@ function installBrowserHelpers() {
 	};
 	return true;
 }
-async function seedBattle() {
+function seedBattle() {
 	const roomid = 'battle-t305-smoke';
 	window.PS.prefs.onepanel = true;
 	window.PS.prefs.battlelayout = 'side-by-side-overlay';
@@ -88,16 +95,11 @@ async function seedBattle() {
 	window.PS.user.named = true;
 	window.__battleChromeSent = [];
 	window.PS.send = (message, targetRoom) => window.__battleChromeSent.push({message, room: targetRoom || ''});
-	const pokemon = [
+	window.__battleChromePokemon = [
 		{ident: 'p1: Pikachu', details: 'Pikachu, L50', condition: '100/100', active: true, stats: {atk: 100, def: 100, spa: 120, spd: 100, spe: 120}, moves: ['thunderbolt', 'quickattack'], baseAbility: 'static', ability: 'static', item: 'lightball', pokeball: 'pokeball'},
 		{ident: 'p1: Charizard', details: 'Charizard, L50', condition: '100/100', active: false, stats: {atk: 100, def: 100, spa: 120, spd: 100, spe: 100}, moves: ['flamethrower'], baseAbility: 'blaze', ability: 'blaze', item: '', pokeball: 'pokeball'},
 	];
-	const request = {active: [{moves: [
-		{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
-		{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
-	], canTerastallize: 'Electric'}], side: {name: 'Alice', id: 'p1', pokemon}, rqid: 1};
-	const protocol = [`>${roomid}`, '|init|battle', '|title|Alice vs. Bob', '|gametype|singles', '|player|p1|Alice|1|', '|player|p2|Bob|2|', '|teamsize|p1|2', '|teamsize|p2|2', '|gen|9', '|tier|[Gen 9] Custom Game', '|start', '|switch|p1a: Pikachu|Pikachu, L50|100/100', '|switch|p2a: Eevee|Eevee, L50|100/100', '|turn|1', `|request|${JSON.stringify(request)}`].join('\n');
-	window.PS.receive(protocol);
+	window.PS.receive([`>${roomid}`, '|init|battle', '|title|Alice vs. Bob', '|gametype|singles', '|player|p1|Alice|1|', '|player|p2|Bob|2|', '|teamsize|p1|2', '|teamsize|p2|2', '|gen|9', '|tier|[Gen 9] Custom Game', '|start', '|switch|p1a: Pikachu|Pikachu, L50|100/100', '|switch|p2a: Eevee|Eevee, L50|100/100', '|turn|1'].join('\n'));
 	window.PS.focusRoom(roomid);
 	const room = window.PS.rooms[roomid];
 	room.width = 1000;
@@ -106,12 +108,24 @@ async function seedBattle() {
 	window.PS.update();
 	return roomid;
 }
-async function inspectMove(roomid) {
+function deliverRequest(roomid) {
+	const request = {active: [{moves: [
+		{move: 'Thunderbolt', id: 'thunderbolt', pp: 24, maxpp: 24, target: 'normal', disabled: false},
+		{move: 'Quick Attack', id: 'quickattack', pp: 48, maxpp: 48, target: 'normal', disabled: false},
+	], canTerastallize: 'Electric'}], side: {name: 'Alice', id: 'p1', pokemon: window.__battleChromePokemon}, rqid: 1};
+	window.PS.receive(`>${roomid}\n|request|${JSON.stringify(request)}`);
+	const room = window.PS.rooms[roomid];
+	room.battle.seekTurn(Infinity);
+	room.update(null);
+	window.PS.update();
+	return true;
+}
+function inspectMove(roomid) {
 	const root = document.querySelector(`#room-${roomid}`);
 	const move = root?.querySelector('button[data-cmd="/movemenu"]');
 	const sw = root?.querySelector('button[data-cmd="/switchmenu"]');
 	if (!move || !sw) throw new Error('Battle/Switch overlay buttons missing');
-	if (!root.textContent.includes('対戦') || !root.textContent.includes('交代')) throw new Error(`Japanese battle tabs missing: ${root.textContent}`);
+	if (move.textContent.trim() !== '対戦' || sw.textContent.trim() !== '交代') throw new Error(`Japanese battle tabs missing: ${root.textContent}`);
 	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/movemenu"]`);
 	if (window.PS.rooms[roomid].overlayActive !== 'move') throw new Error('Move menu command did not activate');
 	window.__battleChromeClick(`#room-${roomid} button[data-cmd="/switchmenu"]`);
@@ -137,6 +151,7 @@ async function finishBattle(roomid) {
 	const room = window.PS.rooms[roomid];
 	room.battle.seekTurn(Infinity);
 	room.update(null);
+	window.PS.update();
 	await new Promise(resolve => setTimeout(resolve, 250));
 	const root = document.querySelector(`#room-${roomid}`);
 	if (!root.textContent.includes('メインメニュー') || !root.textContent.includes('再戦')) throw new Error(`Japanese post-battle controls missing: ${root.textContent}`);
@@ -160,18 +175,12 @@ try {
 	await client.send('Runtime.enable');
 	await client.send('Emulation.setDeviceMetricsOverride', {width: 1280, height: 900, deviceScaleFactor: 1, mobile: false});
 	await client.send('Page.navigate', {url: args.url});
-	await wait(client, 'window.PS && window.PS.roomTypes && window.PS.roomTypes.battle', 'client battle modules');
+	await wait(client, 'Boolean(window.PS && window.PS.roomTypes && window.PS.roomTypes.battle)', 'client battle modules');
 	await call(client, installBrowserHelpers);
 	const roomid = await call(client, seedBattle);
 	await wait(client, `Boolean(window.PS.rooms['${roomid}']?.battle)`, 'battle model');
-	await evaluate(client, `(() => {
-		const room = window.PS.rooms['${roomid}'];
-		room.battle.seekTurn(Infinity);
-		room.update(null);
-		window.PS.update();
-		return true;
-	})()`);
-	await wait(client, `document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]')`, 'battle overlay controls');
+	await call(client, deliverRequest, roomid);
+	await wait(client, `Boolean(document.querySelector('#room-${roomid} button[data-cmd="/movemenu"]') && document.querySelector('#room-${roomid} button[data-cmd="/switchmenu"]'))`, 'battle overlay controls');
 	const move = await call(client, inspectMove, roomid);
 	await screenshot(client, 'japanese-battle-move-controls.png');
 	const team = await call(client, showTeamPreview, roomid);
