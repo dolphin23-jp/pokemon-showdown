@@ -1,0 +1,262 @@
+name: Phase 3 integration regression
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - config/pokemon-showdown-client.json
+      - docs/localization/phase-3-**
+      - scripts/smoke-phase3-integration.mjs
+      - scripts/audit-phase3-boundaries.mjs
+      - scripts/create-phase3-integration-report.mjs
+      - scripts/verify-phase3-integration-report.mjs
+      - scripts/wait-phase3-workflows.py
+      - scripts/smoke-japanese-teambuilder.mjs
+      - scripts/check-phase3-battle-text-coverage.mjs
+      - scripts/test-japanese-protocol-invariants.js
+      - .github/workflows/phase3-integration-regression.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PHASE3_TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHASE3_HEAD_BRANCH: ${{ github.head_ref }}
+      ARTIFACT_ROOT: /tmp/phase3-integration
+    steps:
+      - name: Check out server head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Detect finalized report
+        id: state
+        run: |
+          finalized="$(node -e "try { const r=require('./docs/localization/phase-3-integration-regression.json'); process.stdout.write(String(r.phase3_complete === true)); } catch { process.stdout.write('false'); }")"
+          echo "finalized=$finalized" >> "$GITHUB_OUTPUT"
+
+      - name: Verify committed final report
+        if: steps.state.outputs.finalized == 'true'
+        run: node scripts/verify-phase3-integration-report.mjs
+
+      - name: Resolve pinned client
+        if: steps.state.outputs.finalized != 'true'
+        id: client
+        run: |
+          echo "repository=$(node -p "require('./config/pokemon-showdown-client.json').fork_repository")" >> "$GITHUB_OUTPUT"
+          echo "sha=$(node -p "require('./config/pokemon-showdown-client.json').commit")" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pinned client
+        if: steps.state.outputs.finalized != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.client.outputs.repository }}
+          ref: ${{ steps.client.outputs.sha }}
+          fetch-depth: 0
+          path: phase3-client
+
+      - name: Set up Node.js
+        if: steps.state.outputs.finalized != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            phase3-client/package-lock.json
+
+      - name: Install dependencies
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          npm ci
+          npm ci --prefix phase3-client
+          mkdir -p "$ARTIFACT_ROOT"
+
+      - name: Syntax-check Phase 3 integration scripts
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          node --check scripts/smoke-phase3-integration.mjs
+          node --check scripts/audit-phase3-boundaries.mjs
+          node --check scripts/create-phase3-integration-report.mjs
+          node --check scripts/verify-phase3-integration-report.mjs
+          python3 -m py_compile scripts/wait-phase3-workflows.py
+
+      - name: Run pinned client regression suite
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          npm test --prefix phase3-client > "$ARTIFACT_ROOT/client-tests.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/client-tests.status"
+          cat "$ARTIFACT_ROOT/client-tests.log"
+          exit "$status"
+
+      - name: Build clean Docker image
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          docker build --no-cache --progress=plain --tag pokemon-showdown-phase3:integration . > "$ARTIFACT_ROOT/docker-clean-build.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/docker-clean-build.status"
+          tail -n 300 "$ARTIFACT_ROOT/docker-clean-build.log"
+          exit "$status"
+
+      - name: Require zero missing BattleText coverage
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          node scripts/check-phase3-battle-text-coverage.mjs \
+            --server-root . \
+            --client-root phase3-client > "$ARTIFACT_ROOT/phase3-coverage.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/phase3-coverage.status"
+          cp docs/localization/phase-3-battle-text-inventory.json "$ARTIFACT_ROOT/phase-3-battle-text-inventory.json"
+          cat "$ARTIFACT_ROOT/phase3-coverage.log"
+          exit "$status"
+
+      - name: Verify protected boundaries
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          node scripts/audit-phase3-boundaries.mjs \
+            --server-root . \
+            --client-root phase3-client \
+            --output "$ARTIFACT_ROOT/phase3-boundary-report.json" > "$ARTIFACT_ROOT/boundary-audit.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/boundary-audit.status"
+          cat "$ARTIFACT_ROOT/boundary-audit.log"
+          exit "$status"
+
+      - name: Verify canonical protocol and commands
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          node scripts/test-japanese-protocol-invariants.js \
+            --client-root phase3-client > "$ARTIFACT_ROOT/protocol-invariants.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/protocol-invariants.status"
+          cat "$ARTIFACT_ROOT/protocol-invariants.log"
+          exit "$status"
+
+      - name: Serve Docker-built pinned client
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          docker run --detach --name showdown-phase3-integration -p 10008:10008 pokemon-showdown-phase3:integration \
+            sh -c 'cd /opt/pokemon-showdown-client/play.pokemonshowdown.com && python3 -m http.server 10008 --bind 0.0.0.0'
+          for attempt in $(seq 1 45); do
+            curl --fail --silent http://127.0.0.1:10008/index-new.html > "$ARTIFACT_ROOT/index-new.html" && exit 0
+            sleep 1
+          done
+          docker logs showdown-phase3-integration
+          exit 1
+
+      - name: Install Japanese fonts
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          fc-cache -f
+          if ! fc-list :lang=ja family | grep -q .; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fi
+          fc-cache -f
+
+      - name: Start Chrome
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          "$browser" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --hide-scrollbars \
+            --no-proxy-server --remote-allow-origins='*' --remote-debugging-address=127.0.0.1 \
+            --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-phase3-integration about:blank \
+            > "$ARTIFACT_ROOT/chrome.log" 2>&1 &
+          echo $! > "$ARTIFACT_ROOT/chrome.pid"
+          for attempt in $(seq 1 45); do
+            curl --fail --silent http://127.0.0.1:9222/json/version > "$ARTIFACT_ROOT/chrome-version.json" && exit 0
+            sleep 1
+          done
+          cat "$ARTIFACT_ROOT/chrome.log"
+          exit 1
+
+      - name: Run battle integration browser flow
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          node scripts/smoke-phase3-integration.mjs \
+            --output-dir "$ARTIFACT_ROOT" \
+            --url http://127.0.0.1:10008/index-new.html > "$ARTIFACT_ROOT/battle-browser.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/battle-browser.status"
+          cat "$ARTIFACT_ROOT/battle-browser.log"
+          exit "$status"
+
+      - name: Run Teambuilder integration browser flow
+        if: steps.state.outputs.finalized != 'true'
+        shell: bash
+        run: |
+          set +e
+          node scripts/smoke-japanese-teambuilder.mjs \
+            --output-dir "$ARTIFACT_ROOT" \
+            --url http://127.0.0.1:10008/index-new.html#teambuilder > "$ARTIFACT_ROOT/teambuilder-browser.log" 2>&1
+          status=$?
+          echo "$status" > "$ARTIFACT_ROOT/teambuilder-browser.status"
+          cat "$ARTIFACT_ROOT/teambuilder-browser.log"
+          exit "$status"
+
+      - name: Wait for existing regression workflows
+        if: steps.state.outputs.finalized != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/wait-phase3-workflows.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --sha "$PHASE3_TARGET_SHA" \
+            --output "$ARTIFACT_ROOT/phase3-workflow-runs.json"
+
+      - name: Generate final Phase 3 report
+        if: steps.state.outputs.finalized != 'true'
+        run: |
+          node scripts/create-phase3-integration-report.mjs \
+            --artifact-root "$ARTIFACT_ROOT" \
+            --output docs/localization/phase-3-integration-regression.json \
+            --server-sha "$PHASE3_TARGET_SHA" \
+            --client-sha "${{ steps.client.outputs.sha }}" \
+            --run-id "$GITHUB_RUN_ID"
+          node scripts/verify-phase3-integration-report.mjs
+
+      - name: Upload Phase 3 integration evidence
+        if: always() && steps.state.outputs.finalized != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-integration-regression-evidence-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            /tmp/phase3-integration
+            docs/localization/phase-3-integration-regression.json
+
+      - name: Commit final Phase 3 report
+        if: steps.state.outputs.finalized != 'true' && github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/localization/phase-3-integration-regression.json
+          git commit -m "Record successful Phase 3 integration regression"
+          git push origin HEAD:"$PHASE3_HEAD_BRANCH"
+
+      - name: Cleanup
+        if: always() && steps.state.outputs.finalized != 'true'
+        run: |
+          test ! -s "$ARTIFACT_ROOT/chrome.pid" || kill "$(cat "$ARTIFACT_ROOT/chrome.pid")" || true
+          docker rm --force showdown-phase3-integration || true
