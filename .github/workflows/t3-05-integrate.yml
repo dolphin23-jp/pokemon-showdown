@@ -65,11 +65,12 @@ jobs:
           status=$?
           set -e
           if [ "$status" -ne 0 ]; then
-            cp /tmp/t3-05-server-test.log t3-05-server-test-error.log
+            diagnostic="t3-05-server-test-${GITHUB_RUN_ID}.txt"
+            cp /tmp/t3-05-server-test.log "$diagnostic"
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -f t3-05-server-test-error.log
-            git commit -m "Record T3-05 server test failure"
+            git add -f "$diagnostic"
+            git commit -m "Record T3-05 server test failure ${GITHUB_RUN_ID}"
             git push origin HEAD:${{ github.head_ref }}
             cat /tmp/t3-05-server-test.log
             exit "$status"
@@ -79,10 +80,10 @@ jobs:
         shell: bash
         run: |
           rm .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt
-          rm -f t3-05-server-test-error.log .eslintcache
+          rm -f t3-05-server-test-error.log t3-05-server-test-*.txt .eslintcache
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add config/pokemon-showdown-client.json docs/localization/phase-3-battle-text-inventory.json docs/localization/phase-3-ui-chrome-inventory.md docs/localization/phase-3-t3-05-battle-chrome-apply.md scripts/generate-phase3-ui-chrome-inventory.mjs scripts/smoke-japanese-battle-chrome.mjs .github/workflows/japanese-battle-chrome.yml
-          git add -u .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt t3-05-server-test-error.log
+          git add -u .github/workflows/t3-05-integrate.yml scripts/apply-t3-05-integration.py t3-05-server-ci-trigger.txt t3-05-server-test-error.log t3-05-server-test-*.txt
           git commit -m "Integrate Phase 3 T3-05 battle chrome"
           git push origin HEAD:${{ github.head_ref }}
