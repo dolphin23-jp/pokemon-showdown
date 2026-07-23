@@ -154,7 +154,7 @@ jobs:
           path = Path('scripts/smoke-japanese-battle-chrome.mjs')
           source = path.read_text(encoding='utf-8')
           old = "\tawait waitFor(() => window.PS?.connection?.connected, 'Showdown connection');"
-          new = r'''\tawait waitFor(() => window.PS, 'Showdown client');
+          new = '''\tawait waitFor(() => window.PS, 'Showdown client');
 \tconst existingConnection = window.PS.connection;
 \tif (!existingConnection?.connected) {
 \t\texistingConnection?.worker?.terminate();
